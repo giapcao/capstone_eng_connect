@@ -6,7 +6,9 @@ using EngConnect.Domain.Abstraction;
 using EngConnect.Infrastructure.EmailService;
 using EngConnect.Infrastructure.JWT;
 using EngConnect.Infrastructure.Persistence;
+using EngConnect.Infrastructure.Persistence.Data;
 using MassTransit;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,7 +18,7 @@ public static class ServiceCollectionExtension
 {
     public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        // services.AddPersistence(configuration);
+         services.AddPersistence(configuration);
         // services.ApplyMigration();
         services.AddUnitOfWork();
         services.AddMessageBus(configuration, AssemblyReference.Assembly, ConfigureConsumers);
@@ -42,6 +44,15 @@ public static class ServiceCollectionExtension
     //         ServerVersion.AutoDetect(connectionBuilder.ConnectionString),
     //         e => { e.SchemaBehavior(MySqlSchemaBehavior.Ignore); }));
     // }
+
+    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new Exception("ConnectionStrings:DefaultConnection is not configured");
+
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(connectionString));
+    }
 
     // private static void AddHostedService(this IServiceCollection services)
     // {
