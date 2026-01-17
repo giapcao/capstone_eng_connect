@@ -65,8 +65,8 @@ public static class Startup
         }
 
         // Start Quartz scheduler for background jobs
-        var scheduler = app.Services.GetRequiredService<ISchedulerFactory>().GetScheduler().Result;
-        app.UseCrystalQuartz(() => scheduler);
+        // var scheduler = app.Services.GetRequiredService<ISchedulerFactory>().GetScheduler().Result;
+        // app.UseCrystalQuartz(() => scheduler);
 
         app.UseRouting();
         app.UseAuthentication();

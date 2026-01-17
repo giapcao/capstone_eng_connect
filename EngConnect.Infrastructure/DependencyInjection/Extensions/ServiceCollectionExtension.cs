@@ -62,7 +62,7 @@ public static class ServiceCollectionExtension
 
     private static void AddUnitOfWork(this IServiceCollection services)
     {
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        // services.AddScoped<IUnitOfWork, UnitOfWork>();
         // services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
     }
 
