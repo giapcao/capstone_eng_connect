@@ -34,16 +34,6 @@ public static class ServiceCollectionExtension
         services.AddFileStorage(configuration);
     }
 
-    // private static void AddPersistence(this IServiceCollection services, IConfiguration configuration)
-    // {
-    //     // Configure Database
-    //     var connectionString = configuration.GetConnectionString("DefaultConnection") ??
-    //         throw new Exception("ConnectionStrings is not configured properly");
-    //     var connectionBuilder = new MySqlConnectionStringBuilder(connectionString);
-    //     services.AddDbContext<ApplicationDbContext>(options => options.UseMySql(connectionString,
-    //         ServerVersion.AutoDetect(connectionBuilder.ConnectionString),
-    //         e => { e.SchemaBehavior(MySqlSchemaBehavior.Ignore); }));
-    // }
 
     private static void AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
