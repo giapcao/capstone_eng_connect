@@ -1,3 +1,5 @@
+using EngConnect.Application.UseCases.User.Common;
+using EngConnect.Domain.Persistence.Models;
 using Mapster;
 
 namespace EngConnect.Application.Mapping

@@ -1,6 +1,6 @@
 using Serilog;
-using System.Text;
 using EngConnect.Presentation;
+using System.Text;
 
 // Set UTF-8 Encoding for console output
 Console.OutputEncoding = Encoding.UTF8;

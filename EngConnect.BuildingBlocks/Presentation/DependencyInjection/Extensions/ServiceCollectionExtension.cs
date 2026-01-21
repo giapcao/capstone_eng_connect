@@ -54,7 +54,7 @@ public static class ServiceCollectionExtension
                 }
             });
 
-            opt.AddScalarFilters();
+            // opt.AddScalarFilters();
             // Optional: Add XML comments if you have them
             if (ValidationUtil.IsNotNullOrEmpty(xmlAssemblies))
             {

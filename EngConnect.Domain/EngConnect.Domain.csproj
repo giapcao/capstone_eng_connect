@@ -12,8 +12,6 @@
 
     <ItemGroup>
       <Folder Include="Abstraction\Entities\" />
-      <Folder Include="Constants\" />
-      <Folder Include="DomainErrors\" />
     </ItemGroup>
 
 </Project>
