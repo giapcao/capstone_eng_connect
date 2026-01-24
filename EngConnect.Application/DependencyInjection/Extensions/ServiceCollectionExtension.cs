@@ -1,5 +1,6 @@
 using System.Reflection.Metadata;
 using EngConnect.Application.Mapping;
+using EngConnect.Application.UseCases.Students.CreateStudent;
 using EngConnect.BuildingBlock.DependencyInjection.Extensions;
 using FluentValidation;
 using MapsterMapper;
@@ -30,6 +31,6 @@ public static class ServiceCollectionExtension
         // Authentication Section
         // services.AddScoped<IValidator<RegisterAccountByCustomerCommand>, RegisterAccountByCustomerCommandValidator>();
         // services.AddScoped<IValidator<LoginByCustomerCommand>, LoginByCustomerCommandValidator>();
-        
+        services.AddScoped<IValidator<CreateStudentCommand>, CreateUserCommandValidator>();
     }
 }
