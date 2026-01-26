@@ -3,6 +3,7 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.DomainErrors;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,7 @@ namespace EngConnect.Application.UseCases.Tutor.CreateTutor
                     !TutorStatusExtensions.IsValidTutorStatus(command.Request.Status))
                 {
                     return Result.Failure(HttpStatusCode.BadRequest,
-                        CommonErrors.ValidationFailed($"Invalid tutor status '{command.Request.Status}'."));
+                        TutorErrors.InvalidStatus(command.Request.Status));
                 }
 
                 // Validate verified status
@@ -45,7 +46,7 @@ namespace EngConnect.Application.UseCases.Tutor.CreateTutor
                     !TutorStatusExtensions.IsValidTutorVerifiedStatus(command.Request.VerifiedStatus))
                 {
                     return Result.Failure(HttpStatusCode.BadRequest,
-                        CommonErrors.ValidationFailed($"Invalid tutor verified status '{command.Request.VerifiedStatus}'."));
+                        TutorErrors.InvalidVerifiedStatus(command.Request.VerifiedStatus));
                 }
 
                 var repo = _unitOfWork.GetRepository<Domain.Persistence.Models.Tutor, Guid>();

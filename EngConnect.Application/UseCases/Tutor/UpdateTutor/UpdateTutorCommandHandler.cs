@@ -3,6 +3,7 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.DomainErrors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -38,7 +39,7 @@ namespace EngConnect.Application.UseCases.Tutor.UpdateTutor
                     !TutorStatusExtensions.IsValidTutorStatus(command.Request.Status))
                 {
                     return Result.Failure(HttpStatusCode.BadRequest,
-                        CommonErrors.ValidationFailed($"Invalid tutor status '{command.Request.Status}'."));
+                        TutorErrors.InvalidStatus(command.Request.Status));
                 }
 
                 // Validate verified status
@@ -46,7 +47,7 @@ namespace EngConnect.Application.UseCases.Tutor.UpdateTutor
                     !TutorStatusExtensions.IsValidTutorVerifiedStatus(command.Request.VerifiedStatus))
                 {
                     return Result.Failure(HttpStatusCode.BadRequest,
-                        CommonErrors.ValidationFailed($"Invalid tutor verified status '{command.Request.VerifiedStatus}'."));
+                        TutorErrors.InvalidVerifiedStatus(command.Request.VerifiedStatus));
                 }
 
                 var repo = _unitOfWork.GetRepository<Domain.Persistence.Models.Tutor, Guid>();
@@ -57,7 +58,7 @@ namespace EngConnect.Application.UseCases.Tutor.UpdateTutor
 
                 if (entity is null)
                 {
-                    return Result.Failure<bool>(HttpStatusCode.NotFound, CommonErrors.NotFound<Domain.Persistence.Models.Tutor>("Tutor"));
+                    return Result.Failure<bool>(HttpStatusCode.NotFound, TutorErrors.TutorNotFound());
                 }
 
                 entity.Headline = command.Request.Headline ?? entity.Headline;

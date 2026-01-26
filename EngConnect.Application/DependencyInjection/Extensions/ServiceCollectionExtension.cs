@@ -1,5 +1,7 @@
 using System.Reflection.Metadata;
 using EngConnect.Application.Mapping;
+using EngConnect.Application.UseCases.Tutor.CreateTutor;
+using EngConnect.Application.UseCases.Tutor.UpdateTutor;
 using EngConnect.BuildingBlock.DependencyInjection.Extensions;
 using FluentValidation;
 using MapsterMapper;
@@ -26,10 +28,12 @@ public static class ServiceCollectionExtension
     {
         // Explicitly register specific validators if necessary
         // services.AddScoped<IValidator<COMMAND_CLASS>, COMMAND_VALIDATOR_CLASS>();
+        services.AddScoped<IValidator<CreateTutorCommand>, CreateTutorCommandValidator>();
+        services.AddScoped<IValidator<UpdateTutorCommand>, UpdateTutorCommandValidator>();
 
         // Authentication Section
         // services.AddScoped<IValidator<RegisterAccountByCustomerCommand>, RegisterAccountByCustomerCommandValidator>();
         // services.AddScoped<IValidator<LoginByCustomerCommand>, LoginByCustomerCommandValidator>();
-        
+
     }
 }
