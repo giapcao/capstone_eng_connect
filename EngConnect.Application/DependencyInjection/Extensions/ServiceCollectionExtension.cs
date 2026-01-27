@@ -4,6 +4,8 @@ using EngConnect.Application.UseCases.CourseEnrollments.CreateCourseEnrollment;
 using EngConnect.Application.UseCases.CourseEnrollments.GetListCourseEnrollments;
 using EngConnect.Application.UseCases.CourseEnrollments.UpdateCourseEnrollment;
 using EngConnect.Application.UseCases.CourseEnrollments.UpdateCourseEnrollmentStatus;
+using EngConnect.Application.UseCases.LessonRecords.CreateLessonRecord;
+using EngConnect.Application.UseCases.LessonRecords.UpdateLessonRecord;
 using EngConnect.Application.UseCases.Lessons.CreateLesson;
 using EngConnect.Application.UseCases.Lessons.GetListLessons;
 using EngConnect.Application.UseCases.Lessons.UpdateLesson;
@@ -53,5 +55,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<UpdateCourseEnrollmentCommand>, UpdateCourseEnrollmentCommandValidator>();
         services.AddScoped<IValidator<GetListCourseEnrollmentQuery>, GetListCourseEnrollmentValidator>();
         services.AddScoped<IValidator<UpdateCourseEnrollmentStatusCommand>, UpdateCourseEnrollmentStatusValidator>();
+        services.AddScoped<IValidator<CreateLessonRecordCommand>, CreateLessonRecordCommandValidator>();
+        services.AddScoped<IValidator<UpdateLessonRecordCommand>,  UpdateLessonRecordCommandValidator>();
     }
 }
