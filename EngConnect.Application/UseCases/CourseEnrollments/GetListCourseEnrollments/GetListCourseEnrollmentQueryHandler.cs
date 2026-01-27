@@ -41,25 +41,27 @@ public class GetListCourseEnrollmentQueryHandler : IQueryHandler<GetListCourseEn
                 predicate = predicate.CombineAndAlsoExpressions(x => x.Status != null && query.Status.ToLower().Contains(x.Status.ToLower()));
             }
             
-            enrollments = enrollments.Where(predicate);
+
             
             if (query.CourseId.HasValue)
                 enrollments = enrollments.Where(x => x.CourseId == query.CourseId);
 
             if (query.StudentId.HasValue)
-                enrollments = enrollments.Where(x => x.StudentId == query.StudentId);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.StudentId == query.StudentId);
             
             if (query.EnrolledFrom.HasValue)
-                enrollments = enrollments.Where(x => x.EnrolledAt >= query.EnrolledFrom);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.EnrolledAt >= query.EnrolledFrom);
             
             if (query.EnrolledTo.HasValue)
-                enrollments = enrollments.Where(x => x.EnrolledAt <= query.EnrolledTo);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.EnrolledAt <= query.EnrolledTo);
             
             if (query.ExpiredFrom.HasValue)
-                enrollments = enrollments.Where(x => x.ExpiredAt >= query.ExpiredFrom);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.ExpiredAt >= query.ExpiredFrom);
 
             if (query.ExpiredTo.HasValue)
-                enrollments = enrollments.Where(x => x.ExpiredAt <= query.ExpiredTo);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.ExpiredAt <= query.ExpiredTo);
+            
+            enrollments = enrollments.Where(predicate);
             
             enrollments = enrollments.ApplySorting(query.GetSortParams());
 

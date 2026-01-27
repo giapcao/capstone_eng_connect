@@ -30,8 +30,12 @@ public class GetListLessonRecordQueryHandler : IQueryHandler<GetListLessonRecord
         {
             var lessonRecords = _unitOfWork.GetRepository<LessonRecord, Guid>().FindAll();
             
+            Expression<Func<LessonRecord, bool>> predicate = x => true;
+            
             if(query.LessonId.HasValue)
-                lessonRecords = lessonRecords.Where(x=>x.LessonId == query.LessonId);
+                predicate = predicate.CombineAndAlsoExpressions(x=>x.LessonId == query.LessonId);
+            
+            lessonRecords = lessonRecords.Where(predicate);
             
             lessonRecords = lessonRecords.ApplySorting(query.GetSortParams());
 

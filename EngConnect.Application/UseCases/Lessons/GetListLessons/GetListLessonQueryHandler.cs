@@ -7,7 +7,6 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
-using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 
@@ -42,25 +41,25 @@ public class GetListLessonQueryHandler : IQueryHandler<GetListLessonQuery, Pagin
                 predicate = predicate.CombineAndAlsoExpressions(x => x.Status != null && query.Status.ToLower().Contains(x.Status.ToLower()));
             }
             
-            lessons = lessons.Where(predicate);
-            
             if (query.StartTimeFrom.HasValue)
-                lessons = lessons.Where(x => x.StartTime >= query.StartTimeFrom);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.StartTime >= query.StartTimeFrom);
             
             if (query.StartTimeTo.HasValue)
-                lessons = lessons.Where(x => x.StartTime <= query.StartTimeTo);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.StartTime <= query.StartTimeTo);
             
             if (query.TutorId.HasValue)
             {
-                lessons = lessons.Where(x => x.TutorId == query.TutorId);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId);
             }
 
             if (query.StudentId.HasValue)
             {
-                lessons = lessons.Where(x => x.StudentId == query.StudentId);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.StudentId == query.StudentId);
             }
             
-            lessons = lessons .ApplySorting(query.GetSortParams());
+            lessons = lessons.Where(predicate);
+            
+            lessons = lessons.ApplySorting(query.GetSortParams());
 
             var result =
                 await lessons.ProjectToPaginatedListAsync<Lesson, GetLessonResponse>
