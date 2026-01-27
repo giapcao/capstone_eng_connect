@@ -41,7 +41,7 @@ public class UpdateStudentCommandHandler : ICommandHandler<UpdateStudentCommand>
             await _unitOfWork.SaveChangesAsync();
             
             _logger.LogInformation("End UpdateStudentCommandHandler");
-            return Result.Success();
+            return Result.Success(studentEntity);
         }
         catch (Exception ex)
         {

@@ -3,9 +3,9 @@ using FluentValidation;
 
 namespace EngConnect.Application.UseCases.Students.CreateStudent;
 
-public class CreateUserCommandValidator : AbstractValidator<CreateStudentCommand>
+public class CreateStudentCommandValidator : AbstractValidator<CreateStudentCommand>
 {
-    public CreateUserCommandValidator()
+    public CreateStudentCommandValidator()
     {
         RuleForEach(x => new[] { x.Class, x.Grade, x.School })
             .MaximumLength(50)

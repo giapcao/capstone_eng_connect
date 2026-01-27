@@ -26,29 +26,37 @@ public class CreateStudentCommandHandler : ICommandHandler<CreateStudentCommand>
         _logger.LogInformation("Start CreateStudentCommandHandler: {@command}",command);
         try
         {
-            var student = command.Adapt<Student>();
             
-            var user = await _unitOfWork.GetRepository<Domain.Persistence.Models.User, Guid>()
-                .AnyAsync(x=>x.Id == student.UserId, cancellationToken: cancellationToken);
+            var userExists = await _unitOfWork.GetRepository<Domain.Persistence.Models.User, Guid>()
+                .AnyAsync(x=>x.Id == command.UserId, cancellationToken: cancellationToken);
             
-            var studentExist = await  _unitOfWork.GetRepository<Student, Guid>()
-                .AnyAsync(x=>x.UserId == student.UserId, cancellationToken);
-            if (!user || studentExist)
+            var studentExists =await  _unitOfWork.GetRepository<Student, Guid>()
+                .AnyAsync(x=>x.UserId == command.UserId, cancellationToken);
+            
+            if (!userExists)
             {
-                _logger.LogWarning( " UserId không tồn tại hoặc student đã tồn tại: {userId}", command.UserId);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Domain.Persistence.Models.User>("UserId hoặc Student đã tồn tại"));
+                _logger.LogWarning( " UserId không tồn tại : {userId}", command.UserId);
+                return Result.Failure<Guid>(HttpStatusCode.NotFound, CommonErrors.NotFound<Domain.Persistence.Models.User>("UserId không tồn tại"));
             }
+            
+            if (studentExists)
+            {
+                _logger.LogWarning( " Student đã tồn tại: {userId}", command.UserId);
+                return Result.Failure<Guid>(HttpStatusCode.BadRequest, CommonErrors.AlreadyExists("StudentId","đã tồn tại"));
+            }
+            
+            var student = command.Adapt<Student>();
             student.Status = nameof(StudentStatus.Active);
             _unitOfWork.GetRepository<Student, Guid>().Add(student);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("End CreateStudentCommandHandler");
             
-            return Result.Success();
+            return Result.Success(student);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in CreateStudentCommandHandler {@Message}", ex.Message);
-            return Result.Failure(HttpStatusCode.InternalServerError,
+            return Result.Failure<Guid>(HttpStatusCode.InternalServerError,
                 CommonErrors.InternalServerError());
         }
     }

@@ -9,6 +9,7 @@ using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using Microsoft.Extensions.Logging;
 using EngConnect.Domain.Persistence.Models;
+
 namespace EngConnect.Application.UseCases.Students.GetListStudents;
 
 public class GetListStudentQueryHandler : IQueryHandler<GetListStudentQuery, PaginationResult<GetStudentResponse>>
@@ -29,10 +30,10 @@ public class GetListStudentQueryHandler : IQueryHandler<GetListStudentQuery, Pag
         {
             var students = _unitOfWork.GetRepository<Student, Guid>().FindAll();
             Expression<Func<Student, bool>> predicate = x => true;
-
+            
             if (ValidationUtil.IsNotNullOrEmpty(query.Status))
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.Status != null && query.Status.Contains(x.Status));
+                predicate = predicate.CombineAndAlsoExpressions(x => x.Status != null && query.Status.ToLower().Contains(x.Status.ToLower()));
             }
 
             students = students.Where(predicate);

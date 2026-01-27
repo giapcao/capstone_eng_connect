@@ -1,9 +1,3 @@
-using EngConnect.Application.UseCases.Students.CreateStudent;
-using EngConnect.Application.UseCases.Students.UpdateStudent;
-using EngConnect.Application.UseCases.User.Common;
-using EngConnect.Domain.Persistence.Models;
-using Mapster;
-
 namespace EngConnect.Application.Mapping
 {
     public static class MappingConfig
@@ -14,9 +8,6 @@ namespace EngConnect.Application.Mapping
             // TypeAdapterConfig<ProductVariant, GetProductVariantResponse>.NewConfig()
             //     .Map(dest => dest.VariantDetail, src => src.ProductVariantDetails);
 
-            TypeAdapterConfig<CreateStudentCommand, Student>.NewConfig();
-            TypeAdapterConfig<UpdateStudentCommand, Student>
-                .NewConfig();
         }
     }
 }
