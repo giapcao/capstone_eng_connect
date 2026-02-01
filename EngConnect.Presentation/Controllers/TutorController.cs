@@ -73,7 +73,7 @@ namespace EngConnect.Presentation.Controllers
                 return FromResult(result);
             }
 
-            return Created();
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         /// <summary>

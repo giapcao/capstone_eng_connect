@@ -32,5 +32,20 @@ namespace EngConnect.Domain.DomainErrors
 
         public static Error InvalidUserId() =>
             new Error("Tutor.InvalidUserId", "Người dùng của gia sư không hợp lệ.");
+
+        public static Error VerificationRequestAlreadyPending(Guid tutorId) =>
+            new Error("Tutor.VerificationRequestAlreadyPending", $"Gia sư với Id '{tutorId}' đã có yêu cầu xác thực đang chờ xử lý.");
+
+        public static Error InvalidVerificationRequestId() =>
+            new Error("Tutor.InvalidVerificationRequestId", "Yêu cầu xác thực gia sư không hợp lệ.");
+
+        public static Error InvalidRejectionReason() =>
+            new Error("Tutor.InvalidRejectionReason", "Lý do từ chối không hợp lệ.");
+
+        public static Error VerificationRequestNotFound(Guid requestId) =>
+            new Error("Tutor.VerificationRequest.NotFound", $"Không tìm thấy yêu cầu xác thực gia sư với Id '{requestId}'.");
+
+        public static Error VerificationRequestAlreadyReviewed(Guid requestId) =>
+            new Error("Tutor.VerificationRequest.AlreadyReviewed", $"Yêu cầu xác thực gia sư với Id '{requestId}' đã được xem xét.");
     }
 }
