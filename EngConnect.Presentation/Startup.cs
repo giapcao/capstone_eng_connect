@@ -19,6 +19,21 @@ public static class Startup
         builder.ConfigureAuthorization();
         builder.ConfigureAppSettings();
         builder.ConfigureControllers();
+        
+        
+        //Implement temp add cors
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("FrontendOnly",
+                policy =>
+                {
+                    policy
+                        .WithOrigins("http://localhost:5173")
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials(); // nếu dùng cookie / auth
+                });
+        });
     }
     
     private static void ConfigureControllers(this WebApplicationBuilder builder)
