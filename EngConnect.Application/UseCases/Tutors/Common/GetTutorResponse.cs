@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EngConnect.Application.UseCases.Tutor.Common
+namespace EngConnect.Application.UseCases.Tutors.Common
 {
     public class GetTutorResponse : AuditableEntity<Guid>
     {

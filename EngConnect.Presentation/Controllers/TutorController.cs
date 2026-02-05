@@ -1,9 +1,9 @@
-﻿using EngConnect.Application.UseCases.Tutor.Common;
-using EngConnect.Application.UseCases.Tutor.CreateTutor;
-using EngConnect.Application.UseCases.Tutor.DeleteTutor;
-using EngConnect.Application.UseCases.Tutor.GetListTutor;
-using EngConnect.Application.UseCases.Tutor.GetTutorById;
-using EngConnect.Application.UseCases.Tutor.UpdateTutor;
+﻿using EngConnect.Application.UseCases.Tutors.Common;
+using EngConnect.Application.UseCases.Tutors.CreateTutor;
+using EngConnect.Application.UseCases.Tutors.DeleteTutor;
+using EngConnect.Application.UseCases.Tutors.GetListTutor;
+using EngConnect.Application.UseCases.Tutors.GetTutorById;
+using EngConnect.Application.UseCases.Tutors.UpdateTutor;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Shared;

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EngConnect.Application.UseCases.Tutor.UpdateTutor
+﻿namespace EngConnect.Application.UseCases.Tutors.CreateTutor
 {
-    public class UpdateTutorRequest
+    public class CreateTutorRequest
     {
+        public Guid UserId { get; set; }
+
         public string? Headline { get; set; }
 
         public string? Bio { get; set; }

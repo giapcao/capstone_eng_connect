@@ -1,4 +1,6 @@
-﻿using EngConnect.Application.UseCases.Tutor.Common;
+﻿using System.Linq.Expressions;
+using System.Net;
+using EngConnect.Application.UseCases.Tutors.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
@@ -6,15 +8,8 @@ using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EngConnect.Application.UseCases.Tutor.GetListTutor
+namespace EngConnect.Application.UseCases.Tutors.GetListTutor
 {
     public class GetListTutorQueryHandler : IQueryHandler<GetListTutorQuery, PaginationResult<GetTutorResponse>>
     {

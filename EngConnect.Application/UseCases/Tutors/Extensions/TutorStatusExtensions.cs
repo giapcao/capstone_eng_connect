@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EngConnect.Application.UseCases.Tutor.Extensions
+namespace EngConnect.Application.UseCases.Tutors.Extensions
 {
     public static class TutorStatusExtensions
     {
@@ -22,7 +22,7 @@ namespace EngConnect.Application.UseCases.Tutor.Extensions
                 return false;
             }
 
-            return Enum.TryParse<StudentStatus>(status, ignoreCase: true, out _);
+            return Enum.TryParse<TutorVerifiedStatus>(status, ignoreCase: true, out _);
         }
     }
 }

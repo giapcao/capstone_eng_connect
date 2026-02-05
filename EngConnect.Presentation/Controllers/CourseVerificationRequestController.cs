@@ -54,7 +54,7 @@ public class CourseVerificationRequestController : BaseApiController
     }
 
     /// <summary>
-    /// Tạo mới CourseVerificationRequest
+    /// Gia sư tạo đơn xác thực khóa học
     /// </summary>
     [HttpPost]
     [Produces("application/json")]
@@ -66,7 +66,7 @@ public class CourseVerificationRequestController : BaseApiController
     }
 
     /// <summary>
-    /// Cập nhật CourseVerificationRequest
+    /// Cập nhật đơn xác thực khóa học
     /// </summary>
     [HttpPatch("{id}")]
     [Produces("application/json")]

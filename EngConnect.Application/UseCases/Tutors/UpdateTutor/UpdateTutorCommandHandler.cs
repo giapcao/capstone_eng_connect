@@ -1,4 +1,5 @@
-﻿using EngConnect.Application.UseCases.Tutor.Extensions;
+﻿using System.Net;
+using EngConnect.Application.UseCases.Tutors.Extensions;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -6,14 +7,8 @@ using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.DomainErrors;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace EngConnect.Application.UseCases.Tutor.UpdateTutor
+namespace EngConnect.Application.UseCases.Tutors.UpdateTutor
 {
     internal class UpdateTutorCommandHandler : ICommandHandler<UpdateTutorCommand>
     {

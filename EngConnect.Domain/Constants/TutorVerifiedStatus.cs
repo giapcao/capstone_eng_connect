@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EngConnect.Domain.Constants;
 
-public enum StudentStatus
+public enum TutorVerifiedStatus
 {
     Verified = 1,
     Unverified = 2,
