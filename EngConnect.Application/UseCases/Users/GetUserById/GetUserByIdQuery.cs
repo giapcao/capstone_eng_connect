@@ -3,5 +3,5 @@ using EngConnect.BuildingBlock.Application.Base;
 
 namespace EngConnect.Application.UseCases.Users.GetUserById;
 
-public record GetUserByIdQuery(Guid Id) : IQuery<GetUserResponse>;
+public record GetUserByIdQuery(Guid Id) : IQuery<GetUserResponseDetail>;
 
