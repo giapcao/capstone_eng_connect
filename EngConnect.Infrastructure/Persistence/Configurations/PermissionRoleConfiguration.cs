@@ -13,8 +13,7 @@ public class PermissionRoleConfiguration : IEntityTypeConfiguration<PermissionRo
         builder.ToTable("permission_role");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.PermissionId)
             .HasColumnName("permission_id");

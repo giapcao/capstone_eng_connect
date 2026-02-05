@@ -13,8 +13,7 @@ public class SupportTicketMessageConfiguration : IEntityTypeConfiguration<Suppor
         builder.ToTable("support_ticket_message");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("gen_random_uuid()");
+            .HasColumnName("id");
 
         builder.Property(e => e.TicketId)
             .HasColumnName("ticket_id");

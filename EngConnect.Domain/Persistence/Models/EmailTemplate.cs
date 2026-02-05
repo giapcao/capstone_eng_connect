@@ -7,13 +7,12 @@ public class EmailTemplate : AuditableEntity<Guid>
 {
     public string Name { get; set; } = null!;
 
-    public string SubjectTemplate { get; set; } = null!;
+    public string Subject { get; set; } = null!;
 
-    public string? BodyHtmlTemplate { get; set; }
+    public string Body { get; set; } = null!;
 
-    public string? BodyTextTemplate { get; set; }
+    public string EventType { get; set; } = null!;
 
-    public Guid? UpdatedBy { get; set; }
+    public string Role { get; set; } = null!;
 
-    public virtual User? UpdatedByNavigation { get; set; }
 }

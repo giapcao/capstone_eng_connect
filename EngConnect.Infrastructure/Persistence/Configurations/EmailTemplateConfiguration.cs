@@ -13,24 +13,25 @@ public class EmailTemplateConfiguration : IEntityTypeConfiguration<EmailTemplate
         builder.ToTable("email_template");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("gen_random_uuid()");
+            .HasColumnName("id");
 
         builder.Property(e => e.Name)
             .HasMaxLength(100)
             .HasColumnName("name");
 
-        builder.Property(e => e.SubjectTemplate)
-            .HasColumnName("subject_template");
+        builder.Property(e => e.Subject)
+            .HasColumnName("subject");
 
-        builder.Property(e => e.BodyHtmlTemplate)
-            .HasColumnName("body_html_template");
+        builder.Property(e => e.Body)
+            .HasColumnType("text")
+            .HasColumnName("body");
 
-        builder.Property(e => e.BodyTextTemplate)
-            .HasColumnName("body_text_template");
+        builder.Property(e => e.EventType)
+            .HasColumnName("event_type");
 
-        builder.Property(e => e.UpdatedBy)
-            .HasColumnName("updated_by");
+        builder.Property(e => e.Role)
+            .HasMaxLength(100)
+            .HasColumnName("role");
 
         builder.Property(e => e.CreatedAt)
             .HasColumnName("created_at")
@@ -46,11 +47,6 @@ public class EmailTemplateConfiguration : IEntityTypeConfiguration<EmailTemplate
 
         builder.Property(e => e.DeletedAt)
             .HasColumnName("deleted_at");
-
-        builder.HasOne(d => d.UpdatedByNavigation)
-            .WithMany(p => p.EmailTemplates)
-            .HasForeignKey(d => d.UpdatedBy)
-            .HasConstraintName("fk_email_template_updated_by");
     }
 }
 

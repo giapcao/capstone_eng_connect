@@ -13,8 +13,7 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
         builder.ToTable("order");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("gen_random_uuid()");
+            .HasColumnName("id");
 
         builder.Property(e => e.StudentId)
             .HasColumnName("student_id");

@@ -13,8 +13,7 @@ public class LessonScriptConfiguration : IEntityTypeConfiguration<LessonScript>
         builder.ToTable("lesson_script");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.LessonId)
             .HasColumnName("lesson_id");

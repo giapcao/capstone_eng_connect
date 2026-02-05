@@ -13,8 +13,7 @@ public class CategoryConfiguration : IEntityTypeConfiguration<Category>
         builder.ToTable("category");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.Name)
             .HasMaxLength(255)
