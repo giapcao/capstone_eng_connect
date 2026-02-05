@@ -25,6 +25,8 @@ using EngConnect.Application.UseCases.Students.CreateStudent;
 using EngConnect.Application.UseCases.Students.GetListStudents;
 using EngConnect.Application.UseCases.Students.UpdateStatusStudent;
 using EngConnect.Application.UseCases.Students.UpdateStudent;
+using EngConnect.Application.UseCases.Tutor.CreateTutor;
+using EngConnect.Application.UseCases.Tutor.UpdateTutor;
 using EngConnect.BuildingBlock.DependencyInjection.Extensions;
 using FluentValidation;
 using MapsterMapper;
@@ -51,6 +53,9 @@ public static class ServiceCollectionExtension
     {
         // Explicitly register specific validators if necessary
         // services.AddScoped<IValidator<COMMAND_CLASS>, COMMAND_VALIDATOR_CLASS>();
+        // Tutor Section
+        services.AddScoped<IValidator<CreateTutorCommand>, CreateTutorCommandValidator>();
+        services.AddScoped<IValidator<UpdateTutorCommand>, UpdateTutorCommandValidator>();
 
         // Authentication Section
         services.AddScoped<IValidator<LoginByUserCommand>, LoginByUserCommandValidator>();
