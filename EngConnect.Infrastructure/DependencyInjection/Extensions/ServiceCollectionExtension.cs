@@ -4,9 +4,15 @@ using EngConnect.BuildingBlock.Infrastructure.DependencyInjection.Extensions;
 using EngConnect.BuildingBlock.Infrastructure.JWT;
 using EngConnect.Domain.Abstraction;
 using EngConnect.Infrastructure.EmailService;
+using EngConnect.Infrastructure.FileStorageService;
 using EngConnect.Infrastructure.JWT;
 using EngConnect.Infrastructure.Persistence;
 using EngConnect.Infrastructure.Persistence.Data;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Auth.OAuth2.Flows;
+using Google.Apis.Auth.OAuth2.Responses;
+using Google.Apis.Drive.v3;
+using Google.Apis.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +38,7 @@ public static class ServiceCollectionExtension
         services.AddAuthenticationServices();
         services.AddMailKitEmailService(configuration);
         services.AddFileStorage(configuration);
+        services.AddGoogleDriveStorageService(configuration);
     }
 
 
@@ -114,5 +121,44 @@ public static class ServiceCollectionExtension
         services.AddScoped<IJwtTokenService, JwtTokenService>(); 
         services.AddScoped<IClaimsExtractor, ClaimsExtractor>();
 
+    }
+    
+    private static void AddGoogleDriveStorageService(this IServiceCollection services, IConfiguration configuration)
+    {
+        var settings = configuration.GetSection(GoogleDriveSettings.Section).Get<GoogleDriveSettings>() ??
+                       throw new Exception("GoogleDriveSettings are not configured");
+    
+        services.Configure<GoogleDriveSettings>(configuration.GetSection(GoogleDriveSettings.Section));
+
+        services.AddSingleton<DriveService>(_ =>
+        {
+            var clientSecrets = new ClientSecrets
+            {
+                ClientId = settings.ClientId,
+                ClientSecret = settings.ClientSecret
+            };
+
+            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
+            {
+                ClientSecrets = clientSecrets,
+                Scopes = [DriveService.Scope.Drive],
+                DataStore = null 
+            });
+
+            var tokenResponse = new TokenResponse
+            {
+                RefreshToken = settings.RefreshToken
+            };
+            
+            var credential = new UserCredential(flow, "user", tokenResponse);
+            
+            return new DriveService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = settings.ApplicationName
+            });
+        });
+
+        services.AddScoped<IDriveService, GoogleDriveService>();
     }
 }
