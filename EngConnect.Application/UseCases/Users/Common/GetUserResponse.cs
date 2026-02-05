@@ -1,4 +1,6 @@
-namespace EngConnect.Application.UseCases.User.Common;
+using EngConnect.Application.UseCases.Roles.Common;
+
+namespace EngConnect.Application.UseCases.Users.Common;
 
 public record GetUserResponse
 {
@@ -14,8 +16,23 @@ public record GetUserResponse
     public string? WardId { get; set; }
     public string? WardName { get; set; }
     public string? Status { get; set; }
+    public List<GetRoleForUserResponse>? Roles { get; set; } 
     public bool? IsEmailVerified { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
 
+public record GetRoleForUserResponse
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = null!;
+    public string? Description { get; set; }
+    public List<GetPermissionResponseForUser>? Permissions { get; set; }
+}
+
+public record GetPermissionResponseForUser
+{
+    public Guid Id { get; set; }
+    public string Code { get; set; } = null!;
+    public string? Description { get; set; }
+}
