@@ -10,7 +10,7 @@ public static class ClaimsPrincipalExtensions
 {
     public static bool IsAdmin(this ClaimsPrincipal? principal)
     {
-        return principal != null && principal.IsInRole(nameof(UserRole.Admin));
+        return principal != null && principal.IsInRole(nameof(UserRoleEnum.Admin));
     }
 
     public static Guid? GetUserId(this ClaimsPrincipal? principal)
@@ -38,6 +38,11 @@ public static class ClaimsPrincipalExtensions
     public static string? GetRole(this ClaimsPrincipal? principal)
     {
         return principal?.FindFirst("role")?.Value;
+    }
+    
+    public static List<string>? GetRoles(this ClaimsPrincipal? principal)
+    {
+        return principal?.FindAll("role").Select(r => r.Value).ToList();
     }
 
     public static string? GetAccessToken(this HttpContext httpContext)
@@ -75,7 +80,7 @@ public static class ClaimsPrincipalExtensions
         {
             CreatedById = GetUserId(principal),
             CreatedBy = GetUsername(principal),
-            Role = GetRole(principal) == null ? null : Enum.Parse<UserRole>(GetRole(principal)!)
+            Role = GetRole(principal) == null ? null : Enum.Parse<UserRoleEnum>(GetRole(principal)!)
         };
     }
 }

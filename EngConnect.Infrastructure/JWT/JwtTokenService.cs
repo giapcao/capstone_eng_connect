@@ -5,6 +5,7 @@ using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.Domain.Abstraction;
+using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -42,11 +43,11 @@ public class JwtTokenService : IJwtTokenService
         }
     }
 
-    // public string GenerateAccessToken(User user)
-    // {
-    //     var claims = BuildUserClaims(user);
-    //     return GenerateAccessTokenFromClaims(claims);
-    // }
+    public string GenerateAccessToken(User user)
+    {
+        var claims = BuildUserClaims(user);
+        return GenerateAccessTokenFromClaims(claims);
+    }
     //
     // public string GenerateAccessToken(Customer customer)
     // {
@@ -143,21 +144,30 @@ public class JwtTokenService : IJwtTokenService
         };
     }
 
-    // // Helper method to build claims from User entity
-    // private static List<Claim> BuildUserClaims(User user)
-    // {
-    //     return
-    //     [
-    //         new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-    //         new Claim(JwtRegisteredClaimNames.Email, user.Email),
-    //         new Claim(ClaimTypes.Role, nameof(UserRole.Admin)),
-    //         new Claim(ClaimTypes.Name, user.Username),
-    //         new Claim("firstname", user.Firstname),
-    //         new Claim("lastname", user.Lastname),
-    //         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-    //     ];
-    // }
-    //
+    // Helper method to build claims from User entity
+    private static List<Claim> BuildUserClaims(User user)
+    {
+        var roles = user!.UserRoles
+            .Select(ur => ur.Role.Code)
+            .ToList();
+        var claims = new List<Claim>
+        {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(ClaimTypes.Name, user.UserName),
+            new Claim("firstname", user.FirstName),
+            new Claim("lastname", user.LastName),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+        
+        //Add role claims 
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+        return claims;
+    }
+    
     // // Helper method to build claims from Customer entity
     // private static List<Claim> BuildCustomerClaims(Customer user)
     // {
