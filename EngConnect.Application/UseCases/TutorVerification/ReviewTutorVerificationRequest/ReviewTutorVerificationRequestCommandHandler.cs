@@ -2,6 +2,7 @@
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
@@ -41,33 +42,43 @@ namespace EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificat
                 var requestRepo = _unitOfWork.GetRepository<TutorVerificationRequest, Guid>();
                 var tutorRepo = _unitOfWork.GetRepository<Domain.Persistence.Models.Tutor, Guid>();
 
-                var request = await requestRepo.FindFirstAsync(r => r.Id == command.Request.RequestId);
+                var request = await requestRepo.FindFirstAsync(
+                    r => r.Id == command.Request.RequestId,
+                    cancellationToken: cancellationToken);
 
                 if (request is null)
                 {
-                    return Result.Failure(HttpStatusCode.NotFound,
+                    return Result.Failure(
+                        HttpStatusCode.NotFound,
                         TutorErrors.VerificationRequestNotFound(command.Request.RequestId));
                 }
 
-                if (request.Status != "pending")
+                if (!string.Equals(request.Status, nameof(TutorVerificationRequestStatus.Pending), StringComparison.Ordinal))
                 {
-                    return Result.Failure(HttpStatusCode.BadRequest,
+                    return Result.Failure(
+                        HttpStatusCode.BadRequest,
                         TutorErrors.VerificationRequestAlreadyReviewed(command.Request.RequestId));
                 }
 
-                request.Status = command.Request.Approved ? "approved" : "rejected";
+                request.Status = command.Request.Approved
+                    ? nameof(TutorVerificationRequestStatus.Approved)
+                    : nameof(TutorVerificationRequestStatus.Rejected);
+
                 request.ReviewedBy = command.Request.AdminUserId;
                 request.ReviewedAt = DateTime.UtcNow;
                 request.RejectionReason = command.Request.Approved
                     ? null
                     : command.Request.RejectionReason;
 
-                // Update tutor.VerifiedStatus
-                var tutor = await tutorRepo.FindFirstAsync(t => t.Id == request.TutorId);
+                var tutor = await tutorRepo.FindFirstAsync(
+                    t => t.Id == request.TutorId,
+                    cancellationToken: cancellationToken);
 
                 if (tutor is not null)
                 {
-                    tutor.VerifiedStatus = command.Request.Approved ? "verified" : "rejected";
+                    tutor.VerifiedStatus = command.Request.Approved
+                        ? nameof(TutorVerifiedStatus.Verified)
+                        : nameof(TutorVerifiedStatus.Rejected);
                 }
 
                 await _unitOfWork.SaveChangesAsync();

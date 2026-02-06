@@ -9,6 +9,5 @@ namespace EngConnect.Application.UseCases.TutorVerification.CreateTutorVerificat
     public record CreateTutorVerificationRequest
     {
         public Guid TutorId { get; init; }
-        public string? Note { get; init; }
     }
 }
