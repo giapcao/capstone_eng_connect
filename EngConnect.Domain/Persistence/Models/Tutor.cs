@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
+using EngConnect.Domain.Constants;
 
 namespace EngConnect.Domain.Persistence.Models;
 
@@ -47,4 +48,16 @@ public class Tutor : AuditableEntity<Guid>
     public virtual ICollection<TutorVerificationRequest> TutorVerificationRequests { get; set; } = new List<TutorVerificationRequest>();
 
     public virtual User User { get; set; } = null!;
+    
+    public static Tutor CreateTutorWithUserId(Guid userId)
+    {
+        return new Tutor
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Status = nameof(TutorStatus.Active),
+            VerifiedStatus = nameof(TutorVerifiedStatus.Unverified),
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 }

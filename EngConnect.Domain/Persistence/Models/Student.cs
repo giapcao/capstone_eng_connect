@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
+using EngConnect.Domain.Constants;
 
 namespace EngConnect.Domain.Persistence.Models;
 
@@ -31,4 +32,17 @@ public class Student : AuditableEntity<Guid>
     public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
 
     public virtual User User { get; set; } = null!;
+    
+    public static Student CreateStudentWithUserId(Guid userId)
+    {
+        return new Student
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Status = nameof(CommonStatus.Active),
+            CreatedAt = DateTime.UtcNow,
+        };
+    }
 }
+
+
