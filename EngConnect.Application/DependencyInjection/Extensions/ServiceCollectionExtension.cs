@@ -2,6 +2,8 @@ using System.Reflection.Metadata;
 using EngConnect.Application.Mapping;
 using EngConnect.Application.UseCases.Authentication.LoginByUser;
 using EngConnect.Application.UseCases.Authentication.RefreshToken;
+using EngConnect.Application.UseCases.Authentication.RegisterStudent;
+using EngConnect.Application.UseCases.Authentication.RegisterTutor;
 using EngConnect.Application.UseCases.Authentication.RegisterUser;
 using EngConnect.Application.UseCases.Authentication.VerifyEmail;
 using EngConnect.Application.UseCases.Users.ChangePassword;
@@ -56,6 +58,7 @@ public static class ServiceCollectionExtension
         // Tutor Section
         services.AddScoped<IValidator<CreateTutorCommand>, CreateTutorCommandValidator>();
         services.AddScoped<IValidator<UpdateTutorCommand>, UpdateTutorCommandValidator>();
+        services.AddScoped<IValidator<RegisterTutorCommand>, RegisterTutorCommandValidator>();
 
         // Authentication Section
         services.AddScoped<IValidator<LoginByUserCommand>, LoginByUserCommandValidator>();
@@ -73,6 +76,7 @@ public static class ServiceCollectionExtension
         //Student Section
         services.AddScoped<IValidator<CreateStudentCommand>, CreateStudentCommandValidator>();
         services.AddScoped<IValidator<UpdateStudentCommand>, UpdateStudentCommandValidator>();
+        services.AddScoped<IValidator<RegisterStudentCommand>, RegisterStudentCommandValidator>();
         services.AddScoped<IValidator<GetListStudentQuery>, GetListStudentQueryValidator>();
         services.AddScoped<IValidator<CreateLessonCommand>, CreateLessonCommandValidator>();
         services.AddScoped<IValidator<UpdateLessonCommand>, UpdateLessonCommandValidator>();

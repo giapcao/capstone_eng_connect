@@ -60,4 +60,30 @@ public class Tutor : AuditableEntity<Guid>
             CreatedAt = DateTime.UtcNow
         };
     }
+
+    public static Tutor CreateTutorWithUserId(
+        Guid userId,
+        string? headline,
+        string? bio,
+        string? introVideoUrl,
+        int? yearsExperience,
+        string? cvUrl)
+    {
+        return new Tutor
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            Headline = headline,
+            Bio = bio,
+            IntroVideoUrl = introVideoUrl,
+            YearsExperience = yearsExperience,
+            CvUrl = cvUrl,
+            SlotsCount = 0,
+            RatingAverage = 0,
+            RatingCount = 0,
+            Status = nameof(TutorStatus.Active),
+            VerifiedStatus = nameof(TutorVerifiedStatus.Unverified),
+            CreatedAt = DateTime.UtcNow
+        };
+    }
 }

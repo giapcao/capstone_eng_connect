@@ -60,28 +60,6 @@ public class RegisterUserCommandHandler: ICommandHandler<RegisterUserCommand>
             
             userRepo.Add(user);
             
-            //Check role to create student or tutor profile
-            if (command.Role == nameof(UserRoleEnum.Student))
-            {
-                //Create student profile
-                var studentRepo = _unitOfWork.GetRepository<Student, Guid>();
-                var student = Student.CreateStudentWithUserId(user.Id);
-                studentRepo.Add(student);
-            }
-            else if (command.Role == nameof(UserRoleEnum.Tutor))
-            {
-                //Create tutor profile
-                var tutorRepo = _unitOfWork.GetRepository<Tutor, Guid>();
-                var tutor = Tutor.CreateTutorWithUserId(user.Id);
-                tutorRepo.Add(tutor);
-            }
-            else
-            {
-                _logger.LogWarning("Invalid role provided: {Role}", command.Role);
-                return Result.Failure(
-                    HttpStatusCode.BadRequest, UserErrors.InvalidUserRole());
-            }
-            
             //Generate email verification code
             var verificationCode = Guid.NewGuid().ToString("N");
             

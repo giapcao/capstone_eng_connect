@@ -83,4 +83,24 @@ public class User : AuditableEntity<Guid>
             IsEmailVerified = false
         };
     }
+
+    public static User CreateUserGoogle(
+        string firstName,
+        string lastName,
+        string userName,
+        string email,
+        string password,
+        string status)
+    {
+        return new User
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            UserName = userName,
+            Email = email,
+            PasswordHash = password,
+            Status = status,
+            IsEmailVerified = true
+        };
+    }
 }

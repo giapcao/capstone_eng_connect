@@ -25,4 +25,14 @@ public static class AuthErrors
         public static Error InvalidToken() =>
             new Error("Auth.Logout.InvalidToken", "Token không hợp lệ.");
     }
+    
+    public static class GoogleOAuth
+    {
+        public static Error AuthenticationFailed() =>
+            new Error("Auth.GoogleOAuth.AuthenticationFailed", "Xác thực Google OAuth thất bại.");
+        public static Error EmailNotFound() =>
+            new Error("Auth.GoogleOAuth.EmailNotFound", "Không tìm email trong phản hồi từ Google.");
+        public static Error InvalidToken() =>
+            new Error("Auth.GoogleOAuth.InvalidToken", "Token không hợp lệ.");
+    }
 }

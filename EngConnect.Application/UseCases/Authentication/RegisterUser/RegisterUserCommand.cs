@@ -15,7 +15,4 @@ public record RegisterUserCommand: ICommand
     public string? WardId { get; set; }
     public string? WardName { get; set; }
     public required string Password { get; set; }
-    
-    //260212: Add role for check register with student or tutor
-    public required string Role { get; set; }
 }

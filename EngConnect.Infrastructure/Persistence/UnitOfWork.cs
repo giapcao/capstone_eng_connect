@@ -53,16 +53,16 @@ public class UnitOfWork : IUnitOfWork
         return await _context.SaveChangesAsync();
     }
 
-    public async Task<IDbTransaction> BeginTransactionAsync(
+    public async Task<IDbContextTransaction> BeginTransactionAsync(
         IsolationLevel isolationLevel = IsolationLevel.RepeatableRead)
     {
         if (_currentTransaction != null)
         {
-            return _currentTransaction.GetDbTransaction();
+            return _currentTransaction;
         }
 
         _currentTransaction = await _context.Database.BeginTransactionAsync(isolationLevel);
-        return _currentTransaction.GetDbTransaction();
+        return _currentTransaction;
     }
 
     public async Task CommitTransactionAsync()

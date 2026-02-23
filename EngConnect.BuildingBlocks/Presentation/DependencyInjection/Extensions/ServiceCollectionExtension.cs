@@ -3,9 +3,13 @@ using System.Reflection;
 using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Presentation.Authorization;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -194,6 +198,66 @@ public static class ServiceCollectionExtension
         // Ex: the "sub" claim will be mapped to ClaimTypes.NameIdentifier
         // We don't want that, we want to keep the original claim name
         JwtSecurityTokenHandler.DefaultMapInboundClaims = false;
+    }
+    
+    public static void AddGoogleAuthentication(this WebApplicationBuilder builder)
+    {
+        var googleOAuthSettings = builder.Configuration.GetSection(GoogleSettings.Section).Get<GoogleSettings>() ??
+                                  throw new Exception("GoogleSettings are not configured");
+        
+        var redirectUrlSettings = builder.Configuration.GetSection(RedirectUrlSettings.Section).Get<RedirectUrlSettings>() ??
+                                  throw new Exception("RedirectUrlSettings are not configured");
+        
+        //Configure settings for DI
+        builder.Services.Configure<GoogleSettings>(builder.Configuration.GetSection(GoogleSettings.Section));
+        builder.Services.Configure<RedirectUrlSettings>(builder.Configuration.GetSection(RedirectUrlSettings.Section));
+        
+        //Get authentication builder
+        var authenticationBuilder = builder.Services.AddAuthentication();
+        
+        //Update default sign-in scheme to use cookies for external providers
+        builder.Services.Configure<AuthenticationOptions>(options =>
+        {
+            options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        });
+        
+        //Add Cookie
+        authenticationBuilder.AddCookie(options =>
+        {
+            //Default secure configuration
+            options.Cookie.HttpOnly = true;
+            options.Cookie.SameSite = SameSiteMode.Lax;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+        });
+        
+        //Add Google Authentication
+        authenticationBuilder.AddGoogle(options =>
+        {
+            options.ClientId = googleOAuthSettings.ClientId;
+            options.ClientSecret = googleOAuthSettings.ClientSecret;
+
+            options.Events = new OAuthEvents
+            {
+                OnRedirectToAuthorizationEndpoint = context =>
+                {
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                },
+
+                OnRemoteFailure = context =>
+                {
+                    var error = context.Failure?.Message ?? "Unknown error";
+
+                    //Redirect to failure URL
+                    context.Response.Redirect(redirectUrlSettings.GoogleLoginFailedUrl);
+                    context.HandleResponse();
+
+                    return Task.CompletedTask;
+                }
+            };
+        });
+
     }
 
     public static void ConfigureAuthorization(this WebApplicationBuilder builder)

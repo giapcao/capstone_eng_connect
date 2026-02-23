@@ -43,6 +43,20 @@ public class Student : AuditableEntity<Guid>
             CreatedAt = DateTime.UtcNow,
         };
     }
+    
+    public static Student CreateStudentWithUserId(Guid userId, string? school, string? grade, string? @class)
+    {
+        return new Student
+        {
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            School = school,
+            Grade = grade,
+            Class = @class,
+            Status = nameof(CommonStatus.Active),
+            CreatedAt = DateTime.UtcNow,
+        };
+    }
 }
 
 

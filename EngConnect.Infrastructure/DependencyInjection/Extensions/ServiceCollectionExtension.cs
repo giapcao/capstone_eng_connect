@@ -11,6 +11,7 @@ using EngConnect.Infrastructure.Persistence;
 using EngConnect.Infrastructure.Persistence.Data;
 using EngConnect.Infrastructure.Persistence.Repositories;
 using EngConnect.Infrastructure.Quartz.OutboxEvent;
+using EngConnect.Infrastructure.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -36,6 +37,7 @@ public static class ServiceCollectionExtension
         services.AddAuthenticationServices();
         services.AddMailKitEmailService(configuration);
         services.AddFileStorage(configuration);
+        services.AddMessageBusWithOutboxService();
     }
 
 
@@ -113,6 +115,10 @@ public static class ServiceCollectionExtension
     {
         services.AddScoped<IJwtTokenService, JwtTokenService>(); 
         services.AddScoped<IClaimsExtractor, ClaimsExtractor>();
-
+    }
+    
+    public static void AddMessageBusWithOutboxService(this IServiceCollection services)
+    {
+        services.AddScoped<IMessageBusWithOutboxService, MessageBusWithOutboxService>();
     }
 }

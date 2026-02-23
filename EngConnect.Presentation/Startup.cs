@@ -32,12 +32,10 @@ public static class Startup
         });
         
         builder.ConfigureAuthentication();
+        builder.AddGoogleAuthentication();
         builder.ConfigureAuthorization();
         builder.ConfigureAppSettings();
-        builder.ConfigureControllers();
-        
-        
-
+        builder.ConfigureControllers(); 
     }
     
     private static void ConfigureControllers(this WebApplicationBuilder builder)
