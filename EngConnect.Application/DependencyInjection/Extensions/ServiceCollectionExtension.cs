@@ -31,6 +31,9 @@ using EngConnect.BuildingBlock.DependencyInjection.Extensions;
 using FluentValidation;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
+using EngConnect.Application.UseCases.TutorVerification.CreateTutorVerificationRequest;
+using EngConnect.Application.UseCases.TutorVerification.UpdateTutorVerificationRequest;
+using EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificationRequest;
 
 namespace EngConnect.Application.DependencyInjection.Extensions;
 
@@ -56,6 +59,9 @@ public static class ServiceCollectionExtension
         // Tutor Section
         services.AddScoped<IValidator<CreateTutorCommand>, CreateTutorCommandValidator>();
         services.AddScoped<IValidator<UpdateTutorCommand>, UpdateTutorCommandValidator>();
+        services.AddScoped<IValidator<CreateTutorVerificationRequestCommand>, CreateTutorVerificationRequestCommandValidator>();
+        services.AddScoped<IValidator<UpdateTutorVerificationRequestCommand>, UpdateTutorVerificationRequestCommandValidator>();
+        services.AddScoped<IValidator<ReviewTutorVerificationRequestCommand>, ReviewTutorVerificationRequestCommandValidator>();
 
         // Authentication Section
         services.AddScoped<IValidator<LoginByUserCommand>, LoginByUserCommandValidator>();
@@ -76,7 +82,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<GetListStudentQuery>, GetListStudentQueryValidator>();
         services.AddScoped<IValidator<CreateLessonCommand>, CreateLessonCommandValidator>();
         services.AddScoped<IValidator<UpdateLessonCommand>, UpdateLessonCommandValidator>();
-        services.AddScoped<IValidator< GetListLessonQuery>, GetListLessonValidator>();
+        services.AddScoped<IValidator<GetListLessonQuery>, GetListLessonValidator>();
         services.AddScoped<IValidator<UpdateLessonStatusCommand>, UpdateLessonStatusCommandValidator>();
         services.AddScoped<IValidator<CreateCourseEnrollmentCommand>, CreateCourseEnrollmentCommandValidator>();
         services.AddScoped<IValidator<UpdateCourseEnrollmentCommand>, UpdateCourseEnrollmentCommandValidator>();

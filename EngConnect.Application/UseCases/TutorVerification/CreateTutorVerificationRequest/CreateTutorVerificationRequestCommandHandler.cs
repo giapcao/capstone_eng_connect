@@ -2,6 +2,7 @@
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
@@ -41,30 +42,32 @@ namespace EngConnect.Application.UseCases.TutorVerification.CreateTutorVerificat
                 var tutorRepo = _unitOfWork.GetRepository<Domain.Persistence.Models.Tutor, Guid>();
                 var requestRepo = _unitOfWork.GetRepository<TutorVerificationRequest, Guid>();
 
-                var tutor = await tutorRepo.FindFirstAsync(t => t.Id == command.Request.TutorId);
+                var tutor = await tutorRepo.FindFirstAsync(
+                    t => t.Id == command.Request.TutorId,
+                    cancellationToken: cancellationToken);
 
                 if (tutor is null)
                 {
-                    return Result.Failure(HttpStatusCode.NotFound,
-                        TutorErrors.TutorNotFound());
+                    return Result.Failure(HttpStatusCode.NotFound, TutorErrors.TutorNotFound());
                 }
 
-                // Prevent multiple pending requests
-                var hasPending = await requestRepo.AnyAsync(r =>
-                        r.TutorId == command.Request.TutorId &&
-                        r.Status == "pending",
-                        cancellationToken);
+                var pendingStatus = nameof(TutorVerificationRequestStatus.Pending);
+
+                var hasPending = await requestRepo.AnyAsync(
+                    r => r.TutorId == command.Request.TutorId && r.Status == pendingStatus,
+                    cancellationToken);
 
                 if (hasPending)
                 {
-                    return Result.Failure(HttpStatusCode.BadRequest,
+                    return Result.Failure(
+                        HttpStatusCode.BadRequest,
                         TutorErrors.VerificationRequestAlreadyPending(command.Request.TutorId));
                 }
 
                 var entity = new TutorVerificationRequest
                 {
                     TutorId = command.Request.TutorId,
-                    Status = "pending",
+                    Status = pendingStatus,
                     SubmittedAt = DateTime.UtcNow
                 };
 
