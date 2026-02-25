@@ -1,4 +1,5 @@
-﻿using EngConnect.BuildingBlock.Contracts.Abstraction;
+﻿using Amazon.S3;
+using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Infrastructure.DependencyInjection.Extensions;
 using EngConnect.BuildingBlock.Infrastructure.JWT;
@@ -39,6 +40,7 @@ public static class ServiceCollectionExtension
         services.AddMailKitEmailService(configuration);
         services.AddFileStorage(configuration);
         services.AddGoogleDriveStorageService(configuration);
+        services.AddAwsStorageSettings(configuration);
     }
 
 
@@ -161,4 +163,20 @@ public static class ServiceCollectionExtension
 
         services.AddScoped<IDriveService, GoogleDriveService>();
     }
+    
+        public static void AddAwsStorageSettings(this IServiceCollection services, IConfiguration configuration)
+        {
+            var awsSettings = configuration.GetSection(AwsStorageSettings.Section).Get<AwsStorageSettings>() ??
+                              throw new Exception("AwsStorageSettings are not configured");
+            services.Configure<AwsStorageSettings>(configuration.GetSection(AwsStorageSettings.Section));
+            services.AddSingleton<IAmazonS3>(sp =>
+            {
+                var s3Config = new AmazonS3Config
+                {
+                    RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(awsSettings.Region)
+                };
+                return new AmazonS3Client(awsSettings.AccessKey, awsSettings.SecretKey, s3Config);
+            });
+            services.AddScoped<IAwsStorageService, AwsS3Service>();
+        }
 }
