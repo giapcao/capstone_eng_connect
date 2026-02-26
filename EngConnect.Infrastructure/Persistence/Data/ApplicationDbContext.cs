@@ -52,6 +52,8 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<LessonScript> LessonScripts { get; set; }
 
+    public virtual DbSet<MeetingParticipant> MeetingParticipants { get; set; }
+
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }

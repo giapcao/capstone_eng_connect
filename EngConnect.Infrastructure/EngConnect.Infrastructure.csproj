@@ -8,7 +8,6 @@
 
     <ItemGroup>
       <Folder Include="DependencyInjection\" />
-      <Folder Include="Persistence\Configurations\" />
       <Folder Include="Persistence\Migrations\" />
       <Folder Include="Persistence\Repositories\" />
     </ItemGroup>
@@ -24,7 +23,7 @@
         </PackageReference>
         <PackageReference Include="Otp.NET" Version="1.4.1" />
         <PackageReference Include="QRCoder" Version="1.7.0" />
-		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2"/>
+		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.2" />
     </ItemGroup>
 
     <ItemGroup>

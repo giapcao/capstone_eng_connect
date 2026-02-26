@@ -22,6 +22,12 @@ public class Lesson : AuditableEntity<Guid>
 
     public string? MeetingUrl { get; set; }
 
+    public string? MeetingStatus { get; set; }
+
+    public DateTime? MeetingStartedAt { get; set; }
+
+    public DateTime? MeetingEndedAt { get; set; }
+
     public virtual CourseEnrollment Enrollment { get; set; } = null!;
 
     public virtual ICollection<LessonHomework> LessonHomeworks { get; set; } = new List<LessonHomework>();
@@ -29,6 +35,8 @@ public class Lesson : AuditableEntity<Guid>
     public virtual ICollection<LessonRecord> LessonRecords { get; set; } = new List<LessonRecord>();
 
     public virtual ICollection<LessonScript> LessonScripts { get; set; } = new List<LessonScript>();
+
+    public virtual ICollection<MeetingParticipant> MeetingParticipants { get; set; } = new List<MeetingParticipant>();
 
     public virtual CourseSession? Session { get; set; }
 
