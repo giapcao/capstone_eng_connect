@@ -3,6 +3,7 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 
@@ -63,7 +64,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                 NumsSessionInWeek = command.NumsSessionInWeek,
                 ThumbnailUrl = command.ThumbnailUrl,
                 DemoVideoUrl = command.DemoVideoUrl,
-                Status = command.Status,
+                Status = nameof(CourseStatus.Draft),
                 IsCertificate = command.IsCertificate,
                 NumberOfEnrollment = 0,
                 RatingAverage = 5,

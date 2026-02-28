@@ -28,6 +28,5 @@ public class CreateCourseCommand : ICommand
     public int NumsSessionInWeek { get; set; } = 0;
     public string? ThumbnailUrl { get; set; }
     public string? DemoVideoUrl { get; set; }
-    public string? Status { get; set; }
     public bool IsCertificate { get; set; } = false;
 }

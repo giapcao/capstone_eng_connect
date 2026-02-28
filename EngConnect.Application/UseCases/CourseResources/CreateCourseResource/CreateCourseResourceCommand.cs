@@ -8,5 +8,4 @@ public class CreateCourseResourceCommand : ICommand
     public string? Title { get; set; }
     public string? ResourceType { get; set; }
     public required string Url { get; set; }
-    public string? Status { get; set; }
 }
