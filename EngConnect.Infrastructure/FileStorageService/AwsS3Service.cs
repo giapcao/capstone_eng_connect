@@ -5,6 +5,7 @@ using Amazon.S3.Transfer;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.Contracts.Settings;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using Microsoft.Extensions.Options;
 
 namespace EngConnect.Infrastructure.FileStorageService;
@@ -39,7 +40,7 @@ public class AwsS3Service : IAwsStorageService
         };
 
         await transferUtility.UploadAsync(uploadRequest, cancellationToken);
-        var url = GetPresignedUrl(s3Key);
+        var url =$"{_settings.CloudFront + s3Key}";
         return new FileUploadResult
         {
             OriginalFileName = fileUpload.FileName,
@@ -136,6 +137,24 @@ public class AwsS3Service : IAwsStorageService
         }
     }
     
+    public async Task<FileUploadResult?> UpdateFileAsync(FileUpload fileUpload, Guid userId, string prefix, CancellationToken cancellationToken = default)
+    {
+        var uploadRequest = await UploadFileAsync(fileUpload, userId, prefix, cancellationToken);
+        if (ValidationUtil.IsNotNullOrEmpty(uploadRequest.StoredFileName))
+        {
+           _ = DeleteFileAsync(fileUpload.FileName, cancellationToken);
+            return uploadRequest;
+        }
+
+        return null;
+    }
+
+    public string GetFileUrl(string? key, CancellationToken cancellationToken = default)
+    {
+        var url =$"{_settings.CloudFront + key}";
+        return url;
+    }
+
     private async Task<GetObjectResponse> GetS3ObjectAsync(string fileName, CancellationToken cancellationToken)
     {
         var request = new GetObjectRequest

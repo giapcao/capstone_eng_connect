@@ -85,7 +85,7 @@ public static class ServiceCollectionExtension
     /// <exception cref="Exception"></exception>
     private static void AddRedisCacheSettings(this IServiceCollection services, IConfiguration configuration)
     {
-        _ = configuration.GetSection(RedisCacheSettings.Section).Get<RedisCacheSettings>() ??
+         _= configuration.GetSection(RedisCacheSettings.Section).Get<RedisCacheSettings>() ??
             throw new Exception("RedisCacheSettings are not configured");
         services.Configure<RedisCacheSettings>(configuration.GetSection(RedisCacheSettings.Section));
     }
@@ -164,7 +164,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IDriveService, GoogleDriveService>();
     }
     
-        public static void AddAwsStorageSettings(this IServiceCollection services, IConfiguration configuration)
+        private static void AddAwsStorageSettings(this IServiceCollection services, IConfiguration configuration)
         {
             var awsSettings = configuration.GetSection(AwsStorageSettings.Section).Get<AwsStorageSettings>() ??
                               throw new Exception("AwsStorageSettings are not configured");
@@ -179,4 +179,5 @@ public static class ServiceCollectionExtension
             });
             services.AddScoped<IAwsStorageService, AwsS3Service>();
         }
+    
 }
