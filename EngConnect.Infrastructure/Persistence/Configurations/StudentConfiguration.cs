@@ -41,6 +41,10 @@ public class StudentConfiguration : IEntityTypeConfiguration<Student>
             .HasMaxLength(20)
             .HasColumnName("status");
 
+        builder.Property(e=>e.Avatar)
+            .HasMaxLength(255)
+            .HasColumnName("avatar");
+        
         builder.Property(e => e.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("now()");
