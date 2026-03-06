@@ -8,5 +8,7 @@ public class AwsStorageSettings
     public string SecretKey { get; set; } = string.Empty;
     public string Region { get; set; } = string.Empty;
     public string BucketName { get; set; } = string.Empty;
-    public string? ServiceUrl { get; set; }
+    
+    public string CloudFront { get; set; } = string.Empty;
+    
 }

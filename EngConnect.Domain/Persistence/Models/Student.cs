@@ -19,6 +19,8 @@ public class Student : AuditableEntity<Guid>
     public List<string>? Tags { get; set; }
 
     public string? Status { get; set; }
+    
+    public string? Avatar {get; set;}
 
     public virtual ICollection<ActualSchedule> ActualSchedules { get; set; } = new List<ActualSchedule>();
 

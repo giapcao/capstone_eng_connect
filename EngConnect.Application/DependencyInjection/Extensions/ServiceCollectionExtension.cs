@@ -17,6 +17,7 @@ using EngConnect.Application.UseCases.LessonScripts.CreateLessonScript;
 using EngConnect.Application.UseCases.LessonScripts.UpdateLessonScript;
 using EngConnect.Application.UseCases.Students.CreateStudent;
 using EngConnect.Application.UseCases.Students.GetListStudents;
+using EngConnect.Application.UseCases.Students.UpdateAvatarStudent;
 using EngConnect.Application.UseCases.Students.UpdateStatusStudent;
 using EngConnect.Application.UseCases.Students.UpdateStudent;
 using EngConnect.BuildingBlock.DependencyInjection.Extensions;
@@ -52,6 +53,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<CreateStudentCommand>, CreateStudentCommandValidator>();
         services.AddScoped<IValidator<UpdateStudentCommand>, UpdateStudentCommandValidator>();
         services.AddScoped<IValidator<GetListStudentQuery>, GetListStudentQueryValidator>();
+        services.AddScoped<IValidator<UpdateAvatarStudentCommand>, UpdateAvatarValidator>();
         services.AddScoped<IValidator<CreateLessonCommand>, CreateLessonCommandValidator>();
         services.AddScoped<IValidator<UpdateLessonCommand>, UpdateLessonCommandValidator>();
         services.AddScoped<IValidator< GetListLessonQuery>, GetListLessonValidator>();
