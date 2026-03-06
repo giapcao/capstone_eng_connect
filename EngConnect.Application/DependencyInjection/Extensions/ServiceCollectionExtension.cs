@@ -1,5 +1,16 @@
 using System.Reflection.Metadata;
 using EngConnect.Application.Mapping;
+using EngConnect.Application.UseCases.Authentication.LoginByUser;
+using EngConnect.Application.UseCases.Authentication.RefreshToken;
+using EngConnect.Application.UseCases.Authentication.RegisterStudent;
+using EngConnect.Application.UseCases.Authentication.RegisterTutor;
+using EngConnect.Application.UseCases.Authentication.RegisterUser;
+using EngConnect.Application.UseCases.Authentication.VerifyEmail;
+using EngConnect.Application.UseCases.Users.ChangePassword;
+using EngConnect.Application.UseCases.Users.CreateUser;
+using EngConnect.Application.UseCases.Users.ForgotPassword;
+using EngConnect.Application.UseCases.Users.ResetPassword;
+using EngConnect.Application.UseCases.Users.UpdateUser;
 using EngConnect.Application.UseCases.CourseEnrollments.CreateCourseEnrollment;
 using EngConnect.Application.UseCases.CourseEnrollments.GetListCourseEnrollments;
 using EngConnect.Application.UseCases.CourseEnrollments.UpdateCourseEnrollment;
@@ -19,10 +30,14 @@ using EngConnect.Application.UseCases.Students.CreateStudent;
 using EngConnect.Application.UseCases.Students.GetListStudents;
 using EngConnect.Application.UseCases.Students.UpdateStatusStudent;
 using EngConnect.Application.UseCases.Students.UpdateStudent;
+using EngConnect.Application.UseCases.Tutors.CreateTutor;
+using EngConnect.Application.UseCases.Tutors.UpdateTutor;
 using EngConnect.BuildingBlock.DependencyInjection.Extensions;
 using FluentValidation;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
+using EngConnect.Application.UseCases.TutorVerification.CreateTutorVerificationRequest;
+using EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificationRequest;
 
 namespace EngConnect.Application.DependencyInjection.Extensions;
 
@@ -45,16 +60,34 @@ public static class ServiceCollectionExtension
     {
         // Explicitly register specific validators if necessary
         // services.AddScoped<IValidator<COMMAND_CLASS>, COMMAND_VALIDATOR_CLASS>();
+        // Tutor Section
+        services.AddScoped<IValidator<CreateTutorCommand>, CreateTutorCommandValidator>();
+        services.AddScoped<IValidator<UpdateTutorCommand>, UpdateTutorCommandValidator>();
+        services.AddScoped<IValidator<RegisterTutorCommand>, RegisterTutorCommandValidator>();
+        services.AddScoped<IValidator<CreateTutorVerificationRequestCommand>, CreateTutorVerificationRequestCommandValidator>(); 
+        services.AddScoped<IValidator<ReviewTutorVerificationRequestCommand>, ReviewTutorVerificationRequestCommandValidator>();
 
         // Authentication Section
-        // services.AddScoped<IValidator<RegisterAccountByCustomerCommand>, RegisterAccountByCustomerCommandValidator>();
-        // services.AddScoped<IValidator<LoginByCustomerCommand>, LoginByCustomerCommandValidator>();
+        services.AddScoped<IValidator<LoginByUserCommand>, LoginByUserCommandValidator>();
+        services.AddScoped<IValidator<RegisterUserCommand>, RegisterUserCommandValidator>();
+        services.AddScoped<IValidator<VerifyEmailCommand>, VerifyEmailCommandValidator>();
+        services.AddScoped<IValidator<RefreshTokenCommand>, RefreshTokenCommandValidator>();
+        
+        // User Section
+        services.AddScoped<IValidator<UpdateUserCommand>, UpdateUserCommandValidator>();
+        services.AddScoped<IValidator<CreateUserCommand>, CreateUserCommandValidator>();
+        services.AddScoped<IValidator<ForgotPasswordCommand>, ForgotPasswordCommandValidator>();
+        services.AddScoped<IValidator<ResetPasswordCommand>, ResetPasswordCommandValidator>();
+        services.AddScoped<IValidator<ChangePasswordCommand>, ChangePasswordCommandValidator>();
+        
+        //Student Section
         services.AddScoped<IValidator<CreateStudentCommand>, CreateStudentCommandValidator>();
         services.AddScoped<IValidator<UpdateStudentCommand>, UpdateStudentCommandValidator>();
+        services.AddScoped<IValidator<RegisterStudentCommand>, RegisterStudentCommandValidator>();
         services.AddScoped<IValidator<GetListStudentQuery>, GetListStudentQueryValidator>();
         services.AddScoped<IValidator<CreateLessonCommand>, CreateLessonCommandValidator>();
         services.AddScoped<IValidator<UpdateLessonCommand>, UpdateLessonCommandValidator>();
-        services.AddScoped<IValidator< GetListLessonQuery>, GetListLessonValidator>();
+        services.AddScoped<IValidator<GetListLessonQuery>, GetListLessonValidator>();
         services.AddScoped<IValidator<UpdateLessonStatusCommand>, UpdateLessonStatusCommandValidator>();
         services.AddScoped<IValidator<CreateCourseEnrollmentCommand>, CreateCourseEnrollmentCommandValidator>();
         services.AddScoped<IValidator<UpdateCourseEnrollmentCommand>, UpdateCourseEnrollmentCommandValidator>();

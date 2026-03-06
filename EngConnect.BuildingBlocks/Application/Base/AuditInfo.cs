@@ -8,5 +8,5 @@ public record AuditInfo
 {
     [BindNever][JsonIgnore] public Guid? CreatedById { get; set; }
     [BindNever][JsonIgnore] public string? CreatedBy { get; set; }
-    [BindNever][JsonIgnore] public UserRole? Role { get; set; }
+    [BindNever][JsonIgnore] public UserRoleEnum? Role { get; set; }
 }

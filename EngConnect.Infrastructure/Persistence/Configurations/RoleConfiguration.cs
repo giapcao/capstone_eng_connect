@@ -13,8 +13,7 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         builder.ToTable("role");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.Code)
             .HasMaxLength(100)

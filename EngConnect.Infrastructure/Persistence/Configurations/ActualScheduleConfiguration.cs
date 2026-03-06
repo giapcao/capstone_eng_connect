@@ -13,8 +13,7 @@ public class ActualScheduleConfiguration : IEntityTypeConfiguration<ActualSchedu
         builder.ToTable("actual_schedule");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.TutorId)
             .HasColumnName("tutor_id");

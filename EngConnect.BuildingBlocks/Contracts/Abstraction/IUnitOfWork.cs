@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EngConnect.BuildingBlock.Contracts.Abstraction;
 
@@ -20,7 +21,7 @@ public interface IUnitOfWork
     /// </summary>
     /// <param name="isolationLevel">Transaction isolation level</param>
     /// <returns>Transaction object</returns>
-    Task<IDbTransaction> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.RepeatableRead);
+    Task<IDbContextTransaction> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.RepeatableRead);
 
     /// <summary>
     ///     Commit the current transaction

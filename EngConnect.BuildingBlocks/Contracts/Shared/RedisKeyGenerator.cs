@@ -9,6 +9,7 @@ public static class RedisKeyGenerator
     private const string REFRESH_TOKEN = "AUTH:RefreshToken";
     private const string AdminRefreshToken = "ADMIN:RefreshToken";
     private const string AdminPendingToken = "ADMIN:PendingToken";
+    private const string USER_LOGIN_TOKEN = "USER:LoginToken";
     
     /// <summary>
     ///     Generate key for pending token
@@ -128,4 +129,10 @@ public static class RedisKeyGenerator
     {
         return CACHE_COLLECTION_ALL;
     }
+    
+    public static string GenerateUserLoginTokenKey(string token) =>
+        new RedisPatternBuilder()
+            .AddExact(USER_LOGIN_TOKEN)
+            .AddExact(token)
+            .Build();
 }

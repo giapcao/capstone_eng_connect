@@ -10,5 +10,5 @@ public interface IEntityVisibilityPolicy
     ///     <para>This requires implementation to explicitly define the visible statuses for each entity and user role.</para>
     /// </summary>
     /// <returns>A collection of integers, or null if no filtering should be applied.</returns>
-    IReadOnlyCollection<int> GetVisibleStatuses<T>(UserRole? userRole);
+    IReadOnlyCollection<int> GetVisibleStatuses<T>(UserRoleEnum? userRole);
 }

@@ -13,8 +13,7 @@ public class UserOauthAccountConfiguration : IEntityTypeConfiguration<UserOauthA
         builder.ToTable("user_oauth_account");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.UserId)
             .HasColumnName("user_id");

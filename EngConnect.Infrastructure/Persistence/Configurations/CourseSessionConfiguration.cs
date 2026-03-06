@@ -13,8 +13,7 @@ public class CourseSessionConfiguration : IEntityTypeConfiguration<CourseSession
         builder.ToTable("course_session");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.ModuleId)
             .HasColumnName("module_id");

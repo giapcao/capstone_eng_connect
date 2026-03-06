@@ -7,13 +7,13 @@ namespace EngConnect.Domain.Persistence.Models;
 
 public class User : AuditableEntity<Guid>
 {
-    public string? FirstName { get; set; }
+    public string FirstName { get; set; } = null!;
 
-    public string? LastName { get; set; }
+    public string LastName { get; set; } = null!;
 
-    public string? UserName { get; set; }
+    public string UserName { get; set; } = null!;
 
-    public string? Email { get; set; }
+    public string Email { get; set; } = null!;
 
     public string? Phone { get; set; }
 
@@ -27,9 +27,9 @@ public class User : AuditableEntity<Guid>
 
     public string? WardName { get; set; }
 
-    public string? PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = null!;
 
-    public string? Status { get; set; }
+    public string Status { get; set; } = null!;
 
     public string? RefreshToken { get; set; }
 
@@ -37,9 +37,6 @@ public class User : AuditableEntity<Guid>
 
     [InverseProperty("ReviewedByNavigation")]
     public virtual ICollection<CourseVerificationRequest> CourseVerificationRequests { get; set; } = new List<CourseVerificationRequest>();
-
-    [InverseProperty("UpdatedByNavigation")]
-    public virtual ICollection<EmailTemplate> EmailTemplates { get; set; } = new List<EmailTemplate>();
 
     [InverseProperty("Student")]
     public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
@@ -64,4 +61,46 @@ public class User : AuditableEntity<Guid>
 
     [InverseProperty("User")]
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    
+    public static User Create(string firstName, string lastName, string userName, string email,
+    string? phone, string? addressNum, string? provinceId, string? provinceName,
+        string? wardId, string? wardName, string password, string status)
+    {
+        return new User
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            UserName = userName,
+            Email = email,
+            Phone = phone,
+            AddressNum = addressNum,
+            ProvinceId = provinceId,
+            ProvinceName = provinceName,
+            WardId = wardId,
+            WardName = wardName,
+            PasswordHash = password,
+            Status = status,
+            IsEmailVerified = false
+        };
+    }
+
+    public static User CreateUserGoogle(
+        string firstName,
+        string lastName,
+        string userName,
+        string email,
+        string password,
+        string status)
+    {
+        return new User
+        {
+            FirstName = firstName,
+            LastName = lastName,
+            UserName = userName,
+            Email = email,
+            PasswordHash = password,
+            Status = status,
+            IsEmailVerified = true
+        };
+    }
 }

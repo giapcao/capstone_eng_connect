@@ -13,8 +13,7 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
         builder.ToTable("permission");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.Code)
             .HasMaxLength(100)

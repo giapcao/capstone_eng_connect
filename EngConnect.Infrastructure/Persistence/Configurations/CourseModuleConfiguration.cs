@@ -13,8 +13,7 @@ public class CourseModuleConfiguration : IEntityTypeConfiguration<CourseModule>
         builder.ToTable("course_module");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.CourseId)
             .HasColumnName("course_id");
