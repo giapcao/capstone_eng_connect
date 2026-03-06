@@ -32,5 +32,8 @@ namespace EngConnect.Domain.DomainErrors
         
         public static Error CourseModuleNotFound() =>
             new Error("CourseModule.NotFound", $"Khóa học phải có ít nhất một module.");
+        
+        public static Error CategoryNotFound() =>
+            new Error("Category.NotFound", $"Một hoặc nhiều danh mục không tồn tại.");
     }
 }

@@ -21,6 +21,9 @@ public class CreateCourseCommand : ICommand
     /// Estimated time per lesson in minutes
     /// </summary>
     public int EstimatedTimeLesson { get; set; }
+    
+    //260305: Add course categories when creating course
+    public Guid[]? CategoryIds { get; set; } = [];
 
     public decimal Price { get; set; } = 0;
     public string? Currency { get; set; }

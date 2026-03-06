@@ -6,5 +6,6 @@ public enum CourseStatus
     Pending = 2,
     InReview = 3,
     Published = 4,
-    InActive = 5
+    Rejected = 5,
+    InActive = 6
 }
