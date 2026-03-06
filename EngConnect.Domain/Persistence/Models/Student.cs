@@ -31,6 +31,8 @@ public class Student : AuditableEntity<Guid>
 
     public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
 
+    public virtual ICollection<LessonRescheduleRequest> LessonRescheduleRequests { get; set; } = new List<LessonRescheduleRequest>();
+
     public virtual User User { get; set; } = null!;
     
     public static Student CreateStudentWithUserId(Guid userId)
