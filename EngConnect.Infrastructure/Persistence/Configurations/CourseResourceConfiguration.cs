@@ -13,8 +13,7 @@ public class CourseResourceConfiguration : IEntityTypeConfiguration<CourseResour
         builder.ToTable("course_resource");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.SessionId)
             .HasColumnName("session_id");

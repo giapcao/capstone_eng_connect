@@ -13,27 +13,33 @@ public class OutboxEventConfiguration : IEntityTypeConfiguration<OutboxEvent>
         builder.ToTable("outbox_event");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("gen_random_uuid()");
+            .HasColumnName("id");
 
         builder.Property(e => e.AggregateType)
             .HasMaxLength(50)
-            .HasColumnName("aggregate_type");
+            .HasColumnName("aggregate_type")
+            .IsRequired();
 
         builder.Property(e => e.AggregateId)
             .HasColumnName("aggregate_id");
 
         builder.Property(e => e.EventType)
             .HasMaxLength(100)
-            .HasColumnName("event_type");
+            .HasColumnName("event_type")
+            .IsRequired();
 
         builder.Property(e => e.EventData)
-            .HasColumnName("event_data");
+            .HasColumnName("event_data")
+            .HasConversion(
+                v => v.ToString() ?? string.Empty,
+                v => v)
+            .IsRequired();
 
         builder.Property(e => e.OutboxStatus)
             .HasMaxLength(30)
+            .HasColumnType("varchar(30)")
             .HasColumnName("outbox_status")
-            .HasDefaultValueSql("'pending'::character varying");
+            .IsRequired();
 
         builder.Property(e => e.ProcessedAt)
             .HasColumnName("processed_at");
@@ -67,17 +73,6 @@ public class OutboxEventConfiguration : IEntityTypeConfiguration<OutboxEvent>
         builder.Property(e => e.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("now()");
-
-        builder.Property(e => e.UpdatedAt)
-            .HasColumnName("updated_at")
-            .HasDefaultValueSql("now()");
-
-        builder.Property(e => e.IsDeleted)
-            .HasColumnName("is_deleted")
-            .HasDefaultValue(false);
-
-        builder.Property(e => e.DeletedAt)
-            .HasColumnName("deleted_at");
     }
 }
 

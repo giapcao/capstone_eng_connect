@@ -30,8 +30,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<Guid?>("CourseId")
                         .HasColumnType("uuid")
@@ -97,8 +96,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -148,8 +146,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("ApplyFrom")
                         .HasColumnType("timestamp with time zone")
@@ -198,129 +195,12 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.ToTable("commission_config", (string)null);
                 });
 
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CommunityComment", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("author_id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
-                    b.Property<Guid?>("ParentCommentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("parent_comment_id");
-
-                    b.Property<Guid>("PostId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("post_id");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("Id")
-                        .HasName("community_comment_pkey");
-
-                    b.ToTable("community_comment", (string)null);
-                });
-
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CommunityPost", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
-
-                    b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("author_id");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
-                    b.Property<bool?>("IsPinned")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_pinned");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("title");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("type");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("Id")
-                        .HasName("community_post_pkey");
-
-                    b.ToTable("community_post", (string)null);
-                });
-
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Conversation", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -369,8 +249,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
                     b.Property<Guid>("ConversationId")
                         .HasColumnType("uuid")
@@ -420,8 +299,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -454,7 +332,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("full_description");
 
-                    b.Property<bool?>("IsCertificate")
+                    b.Property<bool>("IsCertificate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
@@ -471,7 +349,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("level");
 
-                    b.Property<int?>("NumberOfEnrollment")
+                    b.Property<int>("NumberOfEnrollment")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(0)
@@ -493,7 +371,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("parent_course_id");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)")
                         .HasColumnName("price");
@@ -555,8 +433,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid")
@@ -605,8 +482,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uuid")
@@ -682,8 +558,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uuid")
@@ -742,8 +617,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -804,8 +678,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<string>("Comment")
                         .HasColumnType("text")
@@ -880,8 +753,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -939,8 +811,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uuid")
@@ -1004,16 +875,12 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
-                    b.Property<string>("BodyHtmlTemplate")
+                    b.Property<string>("Body")
+                        .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("body_html_template");
-
-                    b.Property<string>("BodyTextTemplate")
-                        .HasColumnType("text")
-                        .HasColumnName("body_text_template");
+                        .HasColumnName("body");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1024,6 +891,11 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("deleted_at");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("event_type");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
@@ -1037,10 +909,16 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("name");
 
-                    b.Property<string>("SubjectTemplate")
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("role");
+
+                    b.Property<string>("Subject")
                         .IsRequired()
                         .HasColumnType("text")
-                        .HasColumnName("subject_template");
+                        .HasColumnName("subject");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -1048,16 +926,72 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<Guid?>("UpdatedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("updated_by");
-
                     b.HasKey("Id")
                         .HasName("email_template_pkey");
 
-                    b.HasIndex("UpdatedBy");
-
                     b.ToTable("email_template", (string)null);
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.EnrollmentSlot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("end_time");
+
+                    b.Property<Guid>("EnrollmentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("enrollment_id");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone")
+                        .HasColumnName("start_time");
+
+                    b.Property<Guid>("TutorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tutor_id");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Weekday")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("weekday");
+
+                    b.HasKey("Id")
+                        .HasName("enrollment_slot_pkey");
+
+                    b.HasIndex("EnrollmentId");
+
+                    b.HasIndex("TutorId", "Weekday", "StartTime", "EndTime")
+                        .IsUnique()
+                        .HasDatabaseName("uq_locked_slot");
+
+                    b.ToTable("enrollment_slot", (string)null);
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Lesson", b =>
@@ -1065,8 +999,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1142,8 +1075,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime?>("AssignedAt")
                         .HasColumnType("timestamp with time zone")
@@ -1236,8 +1168,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1290,13 +1221,78 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.ToTable("lesson_record", (string)null);
                 });
 
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonRescheduleRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<Guid>("LessonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lesson_id");
+
+                    b.Property<DateTime>("ProposedEndTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("proposed_end_time");
+
+                    b.Property<DateTime>("ProposedStartTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("proposed_start_time");
+
+                    b.Property<string>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status")
+                        .HasDefaultValueSql("'pending'::character varying");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("student_id");
+
+                    b.Property<string>("TutorNote")
+                        .HasColumnType("text")
+                        .HasColumnName("tutor_note");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("lesson_reschedule_request_pkey");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("StudentId");
+
+                    b.ToTable("lesson_reschedule_request", (string)null);
+                });
+
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonScript", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<decimal?>("CoveragePercent")
                         .HasPrecision(5, 2)
@@ -1365,8 +1361,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
                     b.Property<decimal?>("Commission")
                         .HasPrecision(12, 2)
@@ -1442,8 +1437,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uuid")
@@ -1499,8 +1493,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
                     b.Property<Guid>("AggregateId")
                         .HasColumnType("uuid")
@@ -1522,10 +1515,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("dead_at");
 
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
                     b.Property<string>("EventData")
                         .IsRequired()
                         .HasColumnType("text")
@@ -1541,12 +1530,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("failed_at");
 
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
                     b.Property<string>("LastError")
                         .HasColumnType("text")
                         .HasColumnName("last_error");
@@ -1555,9 +1538,9 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("lock_at");
 
-                    b.Property<string>("LockBy")
+                    b.Property<Guid?>("LockBy")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasColumnType("uuid")
                         .HasColumnName("lock_by");
 
                     b.Property<DateTime?>("NextRetryAt")
@@ -1566,17 +1549,15 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("OutboxStatus")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("outbox_status")
-                        .HasDefaultValueSql("'pending'::character varying");
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("outbox_status");
 
                     b.Property<DateTime?>("ProcessedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("processed_at");
 
-                    b.Property<int?>("RetryCount")
+                    b.Property<int>("RetryCount")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
                         .HasDefaultValue(0)
@@ -1585,12 +1566,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("SentAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("sent_at");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now()");
 
                     b.HasKey("Id")
                         .HasName("outbox_event_pkey");
@@ -1603,8 +1578,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(12, 2)
@@ -1675,8 +1649,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -1725,8 +1698,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -2035,8 +2007,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -2080,13 +2051,78 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.ToTable("role", (string)null);
                 });
 
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.ScheduleJobTracking", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<DateTimeOffset?>("ExecuteAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("execute_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_deleted");
+
+                    b.Property<bool?>("IsExecuted")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_executed");
+
+                    b.Property<string>("JobName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("job_name");
+
+                    b.Property<string>("JobType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("job_type");
+
+                    b.Property<DateTimeOffset?>("LastFireAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_fire_at");
+
+                    b.Property<DateTimeOffset?>("LastFireFailedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_fire_failed_at");
+
+                    b.Property<DateTimeOffset?>("LastFireSucceededAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_fire_succeeded_at");
+
+                    b.Property<DateTimeOffset?>("NextFireAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("next_fire_at");
+
+                    b.Property<int>("RunCount")
+                        .HasColumnType("integer")
+                        .HasColumnName("run_count");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("schedule_job_tracking", (string)null);
+                });
+
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Student", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<string>("Avatar")
                         .HasMaxLength(255)
@@ -2162,8 +2198,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime?>("ClosedAt")
                         .HasColumnType("timestamp with time zone")
@@ -2234,8 +2269,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("gen_random_uuid()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -2287,8 +2321,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<string>("Bio")
                         .HasColumnType("text")
@@ -2385,8 +2418,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -2460,8 +2492,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -2515,8 +2546,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -2580,8 +2610,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<string>("AddressNum")
                         .HasMaxLength(50)
@@ -2599,11 +2628,13 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnName("deleted_at");
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("email");
 
                     b.Property<string>("FirstName")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("first_name");
@@ -2621,11 +2652,13 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnName("is_email_verified");
 
                     b.Property<string>("LastName")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("last_name");
 
                     b.Property<string>("PasswordHash")
+                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("password_hash");
 
@@ -2649,6 +2682,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnName("refresh_token");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("status");
@@ -2660,6 +2694,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasDefaultValueSql("now()");
 
                     b.Property<string>("UserName")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("user_name");
@@ -2689,8 +2724,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -2747,8 +2781,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("id")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnName("id");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -2989,14 +3022,23 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Navigation("ReviewedByNavigation");
                 });
 
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.EmailTemplate", b =>
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.EnrollmentSlot", b =>
                 {
-                    b.HasOne("EngConnect.Domain.Persistence.Models.User", "UpdatedByNavigation")
-                        .WithMany("EmailTemplates")
-                        .HasForeignKey("UpdatedBy")
-                        .HasConstraintName("fk_email_template_updated_by");
+                    b.HasOne("EngConnect.Domain.Persistence.Models.CourseEnrollment", "Enrollment")
+                        .WithMany("EnrollmentSlots")
+                        .HasForeignKey("EnrollmentId")
+                        .IsRequired()
+                        .HasConstraintName("fk_es_enrollment");
 
-                    b.Navigation("UpdatedByNavigation");
+                    b.HasOne("EngConnect.Domain.Persistence.Models.Tutor", "Tutor")
+                        .WithMany("EnrollmentSlots")
+                        .HasForeignKey("TutorId")
+                        .IsRequired()
+                        .HasConstraintName("fk_es_tutor");
+
+                    b.Navigation("Enrollment");
+
+                    b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Lesson", b =>
@@ -3053,6 +3095,25 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_record_lesson");
 
                     b.Navigation("Lesson");
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonRescheduleRequest", b =>
+                {
+                    b.HasOne("EngConnect.Domain.Persistence.Models.Lesson", "Lesson")
+                        .WithMany("LessonRescheduleRequests")
+                        .HasForeignKey("LessonId")
+                        .IsRequired()
+                        .HasConstraintName("fk_lrr_lesson");
+
+                    b.HasOne("EngConnect.Domain.Persistence.Models.Student", "Student")
+                        .WithMany("LessonRescheduleRequests")
+                        .HasForeignKey("StudentId")
+                        .IsRequired()
+                        .HasConstraintName("fk_lrr_student");
+
+                    b.Navigation("Lesson");
+
+                    b.Navigation("Student");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonScript", b =>
@@ -3315,6 +3376,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("CourseReview");
 
+                    b.Navigation("EnrollmentSlots");
+
                     b.Navigation("Lessons");
                 });
 
@@ -3335,6 +3398,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Navigation("LessonHomeworks");
 
                     b.Navigation("LessonRecords");
+
+                    b.Navigation("LessonRescheduleRequests");
 
                     b.Navigation("LessonScripts");
                 });
@@ -3378,6 +3443,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
 
                     b.Navigation("CourseReviews");
 
+                    b.Navigation("LessonRescheduleRequests");
+
                     b.Navigation("Lessons");
                 });
 
@@ -3396,6 +3463,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Courses");
 
+                    b.Navigation("EnrollmentSlots");
+
                     b.Navigation("Lessons");
 
                     b.Navigation("TutorDocuments");
@@ -3408,8 +3477,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.User", b =>
                 {
                     b.Navigation("CourseVerificationRequests");
-
-                    b.Navigation("EmailTemplates");
 
                     b.Navigation("Orders");
 

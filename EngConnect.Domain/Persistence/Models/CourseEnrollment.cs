@@ -28,5 +28,7 @@ public class CourseEnrollment : AuditableEntity<Guid>
 
     public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
 
+    public virtual ICollection<EnrollmentSlot> EnrollmentSlots { get; set; } = new List<EnrollmentSlot>();
+
     public virtual Student Student { get; set; } = null!;
 }

@@ -1,0 +1,5 @@
+using EngConnect.BuildingBlock.Application.Base;
+
+namespace EngConnect.Application.UseCases.LessonRescheduleRequests.UpdateLessonRescheduleRequest;
+
+public record UpdateLessonRescheduleRequestCommand(UpdateLessonRescheduleRequest Request) : ICommand;

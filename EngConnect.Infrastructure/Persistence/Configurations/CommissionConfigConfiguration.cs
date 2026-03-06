@@ -13,8 +13,7 @@ public class CommissionConfigConfiguration : IEntityTypeConfiguration<Commission
         builder.ToTable("commission_config");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("gen_random_uuid()");
+            .HasColumnName("id");
 
         builder.Property(e => e.Name)
             .HasMaxLength(100)

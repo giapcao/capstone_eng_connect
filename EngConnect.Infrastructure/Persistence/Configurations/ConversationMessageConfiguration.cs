@@ -13,8 +13,7 @@ public class ConversationMessageConfiguration : IEntityTypeConfiguration<Convers
         builder.ToTable("conversation_message");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("gen_random_uuid()");
+            .HasColumnName("id");
 
         builder.Property(e => e.ConversationId)
             .HasColumnName("conversation_id");

@@ -24,8 +24,11 @@ public class Course : AuditableEntity<Guid>
 
     public TimeSpan? EstimatedTimeLesson { get; set; }
 
-    public decimal? Price { get; set; }
+    public decimal Price { get; set; }
 
+    /// <summary>
+    /// Currency code for the price
+    /// </summary>
     public string? Currency { get; set; }
 
     public int? NumberOfSessions { get; set; }
@@ -36,7 +39,7 @@ public class Course : AuditableEntity<Guid>
 
     public string? DemoVideoUrl { get; set; }
 
-    public int? NumberOfEnrollment { get; set; }
+    public int NumberOfEnrollment { get; set; } = 0;
 
     public decimal? RatingAverage { get; set; }
 
@@ -44,7 +47,7 @@ public class Course : AuditableEntity<Guid>
 
     public string? Status { get; set; }
 
-    public bool? IsCertificate { get; set; }
+    public bool IsCertificate { get; set; } = false;
 
     public virtual ICollection<ActualSchedule> ActualSchedules { get; set; } = new List<ActualSchedule>();
 

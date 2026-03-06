@@ -1,17 +1,18 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
+using EngConnect.Domain.Persistence.Models;
 
 namespace EngConnect.Domain.Abstraction;
 
 public interface IJwtTokenService
 {
-    // /// <summary>
-    // /// Generate access token for user (admin)
-    // /// </summary>
-    // /// <param name="user"></param>
-    // /// <returns></returns>
-    // string GenerateAccessToken(User user);
-    //
+    /// <summary>
+    /// Generate access token for user (admin)
+    /// </summary>
+    /// <param name="user"></param>
+    /// <returns></returns>
+    string GenerateAccessToken(User user);
+    
     // /// <summary>
     // /// Generate access token for user (admin)
     // /// </summary>

@@ -13,8 +13,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.ToTable("user");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id"); 
 
         builder.Property(e => e.FirstName)
             .HasMaxLength(100)

@@ -13,8 +13,7 @@ public class LessonHomeworkConfiguration : IEntityTypeConfiguration<LessonHomewo
         builder.ToTable("lesson_homework");
 
         builder.Property(e => e.Id)
-            .HasColumnName("id")
-            .HasDefaultValueSql("uuid_generate_v4()");
+            .HasColumnName("id");
 
         builder.Property(e => e.LessonId)
             .HasColumnName("lesson_id");

@@ -1,14 +1,19 @@
-﻿using Amazon.S3;
+using Amazon.S3;
+using EngConnect.Application.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Infrastructure.DependencyInjection.Extensions;
 using EngConnect.BuildingBlock.Infrastructure.JWT;
 using EngConnect.Domain.Abstraction;
 using EngConnect.Infrastructure.EmailService;
+using EngConnect.Infrastructure.HostedService;
 using EngConnect.Infrastructure.FileStorageService;
 using EngConnect.Infrastructure.JWT;
 using EngConnect.Infrastructure.Persistence;
 using EngConnect.Infrastructure.Persistence.Data;
+using EngConnect.Infrastructure.Persistence.Repositories;
+using EngConnect.Infrastructure.Quartz.OutboxEvent;
+using EngConnect.Infrastructure.Services;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
@@ -30,10 +35,10 @@ public static class ServiceCollectionExtension
         services.AddUnitOfWork();
         services.AddMessageBus(configuration, AssemblyReference.Assembly, ConfigureConsumers);
         services.AddRedis(configuration);
-        // services.AddQuartzService();
-        // services.AddSchedulers(configuration);
+        services.AddQuartzService();
+        services.AddSchedulers(configuration);
         // services.AddReportService();
-        // services.AddHostedService();
+        services.AddHostedService();
         services.AddRedisCacheSettings(configuration);
         services.AddJwtSettings(configuration);
         services.AddAuthenticationServices();
@@ -41,6 +46,7 @@ public static class ServiceCollectionExtension
         services.AddFileStorage(configuration);
         services.AddGoogleDriveStorageService(configuration);
         services.AddAwsStorageSettings(configuration);
+        services.AddMessageBusWithOutboxService();
     }
 
 
@@ -53,10 +59,10 @@ public static class ServiceCollectionExtension
             options.UseNpgsql(connectionString));
     }
 
-    // private static void AddHostedService(this IServiceCollection services)
-    // {
-    //     services.AddHostedService<AppHostedService>();
-    // }
+    private static void AddHostedService(this IServiceCollection services)
+    {
+        services.AddHostedService<AppHostedService>();
+    }
 
     private static void ConfigureConsumers(IRabbitMqBusFactoryConfigurator cfg, IBusRegistrationContext ctx)
     {
@@ -73,7 +79,7 @@ public static class ServiceCollectionExtension
     private static void AddUnitOfWork(this IServiceCollection services)
     {
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        // services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
+        services.AddScoped<IOutboxEventRepository, OutboxEventRepository>();
     }
 
 
@@ -96,7 +102,7 @@ public static class ServiceCollectionExtension
             throw new Exception("AppSettings are not configured");
 
         services.Configure<ScheduleJobSettings>(configuration.GetSection(ScheduleJobSettings.Section));
-        // services.AddScoped<IOutboxEventScheduler, OutboxEventScheduler>();
+        services.AddScoped<IOutboxEventScheduler, OutboxEventScheduler>();
     }
 
     private static void AddMailKitEmailService(this IServiceCollection services, IConfiguration configuration)
@@ -114,15 +120,15 @@ public static class ServiceCollectionExtension
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.Section));
     }
 
-    // private static void AddSchedulers(this IServiceCollection services)
-    // {
-    // }
-
     private static void AddAuthenticationServices(this IServiceCollection services)
     {
         services.AddScoped<IJwtTokenService, JwtTokenService>(); 
         services.AddScoped<IClaimsExtractor, ClaimsExtractor>();
-
+    }
+    
+    public static void AddMessageBusWithOutboxService(this IServiceCollection services)
+    {
+        services.AddScoped<IMessageBusWithOutboxService, MessageBusWithOutboxService>();
     }
     
     private static void AddGoogleDriveStorageService(this IServiceCollection services, IConfiguration configuration)

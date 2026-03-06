@@ -22,10 +22,6 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<CommissionConfig> CommissionConfigs { get; set; }
 
-    public virtual DbSet<CommunityComment> CommunityComments { get; set; }
-
-    public virtual DbSet<CommunityPost> CommunityPosts { get; set; }
-
     public virtual DbSet<Conversation> Conversations { get; set; }
 
     public virtual DbSet<ConversationMessage> ConversationMessages { get; set; }
@@ -35,6 +31,8 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<CourseCategory> CourseCategories { get; set; }
 
     public virtual DbSet<CourseEnrollment> CourseEnrollments { get; set; }
+
+    public virtual DbSet<EnrollmentSlot> EnrollmentSlots { get; set; }
 
     public virtual DbSet<CourseModule> CourseModules { get; set; }
 
@@ -53,6 +51,8 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<LessonHomework> LessonHomeworks { get; set; }
 
     public virtual DbSet<LessonRecord> LessonRecords { get; set; }
+
+    public virtual DbSet<LessonRescheduleRequest> LessonRescheduleRequests { get; set; }
 
     public virtual DbSet<LessonScript> LessonScripts { get; set; }
 
@@ -97,6 +97,9 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<UserOauthAccount> UserOauthAccounts { get; set; }
 
     public virtual DbSet<UserRole> UserRoles { get; set; }
+    
+    //260201: Add ScheduleJobTracking DbSet
+    public virtual DbSet<ScheduleJobTracking> ScheduleJobTrackings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
