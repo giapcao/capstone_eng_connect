@@ -11,4 +11,7 @@ public interface IAwsStorageService
     Task<bool> FileExistsAsync(string fileName, CancellationToken cancellationToken = default);
     string GetPresignedUrl(string storedFileName, int durationMinutes = 15);
     Task<bool> DeleteFileAsync(string fileName, CancellationToken cancellationToken = default);
+    Task<FileUploadResult?> UpdateFileAsync(FileUpload fileUpload,Guid userId, 
+        string prefix, CancellationToken cancellationToken = default);
+    string GetFileUrl(string? key, CancellationToken cancellationToken = default);
 }

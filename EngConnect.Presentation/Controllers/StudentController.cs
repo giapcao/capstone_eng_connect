@@ -1,12 +1,15 @@
 ﻿using EngConnect.Application.UseCases.Students.Common;
 using EngConnect.Application.UseCases.Students.CreateStudent;
 using EngConnect.Application.UseCases.Students.DeleteStudent;
+using EngConnect.Application.UseCases.Students.GetAvatarStudent;
 using EngConnect.Application.UseCases.Students.GetListStudents;
 using EngConnect.Application.UseCases.Students.GetStudentById;
+using EngConnect.Application.UseCases.Students.UpdateAvatarStudent;
 using EngConnect.Application.UseCases.Students.UpdateStatusStudent;
 using EngConnect.Application.UseCases.Students.UpdateStudent;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
+using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Presentation.Controllers;
 using Microsoft.AspNetCore.Mvc;
@@ -60,6 +63,21 @@ public class StudentController : BaseApiController
     }
     
     /// <summary>
+    /// Lấy ảnh avatar
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpGet("avatar/{id:guid}")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<GetStudentResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAvatarStudentById([FromRoute] Guid id, CancellationToken cancellationToken = default)
+    {
+        var result = await _queryDispatcher.DispatchAsync( new GetAvatarQuery {Id = id},cancellationToken);
+        return FromResult(result);
+    }
+    
+    /// <summary>
     /// Tạo học sinh 
     /// </summary>
     /// <param name="command"></param>
@@ -89,6 +107,31 @@ public class StudentController : BaseApiController
     {
         command.Id = id; command.UserId = userId;
         var result = await _commandDispatcher.DispatchAsync( command, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// cập nhật avatar
+    /// </summary>
+    /// <param name="file"></param>
+    /// <param name="id"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPut("avatar/{id:guid}")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateAvatarStudentAsync(IFormFile file, [FromRoute] Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var fileUpload = new FileUpload
+        {
+            FileName = file.FileName,
+            ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
+            Length = file.Length,
+            Content = file.OpenReadStream()
+        };
+        
+        var result = await _commandDispatcher.DispatchAsync(new UpdateAvatarStudentCommand { File = fileUpload,Id = id },cancellationToken);
         return FromResult(result);
     }
     
