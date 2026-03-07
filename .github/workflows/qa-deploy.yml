@@ -1,0 +1,153 @@
+﻿name: QA - Deploy
+
+on:
+    workflow_dispatch:
+        inputs:
+        image_tag:
+            description: "Image tag to deploy (required)"
+            required: true
+            default: ""
+            
+permissions:
+    contents: read
+    packages: read
+    
+env:
+    CONTAINER_NAME: engconnect_v1_qa
+    ENV_FILE_NAME: engconnect_v1_qa.env
+    DOCKER_NETWORKS: engconnect-qa-network mysql_default
+    DOCKER_PORTS: "-p 127.0.0.1:7000:8080"
+    DEPLOY_PATH: "/opt/engconnect/engconnect_v1_qa"
+    GHCR_REGISTRY: ghcr.io
+    
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        
+        steps:
+        - name: Set GHCR repo
+          run: |
+            # Use <owner>/<repo> (lowercased) as image repository
+            echo "GHCR_REPO=ghcr.io/${GITHUB_REPOSITORY@L}" >> $GITHUB_ENV
+        
+        - name: Start ssh-agent and add VPS key
+          uses: webfactory/ssh-agent@v0.9.0
+          with:
+            ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+        
+        - name: Prepare env file
+          env:
+            ENV_FILE_CONTENT_QA: ${{ secrets.ENV_FILE_CONTENT_QA }}
+          run: |
+            ENV_FILE_PATH="$RUNNER_TEMP/${ENV_FILE_NAME}"
+            # Write the secret from env without re-interpreting any quotes or special chars
+            printf '%s' "$ENV_FILE_CONTENT_QA" > "$ENV_FILE_PATH"
+            echo "ENV_FILE_PATH=$ENV_FILE_PATH" >> $GITHUB_ENV 
+            
+        - name: Deploy to QA VPS
+          env:
+            IMAGE_TAG: ${{ inputs.image_tag }}
+            VPS_HOST: ${{ secrets.VPS_HOST }}
+            VPS_USER: ${{ secrets.VPS_USER }}
+            VPS_SSH_PORT: ${{ secrets.VPS_SSH_PORT }}
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            GHCR_USERNAME: ${{ github.actor }}
+          run: |
+            set -euo pipefail
+            
+            ssh-keyscan -p "$VPS_SSH_PORT" -H "$VPS_HOST" >> "$HOME/.ssh/known_hosts"
+            
+            scp -P "$VPS_SSH_PORT" "$ENV_FILE_PATH" "$VPS_USER@$VPS_HOST:/tmp/$ENV_FILE_NAME"
+            
+            ssh -p "$VPS_SSH_PORT" "$VPS_USER@$VPS_HOST" << EOF
+              set -euo pipefail
+              
+              echo "=== Deploying ${CONTAINER_NAME} to QA VPS ==="
+              cd "$DEPLOY_PATH"
+            
+              sudo mv /tmp/${ENV_FILE_NAME} ${DEPLOY_PATH}/${ENV_FILE_NAME}
+              sudo chmod 600 ${DEPLOY_PATH}/${ENV_FILE_NAME}
+            
+              echo "${GITHUB_TOKEN}" | sudo docker login ${GHCR_REGISTRY} -u ${GHCR_USERNAME} --password-stdin
+            
+              sudo docker pull ${GHCR_REPO}:${IMAGE_TAG}
+            
+              if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
+                echo "Container ${CONTAINER_NAME} exists. Stopping and removing..."
+                sudo docker stop ${CONTAINER_NAME}
+              fi
+            
+              sudo docker rm -f ${CONTAINER_NAME} || true
+            
+              NETWORKS=( ${DOCKER_NETWORKS} )
+            
+              PORTS_ARG=
+              PORTS_ARG=\$(echo "${DOCKER_PORTS}" | xargs)
+              if [ -n "\$PORTS_ARG" ]; then
+                PORTS_ARG=" \$PORTS_ARG"
+              else
+                PORTS_ARG=""
+              fi
+            
+              sudo docker create \
+                --name ${CONTAINER_NAME} \
+                --restart on-failure \
+                --env-file ${DEPLOY_PATH}/${ENV_FILE_NAME} \
+                -v ${DEPLOY_PATH}/logs:/app/logs \
+                -v ${DEPLOY_PATH}/private:/app/private \
+                -v ${DEPLOY_PATH}/wwwroot:/app/wwwroot \
+                \$PORTS_ARG \
+                ${GHCR_REPO}:${IMAGE_TAG}
+            
+              for NET in "\${NETWORKS[@]}"; do
+                sudo docker network inspect "\$NET" >/dev/null 2>&1 || sudo docker network create "\$NET"
+                echo "Attaching network: \$NET"
+                sudo docker network connect "\$NET" ${CONTAINER_NAME} || true
+              done
+            
+              sudo docker start ${CONTAINER_NAME}
+            
+              sudo docker image prune -f
+              sudo rm -f /tmp/${ENV_FILE_NAME} || true
+            EOF
+        - name: Notify Discord
+          if : always()
+          run: |
+            STATUS=${{ job.status }}
+            if [ "$STATUS" = "success" ]; then
+              COLOR=3066993
+              ICON="✅"
+              TITLE="QA Deploy Succeeded"
+            elif [ "$STATUS" = "failure" ]; then
+              COLOR=15158332
+              ICON="❌"
+              TITLE="QA Deploy Failed"
+            else
+              COLOR=10070709
+              ICON="⚪"
+              TITLE="QA Deploy Status: $STATUS"
+            fi  
+            
+            IMAGE_TAG=${{ inputs.image_tag }}
+            RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            
+            if [ -n "${{ secrets.DISCORD_WEBHOOK }}" ]; then
+              curl -H "Content-Type: application/json" \
+                 -X POST \
+                 -d "{
+                   \"username\": \"GitHub Actions\",\
+                   \"avatar_url\": \"https://i.allthepics.net/2025/10/29/meo_den.png\",\
+                     \"embeds\": [{
+                        \"title\": \"$ICON $TITLE\",
+                        \"url\": \"$RUN_URL\",
+                        \"color\": $COLOR,
+                        \"fields\": [
+                          {\"name\": \"Environment\", \"value\": \"qa\", \"inline\": true},\
+                          {\"name\": \"Image Tag\", \"value\": \"$IMAGE_TAG\", \"inline\": true}
+                        ]\
+                     }]\
+                    }" \
+                    ${{ secrets.DISCORD_WEBHOOK }}
+            else
+                echo "DISCORD_WEBHOOK not set; skipping notification."
+            fi

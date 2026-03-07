@@ -1,0 +1,117 @@
+﻿name: QA - Build and Push Image
+
+on:
+  workflow_dispatch: 
+    inputs:
+      branch:
+        description: "Branch to build from"
+        required: true
+        default: "qa"
+      image_tag:
+        description: "Custom image tag (leave empty to use commit SHA)"
+        required: false
+        default: ""
+        
+permissions:
+  contents: read
+  packages: write
+  actions: write
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          # Use default GITHUB_TOKEN instead of personal PAT
+          password: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+          
+      - name: Set lowercase variables
+        run: |
+          # ghcr image path: ghcr.io/<owner>/<repo>
+          echo "REPO_FULL_LOWER=${GITHUB_REPOSITORY@L}" >> $GITHUB_ENV
+          
+      - name: Prepare tags
+        run: |
+          if [ -z "${{ inputs.image_tag }}" ]; then
+            echo "IMAGE_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+          else
+            echo "IMAGE_TAG=${{ inputs.image_tag }}" >> $GITHUB_ENV
+          fi
+
+          echo "ENV_TAG=qa-latest" >> $GITHUB_ENV
+          echo "Pushing tags: $IMAGE_TAG and $ENV_TAG"
+          
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const imageTag = process.env.IMAGE_TAG;
+            core.info(`Triggering QA deploy with image tag ${imageTag}`);
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'qa-deploy.yml',
+              ref: context.ref,
+              inputs: {
+                image_tag: imageTag,
+              },
+            });
+      - name: Notify Discord
+        if: always()
+        run: |
+          STATUS=${{ job.status }}
+          if [ "$STATUS" == "success" ]; then
+              COLOR=3066993
+              ICON="✅"
+              TITLE="QA Build Succeeded"
+          elif [ "$STATUS" = "failure" ]; then
+              COLOR=15158332
+              ICON="❌"
+              TITLE="QA Build Failed"
+          else
+              COLOR=10070709
+              ICON="⚪"
+              TITLE="QA Build Status: $STATUS"
+          fi
+          
+          BRANCH=${{ inputs.branch }}
+          IMAGE_TAG=${{ env.IMAGE_TAG }}
+          RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          
+          if [ -n "${{ secrets.DISCORD_WEBHOOK }}" ]; then
+            curl -H "Content-Type: application/json" \
+                 -X POST \
+                 -d "{
+                   \"username\": \"GitHub Actions\",
+                   \"avatar_url\": \"https://i.allthepics.net/2025/10/29/meo_den.png\",
+                   \"embeds\": [{
+                     \"title\": \"$ICON $TITLE\",
+                     \"url\": \"$RUN_URL\",
+                     \"color\": $COLOR,
+                     \"fields\": [
+                       {\"name\": \"Environment\", \"value\": \"qa\", \"inline\": true},
+                       {\"name\": \"Branch\", \"value\": \"$BRANCH\", \"inline\": true},
+                       {\"name\": \"Image Tag\", \"value\": \"$IMAGE_TAG\", \"inline\": true}
+                     ]
+                   }]
+                 }" \
+                 ${{ secrets.DISCORD_WEBHOOK }}
+          else
+            echo "DISCORD_WEBHOOK not set; skipping notification."
+          fi          
