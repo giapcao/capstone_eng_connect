@@ -3,6 +3,7 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 
@@ -41,7 +42,7 @@ public class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseRe
                 Title = command.Title,
                 ResourceType = command.ResourceType,
                 Url = command.Url,
-                Status = command.Status
+                Status = nameof(CommonStatus.Active)
             };
 
             courseResourceRepo.Add(courseResource);

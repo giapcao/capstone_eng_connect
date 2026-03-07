@@ -32,6 +32,8 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<CourseEnrollment> CourseEnrollments { get; set; }
 
+    public virtual DbSet<EnrollmentSlot> EnrollmentSlots { get; set; }
+
     public virtual DbSet<CourseModule> CourseModules { get; set; }
 
     public virtual DbSet<CourseResource> CourseResources { get; set; }
@@ -49,6 +51,8 @@ public partial class ApplicationDbContext : DbContext
     public virtual DbSet<LessonHomework> LessonHomeworks { get; set; }
 
     public virtual DbSet<LessonRecord> LessonRecords { get; set; }
+
+    public virtual DbSet<LessonRescheduleRequest> LessonRescheduleRequests { get; set; }
 
     public virtual DbSet<LessonScript> LessonScripts { get; set; }
 

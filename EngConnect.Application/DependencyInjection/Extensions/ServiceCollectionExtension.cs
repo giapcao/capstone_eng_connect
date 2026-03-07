@@ -15,6 +15,9 @@ using EngConnect.Application.UseCases.CourseEnrollments.CreateCourseEnrollment;
 using EngConnect.Application.UseCases.CourseEnrollments.GetListCourseEnrollments;
 using EngConnect.Application.UseCases.CourseEnrollments.UpdateCourseEnrollment;
 using EngConnect.Application.UseCases.CourseEnrollments.UpdateCourseEnrollmentStatus;
+using EngConnect.Application.UseCases.FileStorage.DeleteFileFromDrive;
+using EngConnect.Application.UseCases.FileStorage.GetFileFromDrive;
+using EngConnect.Application.UseCases.FileStorage.UploadFileToDrive;
 using EngConnect.Application.UseCases.LessonRecords.CreateLessonRecord;
 using EngConnect.Application.UseCases.LessonRecords.UpdateLessonRecord;
 using EngConnect.Application.UseCases.Lessons.CreateLesson;
@@ -25,6 +28,7 @@ using EngConnect.Application.UseCases.LessonScripts.CreateLessonScript;
 using EngConnect.Application.UseCases.LessonScripts.UpdateLessonScript;
 using EngConnect.Application.UseCases.Students.CreateStudent;
 using EngConnect.Application.UseCases.Students.GetListStudents;
+using EngConnect.Application.UseCases.Students.UpdateAvatarStudent;
 using EngConnect.Application.UseCases.Students.UpdateStatusStudent;
 using EngConnect.Application.UseCases.Students.UpdateStudent;
 using EngConnect.Application.UseCases.Tutors.CreateTutor;
@@ -82,6 +86,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<UpdateStudentCommand>, UpdateStudentCommandValidator>();
         services.AddScoped<IValidator<RegisterStudentCommand>, RegisterStudentCommandValidator>();
         services.AddScoped<IValidator<GetListStudentQuery>, GetListStudentQueryValidator>();
+        services.AddScoped<IValidator<UpdateAvatarStudentCommand>, UpdateAvatarValidator>();
         services.AddScoped<IValidator<CreateLessonCommand>, CreateLessonCommandValidator>();
         services.AddScoped<IValidator<UpdateLessonCommand>, UpdateLessonCommandValidator>();
         services.AddScoped<IValidator<GetListLessonQuery>, GetListLessonValidator>();
@@ -94,5 +99,8 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<UpdateLessonRecordCommand>,  UpdateLessonRecordCommandValidator>();
         services.AddScoped<IValidator<CreateLessonScriptCommand>, CreateLessonScriptCommandValidator>();
         services.AddScoped<IValidator<UpdateLessonScriptCommand>, UpdateLessonScriptCommandValidator>();
+        services.AddScoped<IValidator<UploadFileToDriveCommand>, UploadFileToDriveCommandValidator>();
+        services.AddScoped<IValidator<GetFileFromDriveCommand>, GetFileFromDriveCommandValidator>();
+        services.AddScoped<IValidator<DeleteFileFromDriveCommand>, DeleteFileFromDriveCommandValidator>();
     }
 }

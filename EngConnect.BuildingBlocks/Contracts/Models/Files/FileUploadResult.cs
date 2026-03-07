@@ -29,7 +29,12 @@ public class FileUploadResult
     ///     Path to the file relative to storage root
     /// </summary>
     public required string RelativePath { get; set; }
-
+    
+    /// <summary>
+    ///     Path to the file
+    /// </summary>
+    public string? RelativePathSystem { get; set; }
+    
     /// <summary>
     ///     Full URL to access the file
     /// </summary>

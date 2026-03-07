@@ -3,7 +3,10 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
+using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.Courses.CreateCourse;
@@ -45,9 +48,37 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                     return Result.Failure(HttpStatusCode.NotFound, new Error("ParentCourseNotFound", "Khóa học cha không tồn tại"));
                 }
             }
+            
+            //Create courseId for create other table that have relationship with course table
+            var courseId = Guid.NewGuid();
+            
+            //Check if category exists 
+            if (command.CategoryIds is { Length: > 0 })
+            {
+                //Check if categories exist
+                var categories = await _unitOfWork.GetRepository<Category, Guid>()
+                    .FindAll(x => command.CategoryIds.Contains(x.Id))
+                    .ToListAsync(cancellationToken);
+
+                if (categories.Count != command.CategoryIds.Length)
+                {
+                    _logger.LogWarning("One or more categories not found with IDs: {CategoryIds}", command.CategoryIds);
+                    return Result.Failure(HttpStatusCode.NotFound, CourseErrors.CategoryNotFound());
+                }
+                
+                //Create categories
+                var courseCategories = categories.Select(category => new CourseCategory
+                {
+                    CourseId = courseId,
+                    CategoryId = category.Id
+                }).ToList();
+                
+                _unitOfWork.GetRepository<CourseCategory, Guid>().AddRange(courseCategories);
+            }
 
             var course = new Course
             {
+                Id = courseId,
                 TutorId = command.TutorId,
                 ParentCourseId = command.ParentCourseId,
                 Title = command.Title,
@@ -63,7 +94,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                 NumsSessionInWeek = command.NumsSessionInWeek,
                 ThumbnailUrl = command.ThumbnailUrl,
                 DemoVideoUrl = command.DemoVideoUrl,
-                Status = command.Status,
+                Status = nameof(CourseStatus.Draft),
                 IsCertificate = command.IsCertificate,
                 NumberOfEnrollment = 0,
                 RatingAverage = 5,

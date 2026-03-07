@@ -36,6 +36,8 @@ public class Lesson : AuditableEntity<Guid>
 
     public virtual ICollection<LessonScript> LessonScripts { get; set; } = new List<LessonScript>();
 
+    public virtual ICollection<LessonRescheduleRequest> LessonRescheduleRequests { get; set; } = new List<LessonRescheduleRequest>();
+    
     public virtual ICollection<MeetingParticipant> MeetingParticipants { get; set; } = new List<MeetingParticipant>();
 
     public virtual CourseSession? Session { get; set; }

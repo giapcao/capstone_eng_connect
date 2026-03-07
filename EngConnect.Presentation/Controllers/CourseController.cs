@@ -3,6 +3,7 @@ using EngConnect.Application.UseCases.Courses.CreateCourse;
 using EngConnect.Application.UseCases.Courses.DeleteCourse;
 using EngConnect.Application.UseCases.Courses.GetCourseById;
 using EngConnect.Application.UseCases.Courses.GetListCourse;
+using EngConnect.Application.UseCases.Courses.SubmitCourse;
 using EngConnect.Application.UseCases.Courses.UpdateCourse;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
@@ -87,6 +88,20 @@ public class CourseController : BaseApiController
     public async Task<IActionResult> DeleteAsync([FromRoute] Guid id)
     {
         var command = new DeleteCourseCommand(id);
+        var result = await _commandDispatcher.DispatchAsync(command);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Submit Course (Save sau khi đã tạo khóa học hoàn tất)
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    [HttpPost("submit")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SubmitCourseAsync([FromBody] SubmitCourseCommand command)
+    {
         var result = await _commandDispatcher.DispatchAsync(command);
         return FromResult(result);
     }

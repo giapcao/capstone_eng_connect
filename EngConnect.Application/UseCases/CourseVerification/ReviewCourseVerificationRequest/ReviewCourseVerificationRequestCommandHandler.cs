@@ -46,13 +46,13 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
                 if (request is null)
                 {
                     return Result.Failure(HttpStatusCode.NotFound,
-                        CourseErrors.VerificationRequestNotFound(command.Request.RequestId));
+                        CourseErrors.VerificationRequestNotFound());
                 }
 
                 if (request.Status != "pending")
                 {
                     return Result.Failure(HttpStatusCode.BadRequest,
-                        CourseErrors.VerificationRequestAlreadyReviewed(command.Request.RequestId));
+                        CourseErrors.VerificationRequestAlreadyReviewed());
                 }
 
                 request.Status = command.Request.Approved ? "approved" : "rejected";

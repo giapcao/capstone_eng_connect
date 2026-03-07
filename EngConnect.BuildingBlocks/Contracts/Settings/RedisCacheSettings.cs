@@ -8,5 +8,7 @@ public class RedisCacheSettings
     public int PasswordResetTokenExpirationMinutes { get; set; }
     public int EmailResetPasswordTokenExpirationInMinutes { get; set; }
     public int SettingCacheExpirationMinutes { get; set; }
+    public int CollectionCacheExpirationMinutes { get; set; }
+    public int SettingCacheExpirationDays { get; set; }
     public int UserLoginTokenExpirationInMinutes { get; set; }
 }

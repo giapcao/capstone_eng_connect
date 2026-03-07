@@ -20,6 +20,8 @@ public class Student : AuditableEntity<Guid>
     public List<string>? Tags { get; set; }
 
     public string? Status { get; set; }
+    
+    public string? Avatar {get; set;}
 
     public virtual ICollection<ActualSchedule> ActualSchedules { get; set; } = new List<ActualSchedule>();
 
@@ -30,6 +32,8 @@ public class Student : AuditableEntity<Guid>
     public virtual ICollection<CourseReview> CourseReviews { get; set; } = new List<CourseReview>();
 
     public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
+
+    public virtual ICollection<LessonRescheduleRequest> LessonRescheduleRequests { get; set; } = new List<LessonRescheduleRequest>();
 
     public virtual User User { get; set; } = null!;
     
