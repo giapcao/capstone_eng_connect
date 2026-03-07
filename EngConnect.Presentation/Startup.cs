@@ -4,6 +4,8 @@ using EngConnect.BuildingBlock.Presentation.DependencyInjection.Extensions;
 using EngConnect.BuildingBlock.Presentation.Middlewares;
 using EngConnect.Domain.Settings;
 using EngConnect.Infrastructure.DependencyInjection.Extensions;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Options;
 using Quartz;
 
 namespace EngConnect.Presentation;
@@ -30,6 +32,9 @@ public static class Startup
                         .AllowCredentials(); // nếu dùng cookie / auth
                 });
         });
+        
+        
+        builder.ConfigureHeaders();
         
         builder.ConfigureAuthentication();
         builder.AddGoogleAuthentication();
@@ -64,13 +69,45 @@ public static class Startup
     {
     }
 
+    //260308: Configure forwarded headers to support reverse proxy scenarios (e.g., when deployed behind Nginx or Apache)
+    public static void ConfigureHeaders(this WebApplicationBuilder builder)
+    {
+        var appSettings = builder.Configuration.GetSection(AppSettings.Section).Get<AppSettings>() ??
+                          throw new Exception("AppSettings are not configured");
+
+        if (appSettings.EnableForwardedHeaders)
+        {
+            builder.Services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders = ForwardedHeaders.All;
+
+                //Only trust the first proxy
+                options.ForwardLimit = 1;
+
+                //Clear both to trust any proxy
+                options.KnownNetworks.Clear();
+                options.KnownProxies.Clear();
+            });
+        }
+    }
+    
     /// <summary>
     ///     Configures the application request pipeline
     /// </summary>
     public static void Configure(this WebApplication app)
     {
         app.UseErrorHandling();
-
+        var appSettings = app.Services.GetRequiredService<IOptions<AppSettings>>().Value;
+        
+        if (appSettings.EnableForwardedHeaders)
+        {
+            app.UseForwardedHeaders();
+        }
+        if (appSettings.EnableHttpsRedirection)
+        {
+            app.UseHttpsRedirection();
+        }
+        
         if (app.Environment.IsDevelopment())
         {
             app.UseSwaggerApiReference("EngConnect", "v1");
