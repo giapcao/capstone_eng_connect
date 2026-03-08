@@ -59,6 +59,18 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
+          context: .
+          file: ./EngConnect.Presentation/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ env.REPO_FULL_LOWER }}:${{ env.IMAGE_TAG }}
+            ghcr.io/${{ env.REPO_FULL_LOWER }}:${{ env.ENV_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+        
+      - name: Trigger QA Deploy workflow
+        uses: actions/github-script@v7
+        with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const imageTag = process.env.IMAGE_TAG;
@@ -72,6 +84,7 @@ jobs:
                 image_tag: imageTag,
               },
             });
+            
       - name: Notify Discord
         if: always()
         run: |
