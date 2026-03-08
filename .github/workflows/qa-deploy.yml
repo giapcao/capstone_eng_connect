@@ -2,7 +2,7 @@
 
 on:
     workflow_dispatch:
-        inputs:
+      inputs:
         image_tag:
             description: "Image tag to deploy (required)"
             required: true
