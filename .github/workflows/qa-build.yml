@@ -71,7 +71,7 @@ jobs:
       - name: Trigger QA Deploy workflow
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token:  ${{ github.token }}
           script: |
             const imageTag = process.env.IMAGE_TAG;
             core.info(`Triggering QA deploy with image tag ${imageTag}`);
