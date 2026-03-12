@@ -57,7 +57,7 @@ jobs:
             
             ssh-keyscan -p "$VPS_SSH_PORT" -H "$VPS_HOST" >> "$HOME/.ssh/known_hosts"
             
-            scp -P "$VPS_SSH_PORT" "$ENV_FILE_PATH" "$VPS_USER@$VPS_HOST:/tmp/$ENV_FILE_NAME"
+            scp -O -P "$VPS_SSH_PORT" "$ENV_FILE_PATH" "$VPS_USER@$VPS_HOST:/tmp/$ENV_FILE_NAME"
             
             ssh -p "$VPS_SSH_PORT" "$VPS_USER@$VPS_HOST" << EOF
               set -euo pipefail
