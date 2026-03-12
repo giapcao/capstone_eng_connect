@@ -43,7 +43,7 @@ public static class ServiceCollectionExtension
         services.AddJwtSettings(configuration);
         services.AddAuthenticationServices();
         services.AddMailKitEmailService(configuration);
-        services.AddFileStorage(configuration);
+        // services.AddFileStorage(configuration);
         services.AddGoogleDriveStorageService(configuration);
         services.AddAwsStorageSettings(configuration);
         services.AddMessageBusWithOutboxService();
