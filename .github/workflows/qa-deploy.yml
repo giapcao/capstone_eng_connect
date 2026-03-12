@@ -15,7 +15,7 @@ permissions:
 env:
     CONTAINER_NAME: engconnect_v1_qa
     ENV_FILE_NAME: engconnect_v1_qa.env
-    DOCKER_NETWORKS: engconnect-qa-network mysql_default
+    DOCKER_NETWORKS: engconnect-qa-network postgre-sql-default
     DOCKER_PORTS: "-p 127.0.0.1:7000:8080"
     DEPLOY_PATH: "/opt/engconnect/engconnect_v1_qa"
     GHCR_REGISTRY: ghcr.io
@@ -63,17 +63,19 @@ jobs:
               set -euo pipefail
               
               echo "=== Deploying ${CONTAINER_NAME} to QA VPS ==="
+            
+              sudo mkdir -p ${DEPLOY_PATH}/logs
               cd "$DEPLOY_PATH"
             
               sudo mv /tmp/${ENV_FILE_NAME} ${DEPLOY_PATH}/${ENV_FILE_NAME}
               sudo chmod 600 ${DEPLOY_PATH}/${ENV_FILE_NAME}
             
-              echo "${GITHUB_TOKEN}" | sudo docker login ${GHCR_REGISTRY} -u ${GHCR_USERNAME} --password-stdin
+              echo "${GITHUB_TOKEN}" | sudo docker login ${GHCR_REGISTRY} -u "${GHCR_USERNAME}" --password-stdin
             
               sudo docker pull ${GHCR_REPO}:${IMAGE_TAG}
             
-              if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-                echo "Container ${CONTAINER_NAME} exists. Stopping and removing..."
+              if sudo docker ps -q -f name=${CONTAINER_NAME} | grep -q .; then
+                echo "Stopping existing container gracefully..."
                 sudo docker stop ${CONTAINER_NAME}
               fi
             
@@ -84,14 +86,14 @@ jobs:
               PORTS_ARG=
               PORTS_ARG=\$(echo "${DOCKER_PORTS}" | xargs)
               if [ -n "\$PORTS_ARG" ]; then
-                PORTS_ARG=" \$PORTS_ARG"
+                PORTS_ARG="${DOCKER_PORTS}"
               else
                 PORTS_ARG=""
               fi
             
               sudo docker create \
                 --name ${CONTAINER_NAME} \
-                --restart on-failure \
+                --restart on-failure:3 \
                 --env-file ${DEPLOY_PATH}/${ENV_FILE_NAME} \
                 -v ${DEPLOY_PATH}/logs:/app/logs \
                 -v ${DEPLOY_PATH}/private:/app/private \
