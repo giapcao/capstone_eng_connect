@@ -1,4 +1,6 @@
 ﻿using EngConnect.BuildingBlock.Contracts.Abstraction;
+using EngConnect.Application.UseCases.Meetings.EndMeeting;
+using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -9,12 +11,14 @@ namespace EngConnect.Presentation.Hubs;
 [Authorize]
 public class VideoCallHub : Hub
 {
+    private readonly ICommandDispatcher _commandDispatcher;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<VideoCallHub> _logger;
 
-    public VideoCallHub(IUnitOfWork unitOfWork, ILogger<VideoCallHub> logger)
+    public VideoCallHub(IUnitOfWork unitOfWork, ICommandDispatcher commandDispatcher, ILogger<VideoCallHub> logger)
     {
         _unitOfWork = unitOfWork;
+        _commandDispatcher = commandDispatcher;
         _logger = logger;
     }
 
@@ -326,36 +330,19 @@ public class VideoCallHub : Hub
                 return;
             }
 
-            // Verify the caller is the tutor
-            var tutorRepo = _unitOfWork.GetRepository<Tutor, Guid>();
-            var tutor = await tutorRepo.FindFirstAsync(t => t.Id == lesson.TutorId && t.UserId == userId);
-            if (tutor == null)
+            var endMeetingResult = await _commandDispatcher.DispatchAsync(
+                new EndMeetingCommand(lessonId, userId));
+
+            if (endMeetingResult.IsFailure)
             {
-                await Clients.Caller.SendAsync("Error", "Chỉ gia sư mới có thể kết thúc buổi học.");
+                await Clients.Caller.SendAsync("Error", endMeetingResult.Error?.Message ?? "Không thể kết thúc buổi học.");
                 return;
             }
 
             var roomId = lesson.MeetingUrl;
             if (string.IsNullOrEmpty(roomId)) return;
 
-            // Update lesson
-            lesson.MeetingStatus = nameof(MeetingStatus.Ended);
-            lesson.MeetingEndedAt = DateTime.UtcNow;
-            lessonRepo.Update(lesson);
-
-            // Close all active participants
-            var participantRepo = _unitOfWork.GetRepository<MeetingParticipant, Guid>();
-            var activeParticipants = participantRepo.FindAll(
-                p => p.LessonId == lessonId && p.LeftAt == null, tracking: true);
-
-            foreach (var participant in activeParticipants)
-            {
-                participant.LeftAt = DateTime.UtcNow;
-                participant.ConnectionId = null;
-                participantRepo.Update(participant);
-            }
-
-            await _unitOfWork.SaveChangesAsync();
+            lesson = await lessonRepo.FindByIdAsync(lessonId);
 
             // Notify everyone in the room
             await Clients.Group(roomId).SendAsync("MeetingEnded", new
