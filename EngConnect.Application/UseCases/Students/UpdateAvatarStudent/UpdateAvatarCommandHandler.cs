@@ -49,8 +49,10 @@ public class UpdateAvatarCommandHandler : ICommandHandler<UpdateAvatarStudentCom
 
             studentExist.Avatar = updateFileRequest.RelativePath;
             await _unitOfWork.SaveChangesAsync();
-            
-            _= _cache.SetCacheAsync(studentExist.Id.ToString(),studentExist.Avatar,TimeSpan.FromDays(_settings.SettingCacheExpirationDays),false);
+
+            var cacheKey = RedisKeyGenerator.GenerateStudentAvatarKey(studentExist.Id);
+            _ = _cache.SetCacheAsync(cacheKey, studentExist.Avatar,
+                TimeSpan.FromDays(_settings.SettingCacheExpirationDays), false);
             _logger.LogInformation("End UpdateAvatarStudentCommand {@command}", command);
             
             return Result.Success(updateFileRequest);

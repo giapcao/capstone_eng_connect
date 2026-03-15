@@ -10,7 +10,9 @@ public static class RedisKeyGenerator
     private const string AdminRefreshToken = "ADMIN:RefreshToken";
     private const string AdminPendingToken = "ADMIN:PendingToken";
     private const string USER_LOGIN_TOKEN = "USER:LoginToken";
-    
+    private const string STUDENT_AVATAR = "STUDENT:Avatar";
+    private const string TUTOR_AVATAR = "TUTOR:Avatar";
+
     /// <summary>
     ///     Generate key for pending token
     ///     Pattern: ADMIN:PendingToken:userId
@@ -129,10 +131,22 @@ public static class RedisKeyGenerator
     {
         return CACHE_COLLECTION_ALL;
     }
-    
+
     public static string GenerateUserLoginTokenKey(string token) =>
         new RedisPatternBuilder()
             .AddExact(USER_LOGIN_TOKEN)
             .AddExact(token)
+            .Build();
+
+    public static string GenerateStudentAvatarKey(Guid studentId) =>
+        new RedisPatternBuilder()
+            .AddExact(STUDENT_AVATAR)
+            .AddExact(studentId.ToString())
+            .Build();
+    
+    public static string GenerateTutorAvatarKey(Guid tutorId) =>
+        new RedisPatternBuilder()
+            .AddExact(TUTOR_AVATAR)
+            .AddExact(tutorId.ToString())
             .Build();
 }

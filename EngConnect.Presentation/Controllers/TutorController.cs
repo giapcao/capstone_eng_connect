@@ -1,14 +1,22 @@
-﻿using EngConnect.Application.UseCases.Tutors.Common;
+using EngConnect.Application.UseCases.Tutors.Common;
 using EngConnect.Application.UseCases.Tutors.CreateTutor;
 using EngConnect.Application.UseCases.Tutors.DeleteTutor;
+using EngConnect.Application.UseCases.Tutors.GetAvatarTutor;
 using EngConnect.Application.UseCases.Tutors.GetListTutor;
 using EngConnect.Application.UseCases.Tutors.GetTutorById;
+using EngConnect.Application.UseCases.Tutors.UpdateAvatarTutor;
 using EngConnect.Application.UseCases.Tutors.UpdateTutor;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
+using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Domain.Constants;
+using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.BuildingBlock.Presentation.Controllers;
+using EngConnect.BuildingBlock.Presentation.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace EngConnect.Presentation.Controllers
 {
@@ -39,6 +47,25 @@ namespace EngConnect.Presentation.Controllers
             CancellationToken cancellationToken = default)
         {
             var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+            return FromResult(result);
+        }
+
+        /// <summary>
+        /// Lấy ảnh avatar gia sư
+        /// </summary>
+        [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
+        [HttpGet("avatar")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(Result<GetAvatarTutorResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAvatarTutorAsync(CancellationToken cancellationToken = default)
+        {
+            if (!Guid.TryParse(User.GetTutorId(), out var tutorId))
+            {
+                return FromResult(Result.Failure(HttpStatusCode.BadRequest,
+                    CommonErrors.ValidationFailed("TutorId claim is missing or invalid.")));
+            }
+
+            var result = await _queryDispatcher.DispatchAsync(new GetAvatarTutorQuery { Id = tutorId }, cancellationToken);
             return FromResult(result);
         }
 
@@ -74,6 +101,34 @@ namespace EngConnect.Presentation.Controllers
             }
 
             return StatusCode(StatusCodes.Status201Created, result);
+        }
+
+        /// <summary>
+        /// Cập nhật avatar gia sư
+        /// </summary>
+        [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
+        [HttpPut("avatar")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+        public async Task<IActionResult> UpdateAvatarTutorAsync(IFormFile file, CancellationToken cancellationToken = default)
+        {
+            if (!Guid.TryParse(User.GetTutorId(), out var tutorId))
+            {
+                return FromResult(Result.Failure(HttpStatusCode.BadRequest,
+                    CommonErrors.ValidationFailed("TutorId claim is missing or invalid.")));
+            }
+
+            var fileUpload = new FileUpload
+            {
+                FileName = file.FileName,
+                ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
+                Length = file.Length,
+                Content = file.OpenReadStream()
+            };
+
+            var result = await _commandDispatcher.DispatchAsync(
+                new UpdateAvatarTutorCommand { File = fileUpload, Id = tutorId }, cancellationToken);
+            return FromResult(result);
         }
 
         /// <summary>

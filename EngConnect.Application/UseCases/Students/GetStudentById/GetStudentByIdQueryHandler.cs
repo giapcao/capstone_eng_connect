@@ -1,45 +1,72 @@
-﻿using System.Net;
+using System.Net;
 using EngConnect.Application.UseCases.Students.Common;
+using EngConnect.Application.UseCases.Users.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
-using Mapster;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.Students.GetStudentById;
 
-public class GetStudentByIdQueryHandler : IQueryHandler<GetStudentByIdQuery,GetStudentResponse>
+public class GetStudentByIdQueryHandler : IQueryHandler<GetStudentByIdQuery, GetStudentResponse>
 {
     private readonly ILogger<GetStudentByIdQueryHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IAwsStorageService _awsStorageService;
 
-    public GetStudentByIdQueryHandler(IUnitOfWork unitOfWork, ILogger<GetStudentByIdQueryHandler> logger)
+    public GetStudentByIdQueryHandler(IUnitOfWork unitOfWork, ILogger<GetStudentByIdQueryHandler> logger,
+        IAwsStorageService awsStorageService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _awsStorageService = awsStorageService;
     }
     
     public async Task<Result<GetStudentResponse>> HandleAsync(GetStudentByIdQuery query, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Start GetStudentByIdQueryHandler : {@query}",query);
+        _logger.LogInformation("Start GetStudentByIdQueryHandler : {@query}", query);
         try
         {
             var student = await _unitOfWork.GetRepository<Student, Guid>()
-                .FindByIdAsync(query.Id, cancellationToken: cancellationToken);
+                .FindAll(x => x.Id == query.Id)
+                .Include(x => x.User)
+                .FirstOrDefaultAsync(cancellationToken);
             
             if (student == null)
             {
-                _logger.LogWarning( "studentId không tồn tại {studentId}", query.Id);
+                _logger.LogWarning("studentId không tồn tại {studentId}", query.Id);
                 return Result.Failure<GetStudentResponse>(HttpStatusCode.NotFound,
                     CommonErrors.NotFound<Student>("Id"));
             }
-            
-            var existed = student.Adapt<GetStudentResponse>();
+
+            var response = new GetStudentResponse
+            {
+                Id = student.Id,
+                UserId = student.UserId,
+                Notes = student.Notes,
+                School = student.School,
+                Grade = student.Grade,
+                Class = student.Class,
+                Tags = student.Tags,
+                Status = student.Status,
+                CreatedAt = student.CreatedAt,
+                UpdatedAt = student.UpdatedAt,
+                User = new UserInfo
+                {
+                    FirstName = student.User.FirstName,
+                    LastName = student.User.LastName,
+                    UserName = student.User.UserName,
+                    Email = student.User.Email,
+                    Phone = student.User.Phone,
+                    AvatarUrl = _awsStorageService.GetFileUrl(student.Avatar)
+                }
+            };
 
             _logger.LogInformation("End GetStudentByIdQueryHandler)");
-            return Result.Success(existed);
+            return Result.Success(response);
         }
         catch (Exception ex)
         {
@@ -48,4 +75,4 @@ public class GetStudentByIdQueryHandler : IQueryHandler<GetStudentByIdQuery,GetS
                 CommonErrors.InternalServerError());
         }
     }
-}
+}

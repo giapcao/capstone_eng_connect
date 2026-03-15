@@ -1,4 +1,4 @@
-﻿using EngConnect.BuildingBlock.Application.Base;
+using EngConnect.BuildingBlock.Application.Base;
 
 namespace EngConnect.Application.UseCases.Authentication.RegisterUser;
 
@@ -15,4 +15,10 @@ public record RegisterUserCommand: ICommand
     public string? WardId { get; set; }
     public string? WardName { get; set; }
     public required string Password { get; set; }
+    
+    // Optional student profile fields
+    public string? Notes { get; set; }
+    public string? School { get; set; }
+    public string? Grade { get; set; }
+    public string? Class { get; set; }
 }
