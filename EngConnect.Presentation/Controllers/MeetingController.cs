@@ -4,6 +4,7 @@ using EngConnect.Application.UseCases.Meetings.UploadRecordingChunk;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.Presentation.Controllers;
+using EngConnect.Presentation.Contracts.Meetings;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -56,10 +57,10 @@ public class MeetingController : BaseApiController
     /// Upload a meeting recording chunk (chunk duration: ~30 seconds)
     /// </summary>
     [HttpPost("{lessonId:guid}/recordings/chunks")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadRecordingChunk(
         Guid lessonId,
-        [FromForm] IFormFile chunk,
-        [FromForm] int chunkIndex,
+        [FromForm] UploadRecordingChunkRequest request,
         CancellationToken cancellationToken)
     {
         var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value;
@@ -68,17 +69,17 @@ public class MeetingController : BaseApiController
 
         var fileUpload = new FileUpload
         {
-            FileName = string.IsNullOrWhiteSpace(chunk.FileName) ? $"chunk-{chunkIndex:D6}.webm" : chunk.FileName,
-            ContentType = string.IsNullOrWhiteSpace(chunk.ContentType) ? "video/webm" : chunk.ContentType,
-            Length = chunk.Length,
-            Content = chunk.OpenReadStream()
+            FileName = string.IsNullOrWhiteSpace(request.Chunk.FileName) ? $"chunk-{request.ChunkIndex:D6}.webm" : request.Chunk.FileName,
+            ContentType = string.IsNullOrWhiteSpace(request.Chunk.ContentType) ? "video/webm" : request.Chunk.ContentType,
+            Length = request.Chunk.Length,
+            Content = request.Chunk.OpenReadStream()
         };
 
         var command = new UploadRecordingChunkCommand
         {
             LessonId = lessonId,
             UserId = userId,
-            ChunkIndex = chunkIndex,
+            ChunkIndex = request.ChunkIndex,
             File = fileUpload
         };
 
