@@ -1,4 +1,6 @@
-﻿namespace EngConnect.Application.UseCases.Students.Common;
+using EngConnect.Application.UseCases.Users.Common;
+
+namespace EngConnect.Application.UseCases.Students.Common;
 
 public class GetStudentResponse
 {
@@ -21,4 +23,7 @@ public class GetStudentResponse
     public DateTime CreatedAt { get; set; }
     
     public DateTime? UpdatedAt { get; set; }
+    
+    public UserInfo? User { get; set; }
 }
+

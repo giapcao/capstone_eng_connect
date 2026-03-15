@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Settings;
@@ -59,7 +59,30 @@ public class RegisterUserCommandHandler: ICommandHandler<RegisterUserCommand>
                 hashedPassword, nameof(UserStatus.Active));
             
             userRepo.Add(user);
-            
+
+            //Create student profile
+            var student = Student.CreateStudentWithUserId(
+                user.Id, command.School, command.Grade, command.Class);
+            if (!string.IsNullOrWhiteSpace(command.Notes))
+                student.Notes = command.Notes;
+            _unitOfWork.GetRepository<Student, Guid>().Add(student);
+
+            //Assign Student role
+            var roleStudentCode = nameof(UserRoleEnum.Student);
+            var roleRepo = _unitOfWork.GetRepository<Role, Guid>();
+            var studentRole = await roleRepo.FindFirstAsync(
+                x => x.Code == roleStudentCode,
+                cancellationToken: cancellationToken);
+            if (studentRole != null)
+            {
+                var userRole = new UserRole { UserId = user.Id, RoleId = studentRole.Id };
+                _unitOfWork.GetRepository<UserRole, Guid>().Add(userRole);
+            }
+            else
+            {
+                _logger.LogWarning("Role with code '{Code}' not found — skipping role assignment", roleStudentCode);
+            }
+
             //Generate email verification code
             var verificationCode = Guid.NewGuid().ToString("N");
             
