@@ -19,20 +19,20 @@ public static class Startup
         builder.Services.AddApplication();
         builder.Services.AddInfrastructure(builder.Configuration);
         builder.ConfigureSwagger("EngConnect", "v1", new[] { AssemblyReference.Assembly, Application.AssemblyReference.Assembly });
-        //Implement temp add cors
-        builder.Services.AddCors(options =>
-        {
-            options.AddPolicy("AllowFrontend",
-                policy =>
-                {
-                    policy
-                        .WithOrigins("http://localhost:5173")
-                        .AllowAnyMethod()
-                        .AllowAnyHeader()
-                        .AllowCredentials(); // nếu dùng cookie / auth
-                });
-        });
-        
+        // //Implement temp add cors
+        // builder.Services.AddCors(options =>
+        // {
+        //     options.AddPolicy("AllowFrontend",
+        //         policy =>
+        //         {
+        //             policy
+        //                 .WithOrigins("http://localhost:5173")
+        //                 .AllowAnyMethod()
+        //                 .AllowAnyHeader()
+        //                 .AllowCredentials(); // nếu dùng cookie / auth
+        //         });
+        // });
+        //
         
         builder.ConfigureHeaders();
         
