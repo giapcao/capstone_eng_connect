@@ -75,7 +75,7 @@ public class GetAvatarTutorQueryHandler : IQueryHandler<GetAvatarTutorQuery, Get
             };
 
             _ = _cache.SetCacheAsync(cacheKey, tutorExist.Avatar,
-                TimeSpan.FromDays(_settings.SettingCacheExpirationDays), false);
+                TimeSpan.FromMinutes(_settings.SettingCacheExpirationMinutes), false);
 
             _logger.LogInformation("End GetAvatarTutorQueryHandler");
             return Result.Success(file);

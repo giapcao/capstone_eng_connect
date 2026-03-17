@@ -71,7 +71,7 @@ public class GetAvatarQueryHandler : IQueryHandler<GetAvatarQuery,GetAvatarRespo
             };
             
             _ = _cache.SetCacheAsync(cacheKey, studentExist.Avatar,
-                TimeSpan.FromDays(_settings.SettingCacheExpirationDays), false);
+                TimeSpan.FromMinutes(_settings.SettingCacheExpirationMinutes), false);
             return Result.Success(file);
         }
         catch (Exception ex)

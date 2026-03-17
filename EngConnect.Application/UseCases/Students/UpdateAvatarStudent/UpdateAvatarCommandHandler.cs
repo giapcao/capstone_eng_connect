@@ -52,7 +52,7 @@ public class UpdateAvatarCommandHandler : ICommandHandler<UpdateAvatarStudentCom
 
             var cacheKey = RedisKeyGenerator.GenerateStudentAvatarKey(studentExist.Id);
             _ = _cache.SetCacheAsync(cacheKey, studentExist.Avatar,
-                TimeSpan.FromDays(_settings.SettingCacheExpirationDays), false);
+                TimeSpan.FromMinutes(_settings.SettingCacheExpirationMinutes), false);
             _logger.LogInformation("End UpdateAvatarStudentCommand {@command}", command);
             
             return Result.Success(updateFileRequest);
