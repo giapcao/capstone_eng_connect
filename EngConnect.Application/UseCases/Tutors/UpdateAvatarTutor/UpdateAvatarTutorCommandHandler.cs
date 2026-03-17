@@ -55,7 +55,7 @@ public class UpdateAvatarTutorCommandHandler : ICommandHandler<UpdateAvatarTutor
 
             var cacheKey = RedisKeyGenerator.GenerateTutorAvatarKey(tutorExist.Id);
             _ = _cache.SetCacheAsync(cacheKey, tutorExist.Avatar,
-                TimeSpan.FromDays(_settings.SettingCacheExpirationDays), false);
+                TimeSpan.FromMinutes(_settings.SettingCacheExpirationMinutes), false);
 
             _logger.LogInformation("End UpdateAvatarTutorCommand {@command}", command);
             return Result.Success(updateFileRequest);
