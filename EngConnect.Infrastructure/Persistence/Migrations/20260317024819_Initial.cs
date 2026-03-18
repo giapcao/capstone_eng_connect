@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EngConnect.Infrastructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class AddScheduleTrackingJob_and_update_email_template : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -20,7 +20,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "category",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
                     type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
@@ -38,7 +38,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "commission_config",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     commission_percent = table.Column<decimal>(type: "numeric(5,2)", precision: 5, scale: 2, nullable: false),
                     apply_from = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -54,49 +54,10 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "community_comment",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    post_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    author_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    parent_comment_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    content = table.Column<string>(type: "text", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("community_comment_pkey", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "community_post",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    author_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    content = table.Column<string>(type: "text", nullable: false),
-                    is_pinned = table.Column<bool>(type: "boolean", nullable: true, defaultValue: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("community_post_pkey", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "email_template",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     subject = table.Column<string>(type: "text", nullable: false),
                     body = table.Column<string>(type: "text", nullable: false),
@@ -116,7 +77,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "outbox_event",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     aggregate_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     aggregate_id = table.Column<Guid>(type: "uuid", nullable: false),
                     event_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
@@ -142,7 +103,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "permission",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     code = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
@@ -201,7 +162,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "role",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     code = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
@@ -242,7 +203,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "user",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     first_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     last_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     user_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
@@ -271,7 +232,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "permission_role",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     permission_id = table.Column<Guid>(type: "uuid", nullable: false),
                     role_id = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
@@ -298,7 +259,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "order",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     student_id = table.Column<Guid>(type: "uuid", nullable: false),
                     status = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     total_amount = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
@@ -326,7 +287,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "student",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     notes = table.Column<string>(type: "text", nullable: true),
                     school = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
@@ -334,6 +295,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     @class = table.Column<string>(name: "class", type: "character varying(50)", maxLength: 50, nullable: true),
                     tags = table.Column<List<string>>(type: "text[]", nullable: true),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    avatar = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
@@ -353,7 +315,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "support_ticket",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     created_by = table.Column<Guid>(type: "uuid", nullable: false),
                     subject = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
@@ -380,7 +342,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "tutor",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     headline = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     bio = table.Column<string>(type: "text", nullable: true),
@@ -412,7 +374,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "user_oauth_account",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     provider = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
                     provider_user_id = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
@@ -435,7 +397,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "user_role",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     user_id = table.Column<Guid>(type: "uuid", nullable: false),
                     role_id = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
@@ -462,7 +424,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "payment",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     order_id = table.Column<Guid>(type: "uuid", nullable: false),
                     type = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     status = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false, defaultValueSql: "'pending'::character varying"),
@@ -488,7 +450,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "support_ticket_message",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     ticket_id = table.Column<Guid>(type: "uuid", nullable: false),
                     sender_id = table.Column<Guid>(type: "uuid", nullable: false),
                     message = table.Column<string>(type: "text", nullable: false),
@@ -517,7 +479,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "conversation",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     tutor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     student_id = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
@@ -544,7 +506,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "course",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     tutor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     parent_course_id = table.Column<Guid>(type: "uuid", nullable: true),
                     title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
@@ -554,17 +516,17 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     level = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     estimated_time = table.Column<TimeSpan>(type: "interval", nullable: true),
                     estimated_time_lesson = table.Column<TimeSpan>(type: "interval", nullable: true),
-                    price = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true),
+                    price = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
                     currency = table.Column<string>(type: "character varying(10)", maxLength: 10, nullable: true),
                     number_of_sessions = table.Column<int>(type: "integer", nullable: true),
                     nums_session_in_week = table.Column<int>(type: "integer", nullable: true),
                     thumbnail_url = table.Column<string>(type: "text", nullable: true),
                     demo_video_url = table.Column<string>(type: "text", nullable: true),
-                    number_of_enrollment = table.Column<int>(type: "integer", nullable: true, defaultValue: 0),
+                    number_of_enrollment = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
                     rating_average = table.Column<decimal>(type: "numeric(3,2)", precision: 3, scale: 2, nullable: true, defaultValueSql: "0"),
                     rating_count = table.Column<int>(type: "integer", nullable: true, defaultValue: 0),
                     status = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: true),
-                    is_certificate = table.Column<bool>(type: "boolean", nullable: true, defaultValue: false),
+                    is_certificate = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
                     is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
@@ -589,7 +551,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "tutor_document",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     tutor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     doc_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
@@ -617,7 +579,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "tutor_schedule",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     tutor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     weekday = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     start_time = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
@@ -641,7 +603,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "tutor_verification_request",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     tutor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     submitted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -672,7 +634,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "conversation_message",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     conversation_id = table.Column<Guid>(type: "uuid", nullable: false),
                     sender_id = table.Column<Guid>(type: "uuid", nullable: false),
                     message = table.Column<string>(type: "text", nullable: false),
@@ -695,7 +657,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "actual_schedule",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     tutor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     student_id = table.Column<Guid>(type: "uuid", nullable: true),
                     course_id = table.Column<Guid>(type: "uuid", nullable: true),
@@ -731,7 +693,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "course_category",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     course_id = table.Column<Guid>(type: "uuid", nullable: false),
                     category_id = table.Column<Guid>(type: "uuid", nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
@@ -758,7 +720,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "course_enrollment",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     course_id = table.Column<Guid>(type: "uuid", nullable: false),
                     student_id = table.Column<Guid>(type: "uuid", nullable: false),
                     price_at_purchase = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: true),
@@ -791,7 +753,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "course_module",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     course_id = table.Column<Guid>(type: "uuid", nullable: false),
                     title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
@@ -816,7 +778,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "course_verification_request",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     course_id = table.Column<Guid>(type: "uuid", nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
                     submitted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
@@ -847,7 +809,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "order_detail",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     order_id = table.Column<Guid>(type: "uuid", nullable: false),
                     course_id = table.Column<Guid>(type: "uuid", nullable: false),
                     price_at_purchase = table.Column<decimal>(type: "numeric(12,2)", precision: 12, scale: 2, nullable: false),
@@ -905,7 +867,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "course_review",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     course_id = table.Column<Guid>(type: "uuid", nullable: false),
                     tutor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     student_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -944,10 +906,40 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "enrollment_slot",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    enrollment_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    tutor_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    weekday = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    start_time = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
+                    end_time = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("enrollment_slot_pkey", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_es_enrollment",
+                        column: x => x.enrollment_id,
+                        principalTable: "course_enrollment",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "fk_es_tutor",
+                        column: x => x.tutor_id,
+                        principalTable: "tutor",
+                        principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "course_session",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     module_id = table.Column<Guid>(type: "uuid", nullable: false),
                     title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     description = table.Column<string>(type: "text", nullable: true),
@@ -999,7 +991,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "course_resource",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     session_id = table.Column<Guid>(type: "uuid", nullable: false),
                     title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: true),
                     resource_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
@@ -1024,7 +1016,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "lesson",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     tutor_id = table.Column<Guid>(type: "uuid", nullable: false),
                     student_id = table.Column<Guid>(type: "uuid", nullable: false),
                     enrollment_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -1067,7 +1059,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "lesson_homework",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     lesson_id = table.Column<Guid>(type: "uuid", nullable: false),
                     title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     description = table.Column<string>(type: "text", nullable: true),
@@ -1099,7 +1091,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "lesson_record",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     lesson_id = table.Column<Guid>(type: "uuid", nullable: false),
                     record_url = table.Column<string>(type: "text", nullable: false),
                     duration_seconds = table.Column<int>(type: "integer", nullable: true),
@@ -1121,10 +1113,41 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "lesson_reschedule_request",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    lesson_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    student_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    proposed_start_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    proposed_end_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true, defaultValueSql: "'pending'::character varying"),
+                    tutor_note = table.Column<string>(type: "text", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()"),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("lesson_reschedule_request_pkey", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_lrr_lesson",
+                        column: x => x.lesson_id,
+                        principalTable: "lesson",
+                        principalColumn: "id");
+                    table.ForeignKey(
+                        name: "fk_lrr_student",
+                        column: x => x.student_id,
+                        principalTable: "student",
+                        principalColumn: "id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "lesson_script",
                 columns: table => new
                 {
-                    id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "uuid_generate_v4()"),
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
                     lesson_id = table.Column<Guid>(type: "uuid", nullable: false),
                     record_id = table.Column<Guid>(type: "uuid", nullable: false),
                     language = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
@@ -1262,6 +1285,17 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 column: "reviewed_by");
 
             migrationBuilder.CreateIndex(
+                name: "IX_enrollment_slot_enrollment_id",
+                table: "enrollment_slot",
+                column: "enrollment_id");
+
+            migrationBuilder.CreateIndex(
+                name: "uq_locked_slot",
+                table: "enrollment_slot",
+                columns: new[] { "tutor_id", "weekday", "start_time", "end_time" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_lesson_enrollment_id",
                 table: "lesson",
                 column: "enrollment_id");
@@ -1289,7 +1323,18 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_lesson_record_lesson_id",
                 table: "lesson_record",
+                column: "lesson_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_lesson_reschedule_request_lesson_id",
+                table: "lesson_reschedule_request",
                 column: "lesson_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_lesson_reschedule_request_student_id",
+                table: "lesson_reschedule_request",
+                column: "student_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_lesson_script_lesson_id",
@@ -1440,12 +1485,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "commission_config");
 
             migrationBuilder.DropTable(
-                name: "community_comment");
-
-            migrationBuilder.DropTable(
-                name: "community_post");
-
-            migrationBuilder.DropTable(
                 name: "conversation_message");
 
             migrationBuilder.DropTable(
@@ -1464,7 +1503,13 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 name: "email_template");
 
             migrationBuilder.DropTable(
+                name: "enrollment_slot");
+
+            migrationBuilder.DropTable(
                 name: "lesson_homework");
+
+            migrationBuilder.DropTable(
+                name: "lesson_reschedule_request");
 
             migrationBuilder.DropTable(
                 name: "lesson_script");
