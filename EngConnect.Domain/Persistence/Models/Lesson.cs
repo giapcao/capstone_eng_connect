@@ -26,12 +26,12 @@ public class Lesson : AuditableEntity<Guid>
 
     public virtual ICollection<LessonHomework> LessonHomeworks { get; set; } = new List<LessonHomework>();
 
-    public virtual ICollection<LessonRecord> LessonRecords { get; set; } = new List<LessonRecord>();
-
     public virtual ICollection<LessonScript> LessonScripts { get; set; } = new List<LessonScript>();
 
     public virtual ICollection<LessonRescheduleRequest> LessonRescheduleRequests { get; set; } = new List<LessonRescheduleRequest>();
 
+    public virtual LessonRecord? LessonRecord { get; set; }
+    
     public virtual CourseSession? Session { get; set; }
 
     public virtual Student Student { get; set; } = null!;

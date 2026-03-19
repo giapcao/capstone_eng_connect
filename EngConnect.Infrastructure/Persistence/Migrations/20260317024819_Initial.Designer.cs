@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EngConnect.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260211095339_AddSchedules")]
-    partial class AddSchedules
+    [Migration("20260317024819_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1219,7 +1219,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("lesson_record_pkey");
 
-                    b.HasIndex("LessonId");
+                    b.HasIndex("LessonId")
+                        .IsUnique();
 
                     b.ToTable("lesson_record", (string)null);
                 });
@@ -2126,6 +2127,11 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("id");
+
+                    b.Property<string>("Avatar")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("avatar");
 
                     b.Property<string>("Class")
                         .HasMaxLength(50)
@@ -3087,8 +3093,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonRecord", b =>
                 {
                     b.HasOne("EngConnect.Domain.Persistence.Models.Lesson", "Lesson")
-                        .WithMany("LessonRecords")
-                        .HasForeignKey("LessonId")
+                        .WithOne("LessonRecord")
+                        .HasForeignKey("EngConnect.Domain.Persistence.Models.LessonRecord", "LessonId")
                         .IsRequired()
                         .HasConstraintName("fk_record_lesson");
 
@@ -3395,7 +3401,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("LessonHomeworks");
 
-                    b.Navigation("LessonRecords");
+                    b.Navigation("LessonRecord");
 
                     b.Navigation("LessonRescheduleRequests");
 
