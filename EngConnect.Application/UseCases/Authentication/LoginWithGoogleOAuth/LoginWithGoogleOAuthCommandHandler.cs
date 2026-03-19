@@ -144,6 +144,7 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
                 {
                     var userRole = new UserRole { UserId = user.Id, RoleId = studentRole.Id };
                     _unitOfWork.GetRepository<UserRole, Guid>().Add(userRole);
+                    await _unitOfWork.SaveChangesAsync();
                 }
                 else
                 {
