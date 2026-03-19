@@ -5,6 +5,7 @@ using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Infrastructure.DependencyInjection.Extensions;
 using EngConnect.BuildingBlock.Infrastructure.JWT;
 using EngConnect.Domain.Abstraction;
+using EngConnect.Infrastructure.AiService;
 using EngConnect.Infrastructure.EmailService;
 using EngConnect.Infrastructure.HostedService;
 using EngConnect.Infrastructure.FileStorageService;
@@ -23,6 +24,8 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Mscc.GenerativeAI;
+using ClientSecrets = Google.Apis.Auth.OAuth2.ClientSecrets;
 
 namespace EngConnect.Infrastructure.DependencyInjection.Extensions;
 
@@ -47,6 +50,7 @@ public static class ServiceCollectionExtension
         services.AddGoogleDriveStorageService(configuration);
         services.AddAwsStorageSettings(configuration);
         services.AddMessageBusWithOutboxService();
+        services.AddGitHubModelsSettings(configuration);
     }
 
 
@@ -170,7 +174,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IDriveService, GoogleDriveService>();
     }
     
-        private static void AddAwsStorageSettings(this IServiceCollection services, IConfiguration configuration)
+    private static void AddAwsStorageSettings(this IServiceCollection services, IConfiguration configuration)
         {
             var awsSettings = configuration.GetSection(AwsStorageSettings.Section).Get<AwsStorageSettings>() ??
                               throw new Exception("AwsStorageSettings are not configured");
@@ -186,4 +190,27 @@ public static class ServiceCollectionExtension
             services.AddScoped<IAwsStorageService, AwsS3Service>();
         }
     
+    private static void AddGeminiSettings(this IServiceCollection services, IConfiguration configuration)
+        {
+            var geminiSettings = configuration.GetSection(GeminiApiKeySetting.Section).Get<GeminiApiKeySetting>() 
+                                 ?? throw new Exception($"{GeminiApiKeySetting.Section} are not configured");
+            
+            services.Configure<GeminiApiKeySetting>(configuration.GetSection(GeminiApiKeySetting.Section));
+            
+            services.AddSingleton<IGenerativeAI>(sp => new GoogleAI(geminiSettings.ApiKey));
+            services.AddScoped<IAiService, AiSummarizeService>();
+        }
+    
+    private static void AddGitHubModelsSettings(this IServiceCollection services, IConfiguration configuration)
+    {
+        _= configuration.GetSection(GitHubModelsSettings.Section).Get<GitHubModelsSettings>() 
+                             ?? throw new Exception($"{GitHubModelsSettings.Section} is not configured");
+
+        services.Configure<GitHubModelsSettings>(configuration.GetSection(GitHubModelsSettings.Section));
+        
+        services.AddHttpClient<IAiService, GitHubModelAiService>(client => 
+        {
+            client.Timeout = TimeSpan.FromSeconds(60);
+        });
+    }
 }
