@@ -3,9 +3,11 @@ using EngConnect.Application.UseCases.LessonScripts.CreateLessonScript;
 using EngConnect.Application.UseCases.LessonScripts.DeleteLessonScript;
 using EngConnect.Application.UseCases.LessonScripts.GetListLessonScripts;
 using EngConnect.Application.UseCases.LessonScripts.GetLessonScriptById;
+using EngConnect.Application.UseCases.AiSummerize.GetAiSummary;
 using EngConnect.Application.UseCases.LessonScripts.UpdateLessonScript;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
+using EngConnect.BuildingBlock.Contracts.Models.AiSummerzie;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Presentation.Controllers;
 using Microsoft.AspNetCore.Mvc;
@@ -40,6 +42,19 @@ public class LessonsScriptController : BaseApiController
     public async Task<IActionResult> GetLessonScriptById([FromRoute] Guid id, CancellationToken cancellationToken = default)
     {
         var result = await _queryDispatcher.DispatchAsync(new GetLessonScriptByIdQuery { Id = id }, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Lấy tóm tắt nội dung AI cho kịch bản bài học
+    /// </summary>
+    [HttpPost("{id:guid}/ai-summary")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<AnalysisResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAiSummaryAsync([FromRoute] Guid id, [FromBody] GetAiSummaryCommand command, CancellationToken cancellationToken = default)
+    {
+        command.LessonId = id;
+        var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
         return FromResult(result);
     }
     

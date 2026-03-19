@@ -15,6 +15,7 @@ using EngConnect.Application.UseCases.CourseEnrollments.CreateCourseEnrollment;
 using EngConnect.Application.UseCases.CourseEnrollments.GetListCourseEnrollments;
 using EngConnect.Application.UseCases.CourseEnrollments.UpdateCourseEnrollment;
 using EngConnect.Application.UseCases.CourseEnrollments.UpdateCourseEnrollmentStatus;
+using EngConnect.Application.UseCases.AiSummerize.GetAiSummary;
 using EngConnect.Application.UseCases.FileStorage.DeleteFileFromDrive;
 using EngConnect.Application.UseCases.FileStorage.GetFileFromDrive;
 using EngConnect.Application.UseCases.FileStorage.UploadFileToDrive;
@@ -102,5 +103,8 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<UploadFileToDriveCommand>, UploadFileToDriveCommandValidator>();
         services.AddScoped<IValidator<GetFileFromDriveCommand>, GetFileFromDriveCommandValidator>();
         services.AddScoped<IValidator<DeleteFileFromDriveCommand>, DeleteFileFromDriveCommandValidator>();
+
+        // Ai Summarize Section
+        services.AddScoped<IValidator<GetAiSummaryCommand>, GetAiSummaryCommandValidator>();
     }
 }
