@@ -18,7 +18,6 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Drive.v3;
-using Google.Apis.Gmail.v1;
 using Google.Apis.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -43,8 +42,7 @@ public static class ServiceCollectionExtension
         services.AddRedisCacheSettings(configuration);
         services.AddJwtSettings(configuration);
         services.AddAuthenticationServices();
-        // services.AddMailKitEmailService(configuration);
-        services.AddGmailApiEmailService(configuration);
+        services.AddMailKitEmailService(configuration);
         // services.AddFileStorage(configuration);
         services.AddGoogleDriveStorageService(configuration);
         services.AddAwsStorageSettings(configuration);
@@ -114,55 +112,6 @@ public static class ServiceCollectionExtension
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.Section));
         services.AddScoped<IEmailService, MailKitEmailService>();
     }
-
-    private static void AddGmailApiEmailService(this IServiceCollection services, IConfiguration configuration)
-    {
-        var settings = configuration.GetSection(GmailApiSettings.Section).Get<GmailApiSettings>() ??
-                       throw new Exception("GmailApiSettings are not configured");
-
-        if (string.IsNullOrWhiteSpace(settings.ClientId) ||
-            string.IsNullOrWhiteSpace(settings.ClientSecret) ||
-            string.IsNullOrWhiteSpace(settings.RefreshToken) ||
-            string.IsNullOrWhiteSpace(settings.SenderEmail))
-        {
-            throw new Exception("GmailApiSettings must include ClientId, ClientSecret, RefreshToken, and SenderEmail");
-        }
-
-        services.Configure<GmailApiSettings>(configuration.GetSection(GmailApiSettings.Section));
-
-        services.AddSingleton<GmailService>(_ =>
-        {
-            var clientSecrets = new ClientSecrets
-            {
-                ClientId = settings.ClientId,
-                ClientSecret = settings.ClientSecret
-            };
-            
-
-            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-            {
-                ClientSecrets = clientSecrets,
-                Scopes = [GmailService.Scope.GmailSend],
-                DataStore = null
-            });
-
-            var tokenResponse = new TokenResponse
-            {
-                RefreshToken = settings.RefreshToken
-            }; 
-
-            var credential = new UserCredential(flow, settings.SenderEmail, tokenResponse);
-
-            return new GmailService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = settings.ApplicationName
-            });
-        });
-
-        services.AddScoped<IEmailService, GmailApiEmailService>();
-    }
-
 
     private static void AddJwtSettings(this IServiceCollection services, IConfiguration configuration)
     {
