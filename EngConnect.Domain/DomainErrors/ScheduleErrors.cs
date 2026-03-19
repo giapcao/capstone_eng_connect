@@ -56,5 +56,9 @@ namespace EngConnect.Domain.DomainErrors
 
         public static Error ProposedTimeMustBeInFuture() =>
         new Error("Schedule.Lesson.ProposedTimeMustBeInFuture", "Thời gian đề xuất phải ở tương lai.");
+
+        public static Error ProposedTimeMustHaveOneHourBuffer() =>
+            new Error("Schedule.Reschedule.OneHourBufferRequired",
+                "Thời gian đề xuất phải cách buổi học liền trước và liền sau ít nhất 1 giờ.");
     }
 }
