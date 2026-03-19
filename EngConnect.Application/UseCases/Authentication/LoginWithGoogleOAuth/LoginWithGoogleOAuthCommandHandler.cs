@@ -6,6 +6,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
+using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.BuildingBlock.EventBus.Constants;
 using EngConnect.BuildingBlock.EventBus.Events;
@@ -28,6 +29,7 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
     private readonly RedisCacheSettings _redisCacheSettings;
     private readonly RedirectUrlSettings _redisRedirectUrlSettings;
     private readonly IMessageBusWithOutboxService _messageBusWithOutboxService;
+    private readonly IAwsStorageService _awsStorageService;
 
     public LoginWithGoogleOAuthCommandHandler(
         IUnitOfWork unitOfWork, 
@@ -36,7 +38,8 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
         ILogger<LoginWithGoogleOAuthCommandHandler> logger, 
         IOptions<RedisCacheSettings> redisCacheSettings, 
         IOptions<RedirectUrlSettings> redisRedirectUrlSettings, 
-        IMessageBusWithOutboxService messageBusWithOutboxService)
+        IMessageBusWithOutboxService messageBusWithOutboxService, 
+        IAwsStorageService awsStorageService)
     {
         _unitOfWork = unitOfWork;
         _redisService = redisService;
@@ -45,6 +48,7 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
         _redisCacheSettings = redisCacheSettings.Value;
         _redisRedirectUrlSettings = redisRedirectUrlSettings.Value;
         _messageBusWithOutboxService = messageBusWithOutboxService;
+        _awsStorageService = awsStorageService;
     }
 
     public async Task<Result<string>> HandleAsync(LoginWithGoogleOAuthCommand command, CancellationToken cancellationToken = default)
@@ -125,6 +129,27 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
                 
                 userRepo.Add(user);
                 
+                //Create student profile
+                var student = Student.CreateStudentWithUserId(
+                    user.Id);
+                _unitOfWork.GetRepository<Student, Guid>().Add(student);
+
+                //Assign Student role
+                var roleStudentCode = nameof(UserRoleEnum.Student);
+                var roleRepo = _unitOfWork.GetRepository<Role, Guid>();
+                var studentRole = await roleRepo.FindFirstAsync(
+                    x => x.Code == roleStudentCode,
+                    cancellationToken: cancellationToken);
+                if (studentRole != null)
+                {
+                    var userRole = new UserRole { UserId = user.Id, RoleId = studentRole.Id };
+                    _unitOfWork.GetRepository<UserRole, Guid>().Add(userRole);
+                }
+                else
+                {
+                    _logger.LogWarning("Role with code '{Code}' not found — skipping role assignment", roleStudentCode);
+                }
+                
                 //Persist user google register event in outbox for welcome email
                 var @event = UserRegisterByGoogleOAuthEvent.Create(
                     user.Id, 
@@ -155,6 +180,8 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
             var accessToken =  _jwtTokenService.GenerateAccessToken(user);
             var refreshToken = _jwtTokenService.GenerateRefreshToken();
             
+            var avatarUrl = _awsStorageService.GetFileUrl(user.Student?.Avatar);
+            
             //Store refresh token in Redis (can throw exception - will trigger rollback if in transaction)
             await _redisService.SetCacheAsync(
                 RedisKeyGenerator.GenerateRefreshTokenKey(user.Id, refreshToken),
@@ -165,6 +192,13 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
+                Username = user.UserName,
+                Roles = user.UserRoles
+                    .Select(ur => ur.Role?.Code)
+                    .Where(code => code != null)
+                    .Select(code => code!)
+                    .ToList(),
+                AvatarUrl = avatarUrl,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
             };
