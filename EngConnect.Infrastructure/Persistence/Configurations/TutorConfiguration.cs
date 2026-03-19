@@ -34,6 +34,9 @@ public class TutorConfiguration : IEntityTypeConfiguration<Tutor>
         builder.Property(e => e.CvUrl)
             .HasColumnName("cv_url");
 
+        builder.Property(e => e.Avatar)
+            .HasColumnName("avatar");
+
         builder.Property(e => e.Tags)
             .HasColumnName("tags")
             .HasColumnType("text[]");

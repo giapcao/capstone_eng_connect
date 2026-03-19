@@ -252,7 +252,7 @@ public static class ServiceCollectionExtension
         {
             options.ClientId = googleOAuthSettings.ClientId;
             options.ClientSecret = googleOAuthSettings.ClientSecret;
-
+            options.CallbackPath = "/signin-google";
             options.Events = new OAuthEvents
             {
                 OnRedirectToAuthorizationEndpoint = context =>

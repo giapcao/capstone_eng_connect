@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
 using EngConnect.Domain.Constants;
@@ -18,6 +18,8 @@ public class Tutor : AuditableEntity<Guid>
     public int? YearsExperience { get; set; }
 
     public string? CvUrl { get; set; }
+
+    public string? Avatar { get; set; }
 
     public List<string>? Tags { get; set; }
 

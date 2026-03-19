@@ -1,4 +1,5 @@
-﻿using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
+using EngConnect.Application.UseCases.Users.Common;
+using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,5 +33,9 @@ namespace EngConnect.Application.UseCases.Tutors.Common
         public decimal? RatingAverage { get; set; }
 
         public int? RatingCount { get; set; }
+        
+        public UserInfo? User { get; set; }
     }
 }
+
+

@@ -1229,7 +1229,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("lesson_record_pkey");
 
-                    b.HasIndex("LessonId");
+                    b.HasIndex("LessonId")
+                        .IsUnique();
 
                     b.ToTable("lesson_record", (string)null);
                 });
@@ -2402,6 +2403,10 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("Avatar")
+                        .HasColumnType("text")
+                        .HasColumnName("avatar");
+
                     b.Property<string>("Bio")
                         .HasColumnType("text")
                         .HasColumnName("bio");
@@ -3168,8 +3173,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonRecord", b =>
                 {
                     b.HasOne("EngConnect.Domain.Persistence.Models.Lesson", "Lesson")
-                        .WithMany("LessonRecords")
-                        .HasForeignKey("LessonId")
+                        .WithOne("LessonRecord")
+                        .HasForeignKey("EngConnect.Domain.Persistence.Models.LessonRecord", "LessonId")
                         .IsRequired()
                         .HasConstraintName("fk_record_lesson");
 
@@ -3495,7 +3500,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("LessonHomeworks");
 
-                    b.Navigation("LessonRecords");
+                    b.Navigation("LessonRecord");
 
                     b.Navigation("LessonRescheduleRequests");
 

@@ -6,4 +6,8 @@ public class AppSettings
     public int OutboxEventIntervalTimeInSeconds { get; set; } = 10;
 
     public string FrontendUrl { get; set; } = null!;
+    
+    //260307: Add ForwardHeader and HttpDirection Flag
+    public bool EnableForwardedHeaders { get; set; }
+    public bool EnableHttpsRedirection { get; set; }
 }
