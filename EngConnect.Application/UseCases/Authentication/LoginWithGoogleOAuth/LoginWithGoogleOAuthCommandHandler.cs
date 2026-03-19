@@ -15,6 +15,7 @@ using EngConnect.Domain.Abstraction;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -85,7 +86,11 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
             
             //Check if user exists
             var userRepo = _unitOfWork.GetRepository<Domain.Persistence.Models.User, Guid>();
-            var user = await userRepo.FindFirstAsync(x => x.Email == email, cancellationToken: cancellationToken);
+            var user = await userRepo.FindAll(x => x.Email == email)
+                .Include(x => x.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Include(x => x.Student)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (ValidationUtil.IsNullOrEmpty(user))
             {
@@ -188,22 +193,25 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
                 RedisKeyGenerator.GenerateRefreshTokenKey(user.Id, refreshToken),
                 refreshToken, TimeSpan.FromMinutes(_redisCacheSettings.RefreshTokenExpirationMinutes));
             
+            var userRoles = user.UserRoles
+                .Select(ur => ur.Role?.Code)
+                .Where(code => code != null)
+                .Select(code => code!)
+                .ToList();
+            
             //Generate login response
             var loginResponse = new UserLoginResponse
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
                 Username = user.UserName,
-                Roles = user.UserRoles
-                    .Select(ur => ur.Role?.Code)
-                    .Where(code => code != null)
-                    .Select(code => code!)
-                    .ToList(),
+                Roles = userRoles,
                 AvatarUrl = avatarUrl,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
             };
             
+            _logger.LogInformation("Login response generated for user {loginResponse}", loginResponse);
             //Generate temporary cache key for redirect URL after login success
             var token =  Guid.NewGuid().ToString("N");
             
