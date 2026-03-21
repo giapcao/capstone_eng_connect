@@ -32,6 +32,8 @@ using EngConnect.Application.UseCases.Students.UpdateAvatarStudent;
 using EngConnect.Application.UseCases.Students.UpdateStatusStudent;
 using EngConnect.Application.UseCases.Students.UpdateStudent;
 using EngConnect.Application.UseCases.Tutors.CreateTutor;
+using EngConnect.Application.UseCases.Tutors.UpdateCvUrlTutor;
+using EngConnect.Application.UseCases.Tutors.UpdateIntroVideoUrlTutor;
 using EngConnect.Application.UseCases.Tutors.UpdateTutor;
 using EngConnect.BuildingBlock.DependencyInjection.Extensions;
 using FluentValidation;
@@ -65,6 +67,8 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<CreateTutorCommand>, CreateTutorCommandValidator>();
         services.AddScoped<IValidator<UpdateTutorCommand>, UpdateTutorCommandValidator>();
         services.AddScoped<IValidator<RegisterTutorCommand>, RegisterTutorCommandValidator>();
+        services.AddScoped<IValidator<UpdateCvUrlTutorCommand>, UpdateCvUrlTutorValidator>();
+        services.AddScoped<IValidator<UpdateIntroVideoUrlTutorCommand>, UpdateIntroVideoUrlTutorValidator>();
         services.AddScoped<IValidator<CreateTutorVerificationRequestCommand>, CreateTutorVerificationRequestCommandValidator>(); 
         services.AddScoped<IValidator<ReviewTutorVerificationRequestCommand>, ReviewTutorVerificationRequestCommandValidator>();
 
@@ -87,18 +91,26 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<RegisterStudentCommand>, RegisterStudentCommandValidator>();
         services.AddScoped<IValidator<GetListStudentQuery>, GetListStudentQueryValidator>();
         services.AddScoped<IValidator<UpdateAvatarStudentCommand>, UpdateAvatarValidator>();
+        
+        // Lesson Section
         services.AddScoped<IValidator<CreateLessonCommand>, CreateLessonCommandValidator>();
         services.AddScoped<IValidator<UpdateLessonCommand>, UpdateLessonCommandValidator>();
         services.AddScoped<IValidator<GetListLessonQuery>, GetListLessonValidator>();
         services.AddScoped<IValidator<UpdateLessonStatusCommand>, UpdateLessonStatusCommandValidator>();
+        
+        // Course Enrollment Section
         services.AddScoped<IValidator<CreateCourseEnrollmentCommand>, CreateCourseEnrollmentCommandValidator>();
         services.AddScoped<IValidator<UpdateCourseEnrollmentCommand>, UpdateCourseEnrollmentCommandValidator>();
         services.AddScoped<IValidator<GetListCourseEnrollmentQuery>, GetListCourseEnrollmentValidator>();
         services.AddScoped<IValidator<UpdateCourseEnrollmentStatusCommand>, UpdateCourseEnrollmentStatusValidator>();
+        
+        // Lesson Record Section
         services.AddScoped<IValidator<CreateLessonRecordCommand>, CreateLessonRecordCommandValidator>();
         services.AddScoped<IValidator<UpdateLessonRecordCommand>,  UpdateLessonRecordCommandValidator>();
         services.AddScoped<IValidator<CreateLessonScriptCommand>, CreateLessonScriptCommandValidator>();
         services.AddScoped<IValidator<UpdateLessonScriptCommand>, UpdateLessonScriptCommandValidator>();
+        
+        // File Storage Section (test)
         services.AddScoped<IValidator<UploadFileToDriveCommand>, UploadFileToDriveCommandValidator>();
         services.AddScoped<IValidator<GetFileFromDriveCommand>, GetFileFromDriveCommandValidator>();
         services.AddScoped<IValidator<DeleteFileFromDriveCommand>, DeleteFileFromDriveCommandValidator>();

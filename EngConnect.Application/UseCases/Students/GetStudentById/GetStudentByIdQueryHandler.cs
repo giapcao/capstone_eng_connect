@@ -50,6 +50,7 @@ public class GetStudentByIdQueryHandler : IQueryHandler<GetStudentByIdQuery, Get
                 School = student.School,
                 Grade = student.Grade,
                 Class = student.Class,
+                Avatar = _awsStorageService.GetFileUrl(student.Avatar, cancellationToken),
                 Tags = student.Tags,
                 Status = student.Status,
                 CreatedAt = student.CreatedAt,
@@ -61,7 +62,6 @@ public class GetStudentByIdQueryHandler : IQueryHandler<GetStudentByIdQuery, Get
                     UserName = student.User.UserName,
                     Email = student.User.Email,
                     Phone = student.User.Phone,
-                    AvatarUrl = _awsStorageService.GetFileUrl(student.Avatar)
                 }
             };
 
@@ -75,4 +75,4 @@ public class GetStudentByIdQueryHandler : IQueryHandler<GetStudentByIdQuery, Get
                 CommonErrors.InternalServerError());
         }
     }
-}
+}
