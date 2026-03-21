@@ -56,6 +56,26 @@ namespace EngConnect.Presentation.Controllers
         }
 
         /// <summary>
+        /// Lấy thông tin profile của gia sư hiện tại (từ claims)
+        /// </summary>
+        [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
+        [HttpGet("profile")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(Result<GetTutorResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetProfileAsync(CancellationToken cancellationToken = default)
+        {
+            if (!Guid.TryParse(User.GetTutorId(), out var tutorId))
+            {
+                return FromResult(Result.Failure(HttpStatusCode.BadRequest,
+                    CommonErrors.ValidationFailed("Không tìm thấy Id của gia sư.")));
+            }
+
+            var query = new GetTutorByIdQuery(tutorId);
+            var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+            return FromResult(result);
+        }
+
+        /// <summary>
         /// Lấy ảnh avatar gia sư
         /// </summary>
         [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
