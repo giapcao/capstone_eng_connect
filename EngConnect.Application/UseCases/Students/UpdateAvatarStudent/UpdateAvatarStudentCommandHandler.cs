@@ -11,15 +11,15 @@ using Microsoft.Extensions.Options;
 
 namespace EngConnect.Application.UseCases.Students.UpdateAvatarStudent;
 
-public class UpdateAvatarCommandHandler : ICommandHandler<UpdateAvatarStudentCommand>
+public class UpdateAvatarStudentCommandHandler : ICommandHandler<UpdateAvatarStudentCommand>
 {
-    private readonly ILogger<UpdateAvatarCommandHandler> _logger;
+    private readonly ILogger<UpdateAvatarStudentCommandHandler> _logger;
     private readonly IAwsStorageService _awsStorageService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRedisService _cache;
     private readonly RedisCacheSettings _settings;
 
-    public UpdateAvatarCommandHandler(IAwsStorageService awsStorageService,IOptions<RedisCacheSettings> settings, IRedisService cache, IUnitOfWork unitOfWork, ILogger<UpdateAvatarCommandHandler> logger)
+    public UpdateAvatarStudentCommandHandler(IAwsStorageService awsStorageService,IOptions<RedisCacheSettings> settings, IRedisService cache, IUnitOfWork unitOfWork, ILogger<UpdateAvatarStudentCommandHandler> logger)
     {
         _awsStorageService = awsStorageService;
         _cache = cache;
@@ -39,15 +39,15 @@ public class UpdateAvatarCommandHandler : ICommandHandler<UpdateAvatarStudentCom
                 return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Student>("Id"));
             }
             
-            var updateFileRequest = await _awsStorageService.UpdateFileAsync(command.File,command.Id, nameof(PrefixFile.
-                Avatar),cancellationToken);
+            var updateFileResponse = await _awsStorageService.UpdateFileAsync(command.File,command.Id, 
+                nameof(PrefixFile.StudentAvatar),cancellationToken);
             
-            if (updateFileRequest == null)
+            if (updateFileResponse == null)
             {
                 return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.ValidationFailed("File"));
             }
 
-            studentExist.Avatar = updateFileRequest.RelativePath;
+            studentExist.Avatar = updateFileResponse.RelativePath;
             await _unitOfWork.SaveChangesAsync();
 
             var cacheKey = RedisKeyGenerator.GenerateStudentAvatarKey(studentExist.Id);
@@ -55,7 +55,7 @@ public class UpdateAvatarCommandHandler : ICommandHandler<UpdateAvatarStudentCom
                 TimeSpan.FromMinutes(_settings.SettingCacheExpirationMinutes), false);
             _logger.LogInformation("End UpdateAvatarStudentCommand {@command}", command);
             
-            return Result.Success(updateFileRequest);
+            return Result.Success(updateFileResponse);
         }
         catch (Exception ex)
         {

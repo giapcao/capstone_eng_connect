@@ -5,6 +5,7 @@ using EngConnect.Application.UseCases.Authentication.RefreshToken;
 using EngConnect.Application.UseCases.Authentication.RegisterStudent;
 using EngConnect.Application.UseCases.Authentication.RegisterTutor;
 using EngConnect.Application.UseCases.Authentication.RegisterUser;
+using EngConnect.Application.UseCases.Authentication.RegisterUserStaff;
 using EngConnect.Application.UseCases.Authentication.VerifyEmail;
 using EngConnect.Application.UseCases.Authentication.VerifyGoogleLogin;
 using EngConnect.BuildingBlock.Application.Base;
@@ -183,10 +184,31 @@ public class AuthController : BaseApiController
     /// </summary>
     /// <param name="command"></param>
     /// <returns></returns>
+    [Authorize]
     [HttpPost("register-tutor")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
     public async Task<IActionResult> RegisterTutorAsync([FromBody] RegisterTutorCommand command)
+    {
+        var userId = User.GetUserId();
+        if (ValidationUtil.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+        command.UserId = userId.Value;
+        var res = await _commandDispatcher.DispatchAsync(command);
+        return FromResult(res);
+    }
+
+    /// <summary>
+    /// Đăng ký Staff mới (không gửi email xác thực)
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    [HttpPost("register-staff")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<RegisterUserStaffResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> RegisterUserStaffAsync([FromBody] RegisterUserStaffCommand command)
     {
         var res = await _commandDispatcher.DispatchAsync(command);
         return FromResult(res);

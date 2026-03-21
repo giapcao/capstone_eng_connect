@@ -47,5 +47,8 @@ namespace EngConnect.Domain.DomainErrors
 
         public static Error VerificationRequestAlreadyReviewed(Guid requestId) =>
             new Error("Tutor.VerificationRequest.AlreadyReviewed", $"Yêu cầu xác thực gia sư với Id '{requestId}' đã được xem xét.");
+        public static Error TutorProfileAlreadyExists() =>
+            new Error("Tutor.ProfileAlreadyExists", "Tài khoản gia sư đã được đăng kí.");
+        
     }
 }

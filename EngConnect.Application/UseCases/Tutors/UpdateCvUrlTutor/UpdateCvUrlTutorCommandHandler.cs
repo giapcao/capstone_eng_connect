@@ -9,19 +9,19 @@ using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace EngConnect.Application.UseCases.Tutors.UpdateAvatarTutor;
+namespace EngConnect.Application.UseCases.Tutors.UpdateCvUrlTutor;
 
-public class UpdateAvatarTutorCommandHandler : ICommandHandler<UpdateAvatarTutorCommand>
+public class UpdateCvUrlTutorCommandHandler : ICommandHandler<UpdateCvUrlTutorCommand>
 {
-    private readonly ILogger<UpdateAvatarTutorCommandHandler> _logger;
+    private readonly ILogger<UpdateCvUrlTutorCommandHandler> _logger;
     private readonly IAwsStorageService _awsStorageService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRedisService _cache;
     private readonly RedisCacheSettings _settings;
 
-    public UpdateAvatarTutorCommandHandler(IAwsStorageService awsStorageService,
+    public UpdateCvUrlTutorCommandHandler(IAwsStorageService awsStorageService,
         IOptions<RedisCacheSettings> settings, IRedisService cache,
-        IUnitOfWork unitOfWork, ILogger<UpdateAvatarTutorCommandHandler> logger)
+        IUnitOfWork unitOfWork, ILogger<UpdateCvUrlTutorCommandHandler> logger)
     {
         _awsStorageService = awsStorageService;
         _cache = cache;
@@ -30,9 +30,9 @@ public class UpdateAvatarTutorCommandHandler : ICommandHandler<UpdateAvatarTutor
         _logger = logger;
     }
 
-    public async Task<Result> HandleAsync(UpdateAvatarTutorCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result> HandleAsync(UpdateCvUrlTutorCommand command, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Start UpdateAvatarTutorCommand {@command}", command);
+        _logger.LogInformation("Start UpdateCvUrlTutorCommand {@command}", command);
         try
         {
             var tutorExist = await _unitOfWork.GetRepository<Tutor, Guid>()
@@ -43,26 +43,26 @@ public class UpdateAvatarTutorCommandHandler : ICommandHandler<UpdateAvatarTutor
             }
 
             var updateFileResponse = await _awsStorageService.UpdateFileAsync(
-                command.File, command.Id, nameof(PrefixFile.TutorAvatar), cancellationToken);
+                command.File, command.Id, nameof(PrefixFile.CV), cancellationToken);
 
             if (updateFileResponse == null)
             {
                 return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.ValidationFailed("File"));
             }
 
-            tutorExist.Avatar = updateFileResponse.RelativePath;
+            tutorExist.CvUrl = updateFileResponse.RelativePath;
             await _unitOfWork.SaveChangesAsync();
 
-            var cacheKey = RedisKeyGenerator.GenerateTutorAvatarKey(tutorExist.Id);
-            _ = _cache.SetCacheAsync(cacheKey, tutorExist.Avatar,
+            var cacheKey = RedisKeyGenerator.GenerateTutorCvKey(tutorExist.Id);
+            _ = _cache.SetCacheAsync(cacheKey, tutorExist.CvUrl,
                 TimeSpan.FromMinutes(_settings.SettingCacheExpirationMinutes), false);
 
-            _logger.LogInformation("End UpdateAvatarTutorCommand {@command}", command);
+            _logger.LogInformation("End UpdateCvUrlTutorCommand {@command}", command);
             return Result.Success(updateFileResponse);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred in UpdateAvatarTutorCommandHandler {@Message}", ex.Message);
+            _logger.LogError(ex, "Error occurred in UpdateCvUrlTutorCommandHandler {@Message}", ex.Message);
             return Result.Failure(HttpStatusCode.InternalServerError,
                 CommonErrors.InternalServerError());
         }
