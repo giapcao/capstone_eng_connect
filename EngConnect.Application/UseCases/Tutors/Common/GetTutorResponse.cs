@@ -23,6 +23,7 @@ namespace EngConnect.Application.UseCases.Tutors.Common
         public string? CvUrl { get; set; }
 
         public List<string>? Tags { get; set; }
+        public string? Avatar { get; set; }
 
         public int? SlotsCount { get; set; }
 
