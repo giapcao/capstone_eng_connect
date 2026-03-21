@@ -55,6 +55,7 @@ namespace EngConnect.Application.UseCases.Tutors.GetTutorById
                     YearsExperience = tutor.YearsExperience,
                     CvUrl = tutor.CvUrl,
                     Tags = tutor.Tags,
+                    Avatar = _awsStorageService.GetFileUrl(tutor.Avatar, cancellationToken),
                     SlotsCount = tutor.SlotsCount,
                     Status = tutor.Status,
                     VerifiedStatus = tutor.VerifiedStatus,
@@ -71,7 +72,6 @@ namespace EngConnect.Application.UseCases.Tutors.GetTutorById
                         UserName = tutor.User.UserName,
                         Email = tutor.User.Email,
                         Phone = tutor.User.Phone,
-                        AvatarUrl = _awsStorageService.GetFileUrl(tutor.Avatar)
                     }
                 };
 
@@ -86,4 +86,4 @@ namespace EngConnect.Application.UseCases.Tutors.GetTutorById
             }
         }
     }
-}
+}

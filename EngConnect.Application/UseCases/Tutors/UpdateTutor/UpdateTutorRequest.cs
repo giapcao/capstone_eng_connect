@@ -17,7 +17,5 @@
         public int? SlotsCount { get; set; }
 
         public string? Status { get; set; }
-
-        public string? VerifiedStatus { get; set; }
     }
 }
