@@ -69,6 +69,27 @@ public class StudentController : BaseApiController
     }
     
     /// <summary>
+    /// Lấy thông tin profile của học sinh hiện tại (từ claims)
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [Authorize(Roles = nameof(UserRoleEnum.Student))]
+    [HttpGet("profile")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<GetStudentResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProfileAsync(CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(User.GetStudentId(), out var studentId))
+        {
+            return FromResult(Result.Failure(HttpStatusCode.BadRequest,
+                CommonErrors.ValidationFailed("Không tìm thấy Id của học sinh.")));
+        }
+
+        var result = await _queryDispatcher.DispatchAsync(new GetStudentByIdQuery { Id = studentId }, cancellationToken);
+        return FromResult(result);
+    }
+    
+    /// <summary>
     /// Lấy ảnh avatar
     /// </summary>
     /// <param name="cancellationToken"></param>
