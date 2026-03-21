@@ -52,6 +52,7 @@ public class LoginByUserCommandHandler: ICommandHandler<LoginByUserCommand, User
                 .Include(x => x.UserRoles)
                     .ThenInclude(ur => ur.Role)
                 .Include(x => x.Student)
+                .Include(x => x.Tutor)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (ValidationUtil.IsNullOrEmpty(user))
@@ -76,6 +77,11 @@ public class LoginByUserCommandHandler: ICommandHandler<LoginByUserCommand, User
             
             //Store the new refresh token
             var newRefreshTokenKey = RedisKeyGenerator.GenerateRefreshTokenKey(user.Id, refreshToken);
+            
+            // Delete old refresh tokens of the user
+            var userRefreshTokenKeyPattern = RedisKeyGenerator.GenerateRefreshTokenKeyDeletePattern(user.Id);
+            await _redisService.DeleteCacheWithPatternAsync(userRefreshTokenKeyPattern);
+            
             await _redisService.SetCacheAsync(newRefreshTokenKey, refreshToken,
                 TimeSpan.FromMinutes(_redisCacheSettings.RefreshTokenExpirationMinutes));
 

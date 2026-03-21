@@ -7,7 +7,10 @@ public class UpdateAvatarValidator : AbstractValidator<UpdateAvatarStudentComman
     public UpdateAvatarValidator()
     {
         RuleFor(x => x.File).NotNull();
-        RuleFor(x => x.File.FileName).NotEmpty();
+        RuleFor(x => x.File.FileName)
+            .NotEmpty()
+            .Must(Path.HasExtension)
+            .WithMessage("Tên file bắt buộc phải có phần mở rộng.");        
         RuleFor(x => x.File.Content).NotNull();
         RuleFor(x => x.File.Length).GreaterThan(0);
     }

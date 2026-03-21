@@ -44,13 +44,7 @@ namespace EngConnect.Application.UseCases.Tutors.UpdateTutor
                         TutorStatusExtensions.IsValidTutorStatus(status))
                     .When(x => x.Request.Status is not null)
                     .WithMessage(x => TutorErrors.InvalidStatus(x.Request.Status ?? string.Empty).Message);
-
-                RuleFor(x => x.Request.VerifiedStatus)
-                    .Must(status =>
-                        string.IsNullOrWhiteSpace(status) ||
-                        TutorStatusExtensions.IsValidTutorVerifiedStatus(status))
-                    .When(x => x.Request.VerifiedStatus is not null)
-                    .WithMessage(x => TutorErrors.InvalidVerifiedStatus(x.Request.VerifiedStatus ?? string.Empty).Message);
+                
             });
         }
     }

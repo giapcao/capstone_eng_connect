@@ -37,18 +37,20 @@ public class Student : AuditableEntity<Guid>
 
     public virtual User User { get; set; } = null!;
     
-    public static Student CreateStudentWithUserId(Guid userId)
+    public static Student CreateStudentWithUserId(Guid userId, string? avatarUrl)
     {
         return new Student
         {
             Id = Guid.NewGuid(),
             UserId = userId,
+            Avatar =  avatarUrl,
             Status = nameof(CommonStatus.Active),
             CreatedAt = DateTime.UtcNow,
         };
     }
     
-    public static Student CreateStudentWithUserId(Guid userId, string? school, string? grade, string? @class)
+    public static Student CreateStudentWithUserId(Guid userId, string? school, string? grade, string? @class,
+        string? avatarUrl)
     {
         return new Student
         {
@@ -57,6 +59,7 @@ public class Student : AuditableEntity<Guid>
             School = school,
             Grade = grade,
             Class = @class,
+            Avatar = avatarUrl,
             Status = nameof(CommonStatus.Active),
             CreatedAt = DateTime.UtcNow,
         };

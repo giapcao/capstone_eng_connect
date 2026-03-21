@@ -37,14 +37,6 @@ namespace EngConnect.Application.UseCases.Tutors.UpdateTutor
                         TutorErrors.InvalidStatus(command.Request.Status));
                 }
 
-                // Validate verified status
-                if (!string.IsNullOrWhiteSpace(command.Request.VerifiedStatus) &&
-                    !TutorStatusExtensions.IsValidTutorVerifiedStatus(command.Request.VerifiedStatus))
-                {
-                    return Result.Failure(HttpStatusCode.BadRequest,
-                        TutorErrors.InvalidVerifiedStatus(command.Request.VerifiedStatus));
-                }
-
                 var repo = _unitOfWork.GetRepository<Domain.Persistence.Models.Tutor, Guid>();
 
                 var entity = await repo
@@ -64,8 +56,7 @@ namespace EngConnect.Application.UseCases.Tutors.UpdateTutor
                 entity.Tags = command.Request.Tags ?? entity.Tags;
                 entity.SlotsCount = command.Request.SlotsCount ?? entity.SlotsCount;
                 entity.Status = command.Request.Status ?? entity.Status;
-                entity.VerifiedStatus = command.Request.VerifiedStatus ?? entity.VerifiedStatus;
-
+                
                 repo.Update(entity);
                 await _unitOfWork.SaveChangesAsync();
 
