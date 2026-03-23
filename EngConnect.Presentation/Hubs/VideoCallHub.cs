@@ -348,7 +348,7 @@ public class VideoCallHub : Hub
             await Clients.Group(roomId).SendAsync("MeetingEnded", new
             {
                 LessonId = lessonId,
-                EndedAt = lesson.MeetingEndedAt,
+                EndedAt = lesson?.MeetingEndedAt,
                 EndedBy = userId
             });
 

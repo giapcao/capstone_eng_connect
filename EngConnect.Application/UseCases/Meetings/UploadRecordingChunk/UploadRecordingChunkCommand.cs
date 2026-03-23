@@ -3,7 +3,7 @@ using EngConnect.BuildingBlock.Contracts.Models.Files;
 
 namespace EngConnect.Application.UseCases.Meetings.UploadRecordingChunk;
 
-public class UploadRecordingChunkCommand : ICommand<FileUploadResult>
+public class UploadRecordingChunkCommand : ICommand
 {
     public required Guid LessonId { get; set; }
 
