@@ -2,8 +2,10 @@ using System.Net;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Constants;
+using EngConnect.Domain.Persistence.Models;
 using MapsterMapper;
 using Microsoft.Extensions.Logging;
 
@@ -38,6 +40,23 @@ namespace EngConnect.Application.UseCases.Authentication.RegisterTutor
                 // Tags are not included - left as null
 
                 repo.Add(entity);
+
+                //Assign Tutor role
+                var roleTutorCode = nameof(UserRoleEnum.Tutor);
+                var roleRepo = _unitOfWork.GetRepository<Role, Guid>();
+                var tutorRole = await roleRepo.FindFirstAsync(
+                    x => x.Code == roleTutorCode,
+                    cancellationToken: cancellationToken);
+                if (tutorRole != null)
+                {
+                    var userRole = new UserRole { UserId = command.UserId, RoleId = tutorRole.Id };
+                    _unitOfWork.GetRepository<UserRole, Guid>().Add(userRole);
+                }
+                else
+                {
+                    _logger.LogWarning("Role with code '{Code}' not found — skipping role assignment", roleTutorCode);
+                }
+
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("End RegisterTutorCommandHandler");

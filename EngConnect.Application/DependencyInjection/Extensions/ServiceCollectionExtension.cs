@@ -1,4 +1,3 @@
-using System.Reflection.Metadata;
 using EngConnect.Application.Mapping;
 using EngConnect.Application.UseCases.Authentication.LoginByUser;
 using EngConnect.Application.UseCases.Authentication.RefreshToken;
@@ -15,6 +14,7 @@ using EngConnect.Application.UseCases.CourseEnrollments.CreateCourseEnrollment;
 using EngConnect.Application.UseCases.CourseEnrollments.GetListCourseEnrollments;
 using EngConnect.Application.UseCases.CourseEnrollments.UpdateCourseEnrollment;
 using EngConnect.Application.UseCases.CourseEnrollments.UpdateCourseEnrollmentStatus;
+using EngConnect.Application.UseCases.AiSummerize.GetAiSummary;
 using EngConnect.Application.UseCases.FileStorage.DeleteFileFromDrive;
 using EngConnect.Application.UseCases.FileStorage.GetFileFromDrive;
 using EngConnect.Application.UseCases.FileStorage.UploadFileToDrive;
@@ -26,10 +26,10 @@ using EngConnect.Application.UseCases.Lessons.UpdateLesson;
 using EngConnect.Application.UseCases.Lessons.UpdateLessonStatus;
 using EngConnect.Application.UseCases.LessonScripts.CreateLessonScript;
 using EngConnect.Application.UseCases.LessonScripts.UpdateLessonScript;
+using EngConnect.Application.UseCases.Meetings.UploadRecordingChunk;
 using EngConnect.Application.UseCases.Students.CreateStudent;
 using EngConnect.Application.UseCases.Students.GetListStudents;
 using EngConnect.Application.UseCases.Students.UpdateAvatarStudent;
-using EngConnect.Application.UseCases.Students.UpdateStatusStudent;
 using EngConnect.Application.UseCases.Students.UpdateStudent;
 using EngConnect.Application.UseCases.SupportTicketMessages.CreateSupportTicketMessage;
 using EngConnect.Application.UseCases.SupportTicketMessages.UpdateSupportTicketMessage;
@@ -112,5 +112,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<UpdateSupportTicketStatusCommand>, UpdateSupportTicketStatusCommandValidator>();
         services.AddScoped<IValidator<CreateSupportTicketMessageCommand>, CreateSupportTicketMessageCommandValidator>();
         services.AddScoped<IValidator<UpdateSupportTicketMessageCommand>, UpdateSupportTicketMessageCommandValidator>();
+        services.AddScoped<IValidator<UploadRecordingChunkCommand>, UploadRecordingChunkCommandValidator>();
+        services.AddScoped<IValidator<GetAiSummaryCommand>, GetAiSummaryCommandValidator>();
     }
 }

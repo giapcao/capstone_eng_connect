@@ -157,9 +157,21 @@ public class JwtTokenService : IJwtTokenService
             new Claim(ClaimTypes.Name, user.UserName),
             new Claim("firstname", user.FirstName),
             new Claim("lastname", user.LastName),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
+
+        var tutor = user.Tutor;
+        if (tutor != null)
+        {
+            claims.Add(new Claim("tutorId", tutor.Id.ToString()));
+        }
         
+        var student = user.Student;
+        if (student != null)
+        {
+            claims.Add(new Claim("studentId", student.Id.ToString()));
+        }
+
         //Add role claims 
         foreach (var role in roles)
         {

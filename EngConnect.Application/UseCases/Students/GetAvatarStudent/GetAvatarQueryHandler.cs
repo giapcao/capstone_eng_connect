@@ -34,7 +34,7 @@ public class GetAvatarQueryHandler : IQueryHandler<GetAvatarQuery,GetAvatarRespo
         _logger.LogInformation("Start GetAvatarQueryHandler {@Query}", query);
         try
         {
-            var cacheKey = query.Id.ToString();
+            var cacheKey = RedisKeyGenerator.GenerateStudentAvatarKey(query.Id);
             
             var value = await _cache.GetCacheAsync(cacheKey);
             if (value != null)
@@ -70,7 +70,8 @@ public class GetAvatarQueryHandler : IQueryHandler<GetAvatarQuery,GetAvatarRespo
                 Url = fileUrl
             };
             
-            _= _cache.SetCacheAsync(cacheKey,studentExist.Avatar,TimeSpan.FromDays(_settings.SettingCacheExpirationDays));
+            _ = _cache.SetCacheAsync(cacheKey, studentExist.Avatar,
+                TimeSpan.FromMinutes(_settings.SettingCacheExpirationMinutes), false);
             return Result.Success(file);
         }
         catch (Exception ex)
