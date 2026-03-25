@@ -314,7 +314,7 @@ public class VideoCallHub : Hub
     /// <summary>
     /// Tutor ends the meeting for everyone
     /// </summary>
-    public async Task EndMeeting(Guid lessonId)
+    public async Task EndMeeting(Guid lessonId, int? totalChunks = null)
     {
         var userId = GetUserId();
         _logger.LogInformation("EndMeeting called by UserId: {UserId} for LessonId: {LessonId}", userId, lessonId);
@@ -331,7 +331,7 @@ public class VideoCallHub : Hub
             }
 
             var endMeetingResult = await _commandDispatcher.DispatchAsync(
-                new EndMeetingCommand(lessonId, userId));
+                new EndMeetingCommand(lessonId, userId, totalChunks));
 
             if (endMeetingResult.IsFailure)
             {

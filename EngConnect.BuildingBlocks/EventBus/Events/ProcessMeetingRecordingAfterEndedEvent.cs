@@ -6,13 +6,15 @@ public class ProcessMeetingRecordingAfterEndedEvent : EventBase
 {
     public Guid LessonId { get; set; }
     public Guid EndedByUserId { get; set; }
+    public int? TotalChunks { get; set; }
 
-    public static ProcessMeetingRecordingAfterEndedEvent Create(Guid lessonId, Guid endedByUserId)
+    public static ProcessMeetingRecordingAfterEndedEvent Create(Guid lessonId, Guid endedByUserId, int? totalChunks = null)
     {
         return new ProcessMeetingRecordingAfterEndedEvent
         {
             LessonId = lessonId,
-            EndedByUserId = endedByUserId
+            EndedByUserId = endedByUserId,
+            TotalChunks = totalChunks
         };
     }
 }
