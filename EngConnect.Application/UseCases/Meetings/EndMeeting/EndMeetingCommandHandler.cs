@@ -76,7 +76,7 @@ public class EndMeetingCommandHandler : ICommandHandler<EndMeetingCommand>
                 participantRepo.Update(participant);
             }
 
-            var meetingEndedEvent = ProcessMeetingRecordingAfterEndedEvent.Create(command.LessonId, command.UserId);
+            var meetingEndedEvent = ProcessMeetingRecordingAfterEndedEvent.Create(command.LessonId, command.UserId, command.TotalChunks);
             var outboxEventRepo = _unitOfWork.GetRepository<OutboxEvent, Guid>();
             var outboxEvent = OutboxEvent.CreateOutboxEvent(nameof(Lesson), command.LessonId, meetingEndedEvent);
             outboxEventRepo.Add(outboxEvent);
