@@ -1,6 +1,7 @@
 using Amazon.S3;
 using EngConnect.Application.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
+using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
 using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Infrastructure.DependencyInjection.Extensions;
 using EngConnect.BuildingBlock.Infrastructure.JWT;
@@ -19,12 +20,12 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Flows;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.Drive.v3;
-using Google.Apis.Gmail.v1;
 using Google.Apis.Services;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Mscc.GenerativeAI;
 using ClientSecrets = Google.Apis.Auth.OAuth2.ClientSecrets;
 
@@ -46,13 +47,13 @@ public static class ServiceCollectionExtension
         services.AddRedisCacheSettings(configuration);
         services.AddJwtSettings(configuration);
         services.AddAuthenticationServices();
-        // services.AddMailKitEmailService(configuration);
-        services.AddGmailApiEmailService(configuration);
+        services.AddMailKitEmailService(configuration);
         // services.AddFileStorage(configuration);
         services.AddGoogleDriveStorageService(configuration);
         services.AddAwsStorageSettings(configuration);
         services.AddMessageBusWithOutboxService();
         services.AddGitHubModelsSettings(configuration);
+        services.AddWhisperSettings(configuration);
     }
 
 
@@ -118,55 +119,6 @@ public static class ServiceCollectionExtension
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.Section));
         services.AddScoped<IEmailService, MailKitEmailService>();
     }
-
-    private static void AddGmailApiEmailService(this IServiceCollection services, IConfiguration configuration)
-    {
-        var settings = configuration.GetSection(GmailApiSettings.Section).Get<GmailApiSettings>() ??
-                       throw new Exception("GmailApiSettings are not configured");
-
-        if (string.IsNullOrWhiteSpace(settings.ClientId) ||
-            string.IsNullOrWhiteSpace(settings.ClientSecret) ||
-            string.IsNullOrWhiteSpace(settings.RefreshToken) ||
-            string.IsNullOrWhiteSpace(settings.SenderEmail))
-        {
-            throw new Exception("GmailApiSettings must include ClientId, ClientSecret, RefreshToken, and SenderEmail");
-        }
-
-        services.Configure<GmailApiSettings>(configuration.GetSection(GmailApiSettings.Section));
-
-        services.AddSingleton<GmailService>(_ =>
-        {
-            var clientSecrets = new ClientSecrets
-            {
-                ClientId = settings.ClientId,
-                ClientSecret = settings.ClientSecret
-            };
-            
-
-            var flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-            {
-                ClientSecrets = clientSecrets,
-                Scopes = [GmailService.Scope.GmailSend],
-                DataStore = null
-            });
-
-            var tokenResponse = new TokenResponse
-            {
-                RefreshToken = settings.RefreshToken
-            }; 
-
-            var credential = new UserCredential(flow, settings.SenderEmail, tokenResponse);
-
-            return new GmailService(new BaseClientService.Initializer
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = settings.ApplicationName
-            });
-        });
-
-        services.AddScoped<IEmailService, GmailApiEmailService>();
-    }
-
 
     private static void AddJwtSettings(this IServiceCollection services, IConfiguration configuration)
     {
@@ -262,6 +214,23 @@ public static class ServiceCollectionExtension
         services.AddHttpClient<IAiService, GitHubModelAiService>(client => 
         {
             client.Timeout = TimeSpan.FromSeconds(60);
+        });
+    }
+    
+    private static void AddWhisperSettings(this IServiceCollection services, IConfiguration configuration)
+    {
+        _ = configuration.GetSection(WhisperApiSettings.Section).Get<WhisperApiSettings>() 
+            ?? throw new Exception($"{WhisperApiSettings.Section} is not configured");
+        
+        services.Configure<WhisperApiSettings>(configuration.GetSection(WhisperApiSettings.Section));
+        
+        services.AddHttpClient<IWhisperApiService, AiWhisperTranscript>((serviceProvider, client) => 
+        {
+            var settings = serviceProvider.GetRequiredService<IOptions<WhisperApiSettings>>().Value;
+        
+            client.BaseAddress = new Uri(settings.Endpoint);
+            
+            client.Timeout = TimeSpan.FromMinutes(5); 
         });
     }
 }

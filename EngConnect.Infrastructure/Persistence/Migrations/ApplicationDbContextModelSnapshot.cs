@@ -2308,11 +2308,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_deleted");
 
-                    b.Property<string>("Priority")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("priority");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(30)

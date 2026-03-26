@@ -6,5 +6,4 @@ namespace EngConnect.Application.UseCases.AiSummerize.GetAiSummary;
 public record GetAiSummaryCommand : ICommand<AnalysisResponse>
 {
     public Guid LessonId { get; set; }
-    public required string Transcript { get; set; }
 }
