@@ -1,4 +1,3 @@
-using System.Reflection.Metadata;
 using EngConnect.Application.Mapping;
 using EngConnect.Application.UseCases.Authentication.LoginByUser;
 using EngConnect.Application.UseCases.Authentication.RefreshToken;
@@ -27,11 +26,16 @@ using EngConnect.Application.UseCases.Lessons.UpdateLesson;
 using EngConnect.Application.UseCases.Lessons.UpdateLessonStatus;
 using EngConnect.Application.UseCases.LessonScripts.CreateLessonScript;
 using EngConnect.Application.UseCases.LessonScripts.UpdateLessonScript;
+using EngConnect.Application.UseCases.Meetings.UploadRecordingChunk;
 using EngConnect.Application.UseCases.Students.CreateStudent;
 using EngConnect.Application.UseCases.Students.GetListStudents;
 using EngConnect.Application.UseCases.Students.UpdateAvatarStudent;
-using EngConnect.Application.UseCases.Students.UpdateStatusStudent;
 using EngConnect.Application.UseCases.Students.UpdateStudent;
+using EngConnect.Application.UseCases.SupportTicketMessages.CreateSupportTicketMessage;
+using EngConnect.Application.UseCases.SupportTicketMessages.UpdateSupportTicketMessage;
+using EngConnect.Application.UseCases.SupportTickets.CreateSupportTicket;
+using EngConnect.Application.UseCases.SupportTickets.UpdateSupportTicket;
+using EngConnect.Application.UseCases.SupportTickets.UpdateSupportTicketStatus;
 using EngConnect.Application.UseCases.Tutors.CreateTutor;
 using EngConnect.Application.UseCases.Tutors.UpdateTutor;
 using EngConnect.BuildingBlock.DependencyInjection.Extensions;
@@ -103,8 +107,12 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<UploadFileToDriveCommand>, UploadFileToDriveCommandValidator>();
         services.AddScoped<IValidator<GetFileFromDriveCommand>, GetFileFromDriveCommandValidator>();
         services.AddScoped<IValidator<DeleteFileFromDriveCommand>, DeleteFileFromDriveCommandValidator>();
-
-        // Ai Summarize Section
+        services.AddScoped<IValidator<CreateSupportTicketCommand>, CreateSupportTicketCommandValidator>();
+        services.AddScoped<IValidator<UpdateSupportTicketCommand>, UpdateSupportTicketCommandValidator>();
+        services.AddScoped<IValidator<UpdateSupportTicketStatusCommand>, UpdateSupportTicketStatusCommandValidator>();
+        services.AddScoped<IValidator<CreateSupportTicketMessageCommand>, CreateSupportTicketMessageCommandValidator>();
+        services.AddScoped<IValidator<UpdateSupportTicketMessageCommand>, UpdateSupportTicketMessageCommandValidator>();
+        services.AddScoped<IValidator<UploadRecordingChunkCommand>, UploadRecordingChunkCommandValidator>();
         services.AddScoped<IValidator<GetAiSummaryCommand>, GetAiSummaryCommandValidator>();
     }
 }

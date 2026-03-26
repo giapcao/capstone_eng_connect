@@ -1025,6 +1025,19 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_deleted");
 
+                    b.Property<DateTime?>("MeetingEndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("meeting_ended_at");
+
+                    b.Property<DateTime?>("MeetingStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("meeting_started_at");
+
+                    b.Property<string>("MeetingStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("meeting_status");
+
                     b.Property<string>("MeetingUrl")
                         .HasColumnType("text")
                         .HasColumnName("meeting_url");
@@ -1355,6 +1368,72 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.HasIndex("RecordId");
 
                     b.ToTable("lesson_script", (string)null);
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.MeetingParticipant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ConnectionId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("connection_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<DateTime?>("JoinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at");
+
+                    b.Property<DateTime?>("LeftAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("left_at");
+
+                    b.Property<Guid>("LessonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lesson_id");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("role");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("meeting_participant_pkey");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("meeting_participant", (string)null);
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Order", b =>
@@ -2228,11 +2307,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_deleted");
-
-                    b.Property<string>("Priority")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("priority");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -3140,6 +3214,25 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Navigation("Record");
                 });
 
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.MeetingParticipant", b =>
+                {
+                    b.HasOne("EngConnect.Domain.Persistence.Models.Lesson", "Lesson")
+                        .WithMany("MeetingParticipants")
+                        .HasForeignKey("LessonId")
+                        .IsRequired()
+                        .HasConstraintName("fk_meeting_participant_lesson");
+
+                    b.HasOne("EngConnect.Domain.Persistence.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .IsRequired()
+                        .HasConstraintName("fk_meeting_participant_user");
+
+                    b.Navigation("Lesson");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Order", b =>
                 {
                     b.HasOne("EngConnect.Domain.Persistence.Models.User", "Student")
@@ -3407,6 +3500,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Navigation("LessonRescheduleRequests");
 
                     b.Navigation("LessonScripts");
+
+                    b.Navigation("MeetingParticipants");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonRecord", b =>

@@ -19,12 +19,14 @@ public class GetAiSummaryCommandHandler : ICommandHandler<GetAiSummaryCommand, A
     private readonly IAiService _aiService;
     private readonly ILogger<GetAiSummaryCommandHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IRedisService _redisService;
 
-    public GetAiSummaryCommandHandler(IAiService aiService, IUnitOfWork unitOfWork, ILogger<GetAiSummaryCommandHandler> logger)
+    public GetAiSummaryCommandHandler(IAiService aiService, IRedisService redisService, IUnitOfWork unitOfWork, ILogger<GetAiSummaryCommandHandler> logger)
     {
         _aiService = aiService;
         _unitOfWork = unitOfWork;
         _logger = logger;
+        _redisService = redisService;
     }
 
     public async Task<Result<AnalysisResponse>> HandleAsync(GetAiSummaryCommand command, CancellationToken cancellationToken = default)
@@ -32,6 +34,8 @@ public class GetAiSummaryCommandHandler : ICommandHandler<GetAiSummaryCommand, A
         _logger.LogInformation("Start GetAiSummaryCommandHandler {@Command}", command);
         try
         {
+            var chunk = await _redisService.SortedSetRangeAsync(command.LessonId.ToString());
+            var transcript = string.Join(" ", chunk);
             var lesson = await _unitOfWork.GetRepository<Lesson, Guid>().FindByIdAsync(command.LessonId,
                 false, cancellationToken: cancellationToken, l => l.Student.User
                 , l => l.Tutor.User,l=>l.LessonRecord!,l=>l.Session!);
@@ -43,7 +47,7 @@ public class GetAiSummaryCommandHandler : ICommandHandler<GetAiSummaryCommand, A
             if (lesson.LessonRecord == null) return Result.Failure<AnalysisResponse>(HttpStatusCode.NotFound, CommonErrors.NotFound<LessonRecord>("Record"));
             if (lesson.Session?.Outcomes == null) return Result.Failure<AnalysisResponse>(HttpStatusCode.NotFound, CommonErrors.NotFound<CourseSession>("Session outcomes"));
             
-            var analysisResponse = await _aiService.AnalyzeContentAsync( new AnalysisRequest(command.Transcript, lesson.Session.Outcomes));
+            var analysisResponse = await _aiService.AnalyzeContentAsync( new AnalysisRequest(transcript, lesson.Session.Outcomes));
 
             if (analysisResponse is null)
             {
@@ -63,10 +67,11 @@ public class GetAiSummaryCommandHandler : ICommandHandler<GetAiSummaryCommand, A
                 AddWarningToOutBox(lesson, analysisResponse);
             }
             
-            var lessonScript = CreateLessonScript(lesson.Id, lesson.LessonRecord.Id,command.Transcript, analysisResponse);
+            var lessonScript = CreateLessonScript(lesson.Id, lesson.LessonRecord.Id,transcript, analysisResponse);
 
             _unitOfWork.GetRepository<LessonScript, Guid>().Add(lessonScript);
             await _unitOfWork.SaveChangesAsync();
+            await _redisService.DeleteCacheAsync(command.LessonId.ToString());
             _logger.LogInformation("End GetAiSummaryCommandHandler");
             return Result.Success(analysisResponse);
         }
@@ -93,7 +98,7 @@ public class GetAiSummaryCommandHandler : ICommandHandler<GetAiSummaryCommand, A
         _unitOfWork.GetRepository<OutboxEvent, Guid>().Add(outboxEvent);
     }
     
-    private LessonScript CreateLessonScript(Guid lessonId, Guid recordId, string transcript, AnalysisResponse analysisResponse)
+    private static LessonScript CreateLessonScript(Guid lessonId, Guid recordId, string transcript, AnalysisResponse analysisResponse)
     {
         return new LessonScript
         {

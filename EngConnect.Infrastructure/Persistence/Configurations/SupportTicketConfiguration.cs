@@ -29,10 +29,6 @@ public class SupportTicketConfiguration : IEntityTypeConfiguration<SupportTicket
             .HasMaxLength(50)
             .HasColumnName("type");
 
-        builder.Property(e => e.Priority)
-            .HasMaxLength(20)
-            .HasColumnName("priority");
-
         builder.Property(e => e.Status)
             .HasMaxLength(30)
             .HasColumnName("status");

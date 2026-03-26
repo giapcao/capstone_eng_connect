@@ -1,6 +1,7 @@
 using Amazon.S3;
 using EngConnect.Application.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
+using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
 using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Infrastructure.DependencyInjection.Extensions;
 using EngConnect.BuildingBlock.Infrastructure.JWT;
@@ -24,6 +25,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Mscc.GenerativeAI;
 using ClientSecrets = Google.Apis.Auth.OAuth2.ClientSecrets;
 
@@ -51,6 +53,7 @@ public static class ServiceCollectionExtension
         services.AddAwsStorageSettings(configuration);
         services.AddMessageBusWithOutboxService();
         services.AddGitHubModelsSettings(configuration);
+        services.AddWhisperSettings(configuration);
     }
 
 
@@ -211,6 +214,23 @@ public static class ServiceCollectionExtension
         services.AddHttpClient<IAiService, GitHubModelAiService>(client => 
         {
             client.Timeout = TimeSpan.FromSeconds(60);
+        });
+    }
+    
+    private static void AddWhisperSettings(this IServiceCollection services, IConfiguration configuration)
+    {
+        _ = configuration.GetSection(WhisperApiSettings.Section).Get<WhisperApiSettings>() 
+            ?? throw new Exception($"{WhisperApiSettings.Section} is not configured");
+        
+        services.Configure<WhisperApiSettings>(configuration.GetSection(WhisperApiSettings.Section));
+        
+        services.AddHttpClient<IWhisperApiService, AiWhisperTranscript>((serviceProvider, client) => 
+        {
+            var settings = serviceProvider.GetRequiredService<IOptions<WhisperApiSettings>>().Value;
+        
+            client.BaseAddress = new Uri(settings.Endpoint);
+            
+            client.Timeout = TimeSpan.FromMinutes(5); 
         });
     }
 }
