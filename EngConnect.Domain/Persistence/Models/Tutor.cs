@@ -54,7 +54,9 @@ public class Tutor : AuditableEntity<Guid>
     public virtual ICollection<EnrollmentSlot> EnrollmentSlots { get; set; } = new List<EnrollmentSlot>();
 
     public virtual ICollection<TutorVerificationRequest> TutorVerificationRequests { get; set; } = new List<TutorVerificationRequest>();
-
+    
+    public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
+    
     public virtual User User { get; set; } = null!;
     
     public static Tutor CreateTutorWithUserId(Guid userId)

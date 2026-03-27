@@ -14,6 +14,9 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
 
         builder.Property(e => e.Id)
             .HasColumnName("id");
+        
+        builder.Property(e => e.TutorId)
+            .HasColumnName("tutor_id");
 
         builder.Property(e => e.StudentId)
             .HasColumnName("student_id");
@@ -68,6 +71,12 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
             .HasForeignKey(d => d.StudentId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("fk_lesson_student");
+        
+        builder.HasOne(d => d.Tutor)
+            .WithMany(p => p.Lessons)
+            .HasForeignKey(d => d.TutorId)
+            .OnDelete(DeleteBehavior.ClientSetNull)
+            .HasConstraintName("fk_lesson_tutor");
         
     }
 }

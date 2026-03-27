@@ -2,6 +2,7 @@ using System.Net;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
@@ -34,7 +35,7 @@ public class CreateLessonCommandHandler : ICommandHandler<CreateLessonCommand>
             if (!enrollment)
             {
                 _logger.LogWarning("EnrollmentId does not exist: {enrollmentId}", command.EnrollmentId);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<CourseEnrollment>("EnrollmentId"));
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<CourseEnrollment>("EnrollmentId"));
             }
             
             var studentExists = await _unitOfWork.GetRepository<Student,Guid>()
@@ -42,18 +43,21 @@ public class CreateLessonCommandHandler : ICommandHandler<CreateLessonCommand>
         
             if (!studentExists)
             {
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Student>("thông tin Học sinh."));
+                _logger.LogWarning("Student not found");
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<Student>("thông tin Học sinh."));
             }
 
             if (lesson.SessionId.HasValue)
             {
                 var sessionExists = await _unitOfWork.GetRepository<CourseSession, Guid>()
-                    .AnyAsync(x=>x.Id == lesson.SessionId, cancellationToken: cancellationToken);
+                    .FindFirstAsync(x=>x.Id == lesson.SessionId, cancellationToken: cancellationToken);
             
-                if (!sessionExists)
+                if (ValidationUtil.IsNullOrEmpty(sessionExists))
                 {
-                    return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<CourseSession>("Buổi học (Session) không tồn tại."));
+                    _logger.LogWarning("Course session not found with ID: {SessionId}", lesson.SessionId);
+                    return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<CourseSession>("Buổi học (Session) không tồn tại."));
                 }
+                
             }
             
             lesson.Status = nameof(LessonStatus.Scheduled);

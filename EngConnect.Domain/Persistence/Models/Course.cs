@@ -69,8 +69,7 @@ public class Course : AuditableEntity<Guid>
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
     public virtual Course? ParentCourse { get; set; }
-
-    public virtual ICollection<Quiz> Quizzes { get; set; } = new List<Quiz>();
-
+    
+    // 260327: Remove quiz
     public virtual Tutor Tutor { get; set; } = null!;
 }
