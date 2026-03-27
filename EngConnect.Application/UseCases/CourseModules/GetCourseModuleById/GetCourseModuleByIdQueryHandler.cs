@@ -7,11 +7,12 @@ using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Mapster;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseModules.GetCourseModuleById;
 
-public class GetCourseModuleByIdQueryHandler : IQueryHandler<GetCourseModuleByIdQuery, GetCourseModuleResponse>
+public class GetCourseModuleByIdQueryHandler : IQueryHandler<GetCourseModuleByIdQuery, GetCourseModuleDetailResponse>
 {
     private readonly ILogger<GetCourseModuleByIdQueryHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -24,26 +25,28 @@ public class GetCourseModuleByIdQueryHandler : IQueryHandler<GetCourseModuleById
         _mapper = mapper;
     }
 
-    public async Task<Result<GetCourseModuleResponse>> HandleAsync(GetCourseModuleByIdQuery query, CancellationToken cancellationToken = default)
+    public async Task<Result<GetCourseModuleDetailResponse>> HandleAsync(GetCourseModuleByIdQuery query, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Start GetCourseModuleByIdQueryHandler {@Query}", query);
         try
         {
             var courseModuleRepo = _unitOfWork.GetRepository<CourseModule, Guid>();
 
-            var courseModule = await courseModuleRepo.FindSingleAsync(
+            var courseModule = await courseModuleRepo.FindAll(
                 x => x.Id == query.Id,
-                tracking: false,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken)
+                .Include(x => x.CourseModuleCourseSessions)
+                .ThenInclude(x => x.CourseSession)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (courseModule == null)
             {
                 _logger.LogWarning("CourseModule not found with ID: {Id}", query.Id);
-                return Result.Failure<GetCourseModuleResponse>(HttpStatusCode.NotFound, new Error("CourseModuleNotFound", "Module không tồn tại"));
+                return Result.Failure<GetCourseModuleDetailResponse>(HttpStatusCode.NotFound, new Error("CourseModuleNotFound", "Module không tồn tại"));
             }
 
             //Map to response
-            var result = _mapper.Map<GetCourseModuleResponse>(courseModule);
+            var result = _mapper.Map<GetCourseModuleDetailResponse>(courseModule);
             
             _logger.LogInformation("End GetCourseModuleByIdQueryHandler");
             return Result.Success(result);
@@ -51,7 +54,7 @@ public class GetCourseModuleByIdQueryHandler : IQueryHandler<GetCourseModuleById
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in GetCourseModuleByIdQueryHandler: {Message}", ex.Message);
-            return Result.Failure<GetCourseModuleResponse>(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
+            return Result.Failure<GetCourseModuleDetailResponse>(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
         }
     }
 }

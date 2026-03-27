@@ -23,22 +23,62 @@ namespace EngConnect.Application.Mapping
                 .Map(dest => dest.PermissionDescription, src => src.Permission!.Description);
             
             //Course Module Mapping
-            TypeAdapterConfig<CourseModule, GetCourseModuleResponseInCourse>.NewConfig()
-                .Map(dest => dest.ModuleTitle, src => src.Title)
-                .Map(dest => dest.ModuleDescription, src => src.Description)
-                .Map(dest => dest.ModuleOutcomes, src => src.Outcomes);
+            TypeAdapterConfig<CourseCourseModule, GetCourseModuleResponseInCourse>.NewConfig()
+                .Map(dest => dest.ModuleTitle, src => src.CourseModule!.Title)
+                .Map(dest => dest.ModuleDescription, src => src.CourseModule!.Description)
+                .Map(dest => dest.ModuleOutcomes, src => src.CourseModule!.Outcomes)
+                .Map(dest => dest.ModuleNumber, src => src.ModuleNumber);
             
             //Course Session Mapping
-            TypeAdapterConfig<CourseSession, GetSessonResponseInCourseModule>.NewConfig()
-                .Map(dest => dest.SessionTitle, src => src.Title)
-                .Map(dest => dest.SessionDescription, src => src.Description)
-                .Map(dest => dest.SessionOutcomes, src => src.Outcomes);    
+            TypeAdapterConfig<CourseModuleCourseSession, GetSessonResponseInCourseModule>.NewConfig()
+                .Map(dest => dest.SessionTitle, src => src.CourseSession!.Title)
+                .Map(dest => dest.SessionDescription, src => src.CourseSession!.Description)
+                .Map(dest => dest.SessionOutcomes, src => src.CourseSession!.Outcomes)
+                .Map(dest => dest.SessionNumber, src => src.SessionNumber);    
            
             //Course Category Mapping
             TypeAdapterConfig<CourseCategory, GetCourseCategoryResponseInCourse>.NewConfig()
                 .Map(dest => dest.CategoryName, src => src.Category!.Name)
                 .Map(dest => dest.CategoryDescription, src => src.Category!.Description)
                 .Map(dest => dest.CategoryType, src => src.Category!.Type);
+            
+            //Course Mapping with nested Course Modules and Course Sessions
+            TypeAdapterConfig<Course, GetCourseResponseDetail>
+                .NewConfig()
+                .Map(dest => dest.CourseCourseModules,
+                    src => src.CourseCourseModules.Select(ccm => new GetCourseModuleResponseInCourse
+                    {
+                        Id = ccm.Id,
+                        CourseModuleId = ccm.CourseModuleId,
+                        ModuleTitle = ccm.CourseModule.Title,
+                        ModuleDescription = ccm.CourseModule.Description,
+                        ModuleOutcomes = ccm.CourseModule.Outcomes,
+                        ModuleNumber = ccm.ModuleNumber,
+
+                        CourseModuleCourseSessions = ccm.CourseModule.CourseModuleCourseSessions
+                            .Select(cs => new GetSessonResponseInCourseModule
+                            {
+                                Id = cs.Id,
+                                CourseSessionId = cs.CourseSessionId,
+                                SessionTitle = cs.CourseSession.Title,
+                                SessionDescription = cs.CourseSession.Description,
+                                SessionOutcomes = cs.CourseSession.Outcomes,
+                                SessionNumber = cs.SessionNumber
+                            }).ToList()
+                    }));
+            //Course Module Mapping with nested Course Sessions
+            TypeAdapterConfig<CourseModule, GetCourseModuleDetailResponse>
+                .NewConfig()
+                .Map(dest => dest.CourseSessions,
+                    src => src.CourseModuleCourseSessions.Select(cs => new GetSessonResponseInCourseModule
+                    {
+                        Id = cs.Id,
+                        CourseSessionId = cs.CourseSessionId,
+                        SessionTitle = cs.CourseSession.Title,
+                        SessionDescription = cs.CourseSession.Description,
+                        SessionOutcomes = cs.CourseSession.Outcomes,
+                        SessionNumber = cs.SessionNumber
+                    }).ToList());
         }
     }
 }

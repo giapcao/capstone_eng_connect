@@ -23,13 +23,7 @@ namespace EngConnect.Domain.DomainErrors
 
         public static Error InvalidBio() =>
             new Error("Tutor.InvalidBio", "Mô tả gia sư không được để trống.");
-
-        public static Error InvalidYearsExperience() =>
-            new Error("Tutor.InvalidYearsExperience", "Số năm kinh nghiệm không hợp lệ.");
-
-        public static Error InvalidSlotsCount() =>
-            new Error("Tutor.InvalidSlotsCount", "Số lượng slot không hợp lệ.");
-
+        
         public static Error InvalidUserId() =>
             new Error("Tutor.InvalidUserId", "Người dùng của gia sư không hợp lệ.");
 
@@ -50,5 +44,7 @@ namespace EngConnect.Domain.DomainErrors
         public static Error TutorProfileAlreadyExists() =>
             new Error("Tutor.ProfileAlreadyExists", "Tài khoản gia sư đã được đăng kí.");
         
+        public static Error TutorProfileIncomplete() =>
+            new Error("Tutor.ProfileIncomplete", "Hồ sơ gia sư chưa hoàn chỉnh. Vui lòng cập nhật đầy đủ thông tin hồ sơ trước khi thực hiện hành động này.");
     }
 }

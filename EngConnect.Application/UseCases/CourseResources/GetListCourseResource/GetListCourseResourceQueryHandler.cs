@@ -16,11 +16,13 @@ public class GetListCourseResourceQueryHandler : IQueryHandler<GetListCourseReso
 {
     private readonly ILogger<GetListCourseResourceQueryHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IAwsStorageService _awsStorageService;
 
-    public GetListCourseResourceQueryHandler(ILogger<GetListCourseResourceQueryHandler> logger, IUnitOfWork unitOfWork)
+    public GetListCourseResourceQueryHandler(ILogger<GetListCourseResourceQueryHandler> logger, IUnitOfWork unitOfWork, IAwsStorageService awsStorageService)
     {
         _logger = logger;
         _unitOfWork = unitOfWork;
+        _awsStorageService = awsStorageService;
     }
 
     public async Task<Result<PaginationResult<GetCourseResourceResponse>>> HandleAsync(GetListCourseResourceQuery query, CancellationToken cancellationToken = default)
@@ -34,9 +36,16 @@ public class GetListCourseResourceQueryHandler : IQueryHandler<GetListCourseReso
             Expression<Func<CourseResource, bool>>? predicate = x => true;
 
             // Apply filters
-            if (query.SessionId.HasValue)
+
+
+            if (query.TutorId.HasValue)
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.SessionId == query.SessionId.Value);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId.Value);
+            }
+            
+            if (query.CourseSessionId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => x.CourseSessionCourseResources.Any(cr => cr.CourseSessionId == query.CourseSessionId.Value));
             }
 
             if (ValidationUtil.IsNotNullOrEmpty(query.ResourceType))
@@ -48,12 +57,13 @@ public class GetListCourseResourceQueryHandler : IQueryHandler<GetListCourseReso
             {
                 predicate = predicate.CombineAndAlsoExpressions(x => x.Status == query.Status);
             }
+            
 
             courseResources = courseResources.Where(predicate);
 
             // Apply search and sort
             courseResources = courseResources.ApplySearch(query.GetSearchParams(),
-                    x => x.Title,
+                    x => x.Title ?? string.Empty,
                     x => x.Url)
                 .ApplySorting(query.GetSortParams());
 
@@ -61,6 +71,12 @@ public class GetListCourseResourceQueryHandler : IQueryHandler<GetListCourseReso
             var result =
                 await courseResources.ProjectToPaginatedListAsync<CourseResource, GetCourseResourceResponse>(
                     query.GetPaginationParams());
+
+            // Convert relative paths to full AWS S3 URLs
+            foreach (var item in result.Items)
+            {
+                item.Url = _awsStorageService.GetFileUrl(item.Url);
+            }
 
             _logger.LogInformation("End GetListCourseResourceQueryHandler");
             return Result.Success(result);

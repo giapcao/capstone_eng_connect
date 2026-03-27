@@ -18,7 +18,7 @@ namespace EngConnect.Application.UseCases.Tutors.Common
 
         public string? IntroVideoUrl { get; set; }
 
-        public int? YearsExperience { get; set; }
+        public int? MonthExperience { get; set; }
 
         public string? CvUrl { get; set; }
 

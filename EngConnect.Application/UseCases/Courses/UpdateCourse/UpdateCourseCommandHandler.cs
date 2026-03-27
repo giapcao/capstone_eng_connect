@@ -3,6 +3,7 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 
@@ -35,16 +36,22 @@ public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand>
                 return Result.Failure(HttpStatusCode.NotFound, new Error("CourseNotFound", "Khóa học không tồn tại"));
             }
 
+            //Check tutor
+            if (course.TutorId != command.TutorId)
+            {
+                _logger.LogWarning("Tutor ID mismatch for course ID: {CourseId}", command.Id);
+                return Result.Failure(HttpStatusCode.BadRequest, CourseErrors.TutorIsNotOwner());
+            }
+
             course.Title = command.Title;
             course.ShortDescription = command.ShortDescription;
             course.FullDescription = command.FullDescription;
             course.Outcomes = command.Outcomes;
             course.Level = command.Level;
-            course.EstimatedTime = TimeSpan.FromMinutes(command.EstimatedTime);
+            course.EstimatedTime = TimeSpan.FromMinutes(command.EstimatedTimeLesson * course.NumberOfSessions);
             course.EstimatedTimeLesson = TimeSpan.FromMinutes(command.EstimatedTimeLesson);
             course.Price = command.Price;
             course.Currency = command.Currency;
-            course.NumberOfSessions = command.NumberOfSessions;
             course.NumsSessionInWeek = command.NumsSessionInWeek;
             course.ThumbnailUrl = command.ThumbnailUrl;
             course.DemoVideoUrl = command.DemoVideoUrl;

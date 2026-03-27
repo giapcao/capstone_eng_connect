@@ -103,6 +103,13 @@ namespace EngConnect.Presentation.Controllers
             [FromQuery] GetListTutorVerificationRequestQuery query,
             CancellationToken cancellationToken = default)
         {
+            var role = User.GetRoles();
+            if (ValidationUtil.IsNotNullOrEmpty(role) && role.Contains(nameof(UserRoleEnum.Tutor)))
+            {
+                // If the user is a tutor, only return their own requests
+                var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
+                query.TutorId = tutorId;
+            }
             var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
             return FromResult(result);
         }

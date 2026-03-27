@@ -38,7 +38,6 @@ public class UpdateCourseModuleCommandHandler : ICommandHandler<UpdateCourseModu
             courseModule.Title = command.Title;
             courseModule.Description = command.Description;
             courseModule.Outcomes = command.Outcomes;
-            courseModule.ModuleNumber = command.ModuleNumber;
 
             courseModuleRepo.Update(courseModule);
             await _unitOfWork.SaveChangesAsync();

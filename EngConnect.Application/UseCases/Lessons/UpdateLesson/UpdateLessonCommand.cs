@@ -6,8 +6,6 @@ public class UpdateLessonCommand : ICommand
 {
     public Guid Id { get; set; }
     
-    public Guid TutorId { get; set; }
-    
     public Guid StudentId { get; set; }
     
     public Guid EnrollmentId { get; set; }

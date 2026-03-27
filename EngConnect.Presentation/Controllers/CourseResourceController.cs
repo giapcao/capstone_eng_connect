@@ -7,8 +7,15 @@ using EngConnect.Application.UseCases.CourseResources.UpdateCourseResource;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Domain.Constants;
+using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.BuildingBlock.Presentation.Controllers;
+using EngConnect.BuildingBlock.Presentation.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
+using EngConnect.BuildingBlock.Contracts.Models.Files;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 
 namespace EngConnect.Presentation.Controllers;
 
@@ -56,11 +63,29 @@ public class CourseResourceController : BaseApiController
     /// <summary>
     /// Tạo mới CourseResource
     /// </summary>
+    [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPost]
+    [Consumes("multipart/form-data")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-    public async Task<IActionResult> CreateAsync([FromBody] CreateCourseResourceCommand command)
+    public async Task<IActionResult> CreateAsync([FromForm] CreateCourseResourceRequest request)
     {
+        var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
+        var command = new CreateCourseResourceCommand
+        {
+            TutorId = tutorId,
+            CourseSessionId = request.CourseSessionId,
+            Title = request.Title,
+            ResourceType = request.ResourceType,
+            ResourceFile = new FileUpload
+            {
+                FileName =  request.ResourceFileName ?? request.ResourceFile.FileName,
+                ContentType = request.ResourceFile.ContentType ?? "application/octet-stream",
+                Content = request.ResourceFile.OpenReadStream(),
+                Length =  request.ResourceFile.Length
+            }
+        };
+        
         var result = await _commandDispatcher.DispatchAsync(command);
         return FromResult(result);
     }
@@ -68,6 +93,7 @@ public class CourseResourceController : BaseApiController
     /// <summary>
     /// Cập nhật CourseResource
     /// </summary>
+    [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPatch("{id}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
