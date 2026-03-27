@@ -7,7 +7,10 @@ using EngConnect.Application.UseCases.CourseModules.UpdateCourseModule;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Presentation.Controllers;
+using EngConnect.BuildingBlock.Presentation.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EngConnect.Presentation.Controllers;
@@ -56,11 +59,14 @@ public class CourseModuleController : BaseApiController
     /// <summary>
     /// Tạo mới CourseModule
     /// </summary>
+    [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPost]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateAsync([FromBody] CreateCourseModuleCommand command)
     {
+        var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
+        command.TutorId = tutorId;
         var result = await _commandDispatcher.DispatchAsync(command);
         return FromResult(result);
     }

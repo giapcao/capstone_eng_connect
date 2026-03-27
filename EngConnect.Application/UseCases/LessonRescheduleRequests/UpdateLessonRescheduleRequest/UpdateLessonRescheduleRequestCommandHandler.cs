@@ -86,7 +86,6 @@ public sealed class UpdateLessonRescheduleRequestCommandHandler : ICommandHandle
                     // No overlap
                     var hasConflict = await lessonRepo.AnyAsync(l =>
                             l.Id != lesson.Id
-                            && l.TutorId == lesson.TutorId
                             && l.StartTime != null
                             && l.EndTime != null
                             && l.StartTime < request.ProposedEndTime

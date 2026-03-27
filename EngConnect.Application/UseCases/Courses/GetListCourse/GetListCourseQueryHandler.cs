@@ -16,11 +16,13 @@ public class GetListCourseQueryHandler : IQueryHandler<GetListCourseQuery, Pagin
 {
     private readonly ILogger<GetListCourseQueryHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IAwsStorageService _awsStorageService;
 
-    public GetListCourseQueryHandler(ILogger<GetListCourseQueryHandler> logger, IUnitOfWork unitOfWork)
+    public GetListCourseQueryHandler(ILogger<GetListCourseQueryHandler> logger, IUnitOfWork unitOfWork, IAwsStorageService awsStorageService)
     {
         _logger = logger;
         _unitOfWork = unitOfWork;
+        _awsStorageService = awsStorageService;
     }
 
     public async Task<Result<PaginationResult<GetCourseResponse>>> HandleAsync(GetListCourseQuery query, CancellationToken cancellationToken = default)
@@ -62,6 +64,13 @@ public class GetListCourseQueryHandler : IQueryHandler<GetListCourseQuery, Pagin
             var result =
                 await courses.ProjectToPaginatedListAsync<Course, GetCourseResponse>(
                     query.GetPaginationParams());
+
+            // Convert relative paths to full AWS S3 URLs
+            foreach (var item in result.Items)
+            {
+                item.ThumbnailUrl = _awsStorageService.GetFileUrl(item.ThumbnailUrl);
+                item.DemoVideoUrl = _awsStorageService.GetFileUrl(item.DemoVideoUrl);
+            }
 
             _logger.LogInformation("End GetListCourseQueryHandler");
             return Result.Success(result);

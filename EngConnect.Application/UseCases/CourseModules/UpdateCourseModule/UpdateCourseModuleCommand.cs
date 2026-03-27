@@ -10,5 +10,4 @@ public class UpdateCourseModuleCommand : ICommand
     public required string Title { get; set; }
     public string? Description { get; set; }
     public string? Outcomes { get; set; }
-    public int? ModuleNumber { get; set; }
 }

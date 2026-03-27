@@ -14,6 +14,8 @@ public static class RedisKeyGenerator
     private const string TUTOR_AVATAR = "TUTOR:Avatar";
     private const string TUTOR_CV = "TUTOR:CV";
     private const string TUTOR_INTRO_VIDEO = "TUTOR:IntroVideo";
+    private const string COURSE_THUMBNAIL = "COURSE:Thumbnail";
+    private const string COURSE_DEMO_VIDEO = "COURSE:DemoVideo";
 
     /// <summary>
     ///     Generate key for pending token
@@ -162,5 +164,17 @@ public static class RedisKeyGenerator
         new RedisPatternBuilder()
             .AddExact(TUTOR_INTRO_VIDEO)
             .AddExact(tutorId.ToString())
+            .Build();
+    
+    public static string GenerateCourseThumbnailKey(Guid courseId) =>
+        new RedisPatternBuilder()
+            .AddExact(COURSE_THUMBNAIL)
+            .AddExact(courseId.ToString())
+            .Build();
+    
+    public static string GenerateCourseDemoVideoKey(Guid courseId) =>
+        new RedisPatternBuilder()
+            .AddExact(COURSE_DEMO_VIDEO)
+            .AddExact(courseId.ToString())
             .Build();
 }

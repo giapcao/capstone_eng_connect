@@ -44,14 +44,6 @@ public class UpdateLessonCommandHandler : ICommandHandler<UpdateLessonCommand>
                 return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<CourseEnrollment>("EnrollmentId"));
             }
             
-            var tutorExists = await _unitOfWork.GetRepository<Tutor,Guid>()
-                .AnyAsync(x=>x.Id == lesson.TutorId, cancellationToken: cancellationToken);
-        
-            if (!tutorExists)
-            {
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Tutor>("thông tin Gia sư."));
-            }
-            
             var studentExists = await _unitOfWork.GetRepository<Student,Guid>()
                 .AnyAsync(x=>x.Id == lesson.StudentId, cancellationToken: cancellationToken);
         

@@ -2,8 +2,12 @@ using System.Net;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
+using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseVerificationRequests.CreateCourseVerificationRequest;
@@ -32,14 +36,47 @@ public class CreateCourseVerificationRequestCommandHandler : ICommandHandler<Cre
             if (!courseExists)
             {
                 _logger.LogWarning("Course not found with ID: {CourseId}", command.CourseId);
-                return Result.Failure(HttpStatusCode.NotFound, new Error("CourseNotFound", "Khóa học không tồn tại"));
+                return Result.Failure(HttpStatusCode.BadRequest, CourseErrors.CourseNotFound());
+            }
+
+            // Check module of course exists
+            var moduleExists = await _unitOfWork.GetRepository<CourseCourseModule, Guid>()
+                .FindAll(x => x.CourseId == command.CourseId)
+                .ToListAsync(cancellationToken: cancellationToken);
+            
+            if (ValidationUtil.IsNullOrEmpty(moduleExists))
+            {
+                _logger.LogWarning("Module not found with ID: {ModuleId}", command.CourseId);
+                return Result.Failure(HttpStatusCode.BadRequest, CourseErrors.CourseModuleNotFound());
+            }
+            
+            // CHeck session of course exists
+            var sessionExists = await _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>()
+                .FindAll(x => moduleExists
+                    .Select(m => m.CourseModuleId).Contains(x.CourseModuleId))
+                .ToListAsync(cancellationToken: cancellationToken);
+
+            if (ValidationUtil.IsNullOrEmpty(sessionExists))
+            {
+                _logger.LogWarning("A module have at least 1 session");
+                return Result.Failure(HttpStatusCode.BadRequest, CourseModuleErrors.CourseSessionNotFound());
+            }
+            
+            // Check if verification request already exists for the course
+            var existingRequest = await courseVerificationRequestRepo.FindFirstAsync(x => 
+                    x.CourseId == command.CourseId, 
+                cancellationToken: cancellationToken);
+            if (existingRequest != null)
+            {
+                _logger.LogWarning("Course verification request already exists for course ID: {CourseId}", command.CourseId);
+                return Result.Failure(HttpStatusCode.BadRequest, CourseVerificationErrors.VerificationRequestAlreadyExists());
             }
 
             var courseVerificationRequest = new CourseVerificationRequest
             {
                 CourseId = command.CourseId,
-                Status = command.Status,
-                SubmittedAt = command.SubmittedAt ?? DateTime.UtcNow
+                Status = nameof(CourseVerificationStatus.Pending),
+                SubmittedAt = DateTime.UtcNow
             };
 
             courseVerificationRequestRepo.Add(courseVerificationRequest);

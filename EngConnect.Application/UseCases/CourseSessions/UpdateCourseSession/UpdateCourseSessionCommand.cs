@@ -10,5 +10,4 @@ public class UpdateCourseSessionCommand : ICommand
     public string? Title { get; set; }
     public string? Description { get; set; }
     public string? Outcomes { get; set; }
-    public int? SessionNumber { get; set; }
 }

@@ -5,6 +5,4 @@ namespace EngConnect.Application.UseCases.CourseVerificationRequests.CreateCours
 public class CreateCourseVerificationRequestCommand : ICommand
 {
     public required Guid CourseId { get; set; }
-    public string? Status { get; set; }
-    public DateTime? SubmittedAt { get; set; }
 }

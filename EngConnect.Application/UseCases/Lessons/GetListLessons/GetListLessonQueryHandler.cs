@@ -46,11 +46,6 @@ public class GetListLessonQueryHandler : IQueryHandler<GetListLessonQuery, Pagin
             
             if (query.StartTimeTo.HasValue)
                 predicate = predicate.CombineAndAlsoExpressions(x => x.StartTime <= query.StartTimeTo);
-            
-            if (query.TutorId.HasValue)
-            {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId);
-            }
 
             if (query.StudentId.HasValue)
             {

@@ -35,5 +35,8 @@ namespace EngConnect.Domain.DomainErrors
         
         public static Error CategoryNotFound() =>
             new Error("Category.NotFound", $"Một hoặc nhiều danh mục không tồn tại.");
+        
+        public static Error TutorIsNotOwner() =>
+            new Error("Course.TutorIsNotOwner", $"Giáo viên không phải là chủ sở hữu của khóa học.");
     }
 }

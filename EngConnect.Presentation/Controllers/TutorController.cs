@@ -151,11 +151,36 @@ namespace EngConnect.Presentation.Controllers
         [HttpPost]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Result), StatusCodes.Status201Created)]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> CreateTutorAsync(
-            [FromBody] CreateTutorRequest request,
+            [FromForm] CreateTutorRequest request,
             CancellationToken cancellationToken = default)
         {
-            var command = new CreateTutorCommand(request);
+            var command = new CreateTutorCommand
+            {
+                UserId = request.UserId,
+                Headline = request.Headline,
+                Bio = request.Bio,
+                MonthExperience = request.MonthExperience,
+                IntroVideoFile = request.IntroVideoFile != null
+                    ? new FileUpload
+                    {
+                        FileName = request.IntroVideoFileName ?? request.IntroVideoFile.FileName,
+                        ContentType = request.IntroVideoFile.ContentType ?? "video/mp4",
+                        Length = request.IntroVideoFile.Length,
+                        Content = request.IntroVideoFile.OpenReadStream()
+                    }
+                    : null,
+                CvFile = request.CvFile != null
+                    ? new FileUpload
+                    {
+                        FileName = request.CvFileName ?? request.CvFile.FileName,
+                        ContentType = request.CvFile.ContentType ?? "application/pdf",
+                        Length = request.CvFile.Length,
+                        Content = request.CvFile.OpenReadStream()
+                    }
+                    : null
+            };
             var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
 
             if (!result.IsSuccess)

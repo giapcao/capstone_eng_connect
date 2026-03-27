@@ -16,12 +16,14 @@ public class GetCourseResourceByIdQueryHandler : IQueryHandler<GetCourseResource
     private readonly ILogger<GetCourseResourceByIdQueryHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IAwsStorageService _awsStorageService;
 
-    public GetCourseResourceByIdQueryHandler(ILogger<GetCourseResourceByIdQueryHandler> logger, IUnitOfWork unitOfWork, IMapper mapper)
+    public GetCourseResourceByIdQueryHandler(ILogger<GetCourseResourceByIdQueryHandler> logger, IUnitOfWork unitOfWork, IMapper mapper, IAwsStorageService awsStorageService)
     {
         _logger = logger;
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _awsStorageService = awsStorageService;
     }
 
     public async Task<Result<GetCourseResourceResponse>> HandleAsync(GetCourseResourceByIdQuery query, CancellationToken cancellationToken = default)
@@ -44,6 +46,9 @@ public class GetCourseResourceByIdQueryHandler : IQueryHandler<GetCourseResource
 
             //Map to response
             var result = _mapper.Map<GetCourseResourceResponse>(courseResource);
+            
+            // Change relative path to full AWS S3 URL
+            result.Url = _awsStorageService.GetFileUrl(result.Url);
             
             _logger.LogInformation("End GetCourseResourceByIdQueryHandler");
             return Result.Success(result);

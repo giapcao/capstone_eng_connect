@@ -1,11 +1,14 @@
+using System.Text.Json.Serialization;
 using EngConnect.BuildingBlock.Application.Base;
+using EngConnect.BuildingBlock.Contracts.Models.Files;
 
 namespace EngConnect.Application.UseCases.CourseResources.CreateCourseResource;
 
 public class CreateCourseResourceCommand : ICommand
 {
-    public required Guid SessionId { get; set; }
-    public string? Title { get; set; }
-    public string? ResourceType { get; set; }
-    public required string Url { get; set; }
+    public Guid? TutorId { get; set; }
+    public Guid CourseSessionId { get; set; }
+    public string Title { get; set; } = null!;
+    public string ResourceType { get; set; } = null!;
+    public FileUpload ResourceFile { get; set; } = null!;
 }

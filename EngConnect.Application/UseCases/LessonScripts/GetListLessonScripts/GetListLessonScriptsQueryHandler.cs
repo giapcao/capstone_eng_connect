@@ -52,7 +52,8 @@ public class GetListLessonScriptsQueryHandler : IQueryHandler<GetListLessonScrip
                     x => x.Language ?? string.Empty,
                     x => x.LessonOutcome ?? string.Empty,
                     x => x.SummarizeText ?? string.Empty)
-                .ApplySorting(query.GetSortParams());
+                .ApplySorting(
+                    query.GetSortParams());
 
             var result =
                 await lessonScripts.ProjectToPaginatedListAsync<LessonScript, GetLessonScriptResponse>

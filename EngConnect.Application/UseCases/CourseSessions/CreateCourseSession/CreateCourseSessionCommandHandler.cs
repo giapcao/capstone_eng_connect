@@ -2,8 +2,11 @@ using System.Net;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseSessions.CreateCourseSession;
@@ -19,33 +22,104 @@ public class CreateCourseSessionCommandHandler : ICommandHandler<CreateCourseSes
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(CreateCourseSessionCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result> HandleAsync(CreateCourseSessionCommand command,
+        CancellationToken cancellationToken = default)
     {
+        //Track if we are using a transaction
+        Guid? transactionId = null;
         _logger.LogInformation("Start CreateCourseSessionCommandHandler {@Command}", command);
         try
         {
             var courseSessionRepo = _unitOfWork.GetRepository<CourseSession, Guid>();
             var courseModuleRepo = _unitOfWork.GetRepository<CourseModule, Guid>();
+            var courseModuleCourseSessionRepo = _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>();
 
-            // Check if module exists
-            var moduleExists = await courseModuleRepo.AnyAsync(x => x.Id == command.ModuleId, cancellationToken);
-            if (!moduleExists)
+            // Check if course module exists
+            var courseModuleExists =
+                await courseModuleRepo.AnyAsync(x => x.Id == command.CourseModuleId, cancellationToken);
+            if (!courseModuleExists)
             {
-                _logger.LogWarning("Module not found with ID: {ModuleId}", command.ModuleId);
-                return Result.Failure(HttpStatusCode.NotFound, new Error("ModuleNotFound", "Module không tồn tại"));
+                _logger.LogWarning("Course module not found with ID: {CourseModuleId}", command.CourseModuleId);
+                return Result.Failure(HttpStatusCode.NotFound,
+                    new Error("CourseModuleNotFound", "Module không tồn tại"));
             }
 
-            var courseSession = new CourseSession
-            {
-                ModuleId = command.ModuleId,
-                Title = command.Title,
-                Description = command.Description,
-                Outcomes = command.Outcomes,
-                SessionNumber = command.SessionNumber
-            };
+            // Begin transaction
+            var transaction = await _unitOfWork.BeginTransactionAsync();
+            transactionId = transaction.TransactionId;
 
-            courseSessionRepo.Add(courseSession);
+            // Create course session 
+            if (command.NewCourseSessions is { Count: > 0 })
+            {
+                foreach (var session in command.NewCourseSessions)
+                {
+                    var sessionId = Guid.NewGuid();
+                    var courseSession = new CourseSession
+                    {
+                        Id = sessionId,
+                        TutorId = command.TutorId,
+                        Title = session.Title,
+                        Description = session.Description,
+                        Outcomes = session.Outcomes,
+                    };
+
+                    courseSessionRepo.Add(courseSession);
+
+                    // Create relationship with course module
+                    var courseModuleCourseSession = new CourseModuleCourseSession
+                    {
+                        CourseModuleId = command.CourseModuleId,
+                        CourseSessionId = sessionId,
+                        SessionNumber = session.SessionNumber
+                    };
+                    courseModuleCourseSessionRepo.Add(courseModuleCourseSession);
+                }
+            }
+            else
+            {
+                _logger.LogInformation("No new course sessions to add for course module ID: {CourseModuleId}",
+                    command.CourseModuleId);
+            }
+
+            // Add course session exist to course module
+            if (command.CourseSessionIdExists is { Count: > 0 })
+            {
+                // Check if any course session exist to add to course module
+                var existingSessionIds = await courseModuleCourseSessionRepo.FindAll(x =>
+                        x.CourseModuleId == command.CourseModuleId)
+                    .Select(x => x.CourseSessionId)
+                    .ToListAsync(cancellationToken: cancellationToken);
+
+                var duplicatedSessionIds = command.CourseSessionIdExists
+                    .Where(s => existingSessionIds.Any(id => id == s.CourseSessionId))
+                    .ToList();
+
+                if (duplicatedSessionIds.Any())
+                {
+                    _logger.LogWarning("One or more CourseSession already exist in course module");
+                    return Result.Failure(HttpStatusCode.BadRequest, CourseSessionErrors.RelationshipExist());
+                }
+
+                foreach (var session in command.CourseSessionIdExists)
+                {
+                    // Create relationship with course module
+                    var courseModuleCourseSession = new CourseModuleCourseSession
+                    {
+                        CourseModuleId = command.CourseModuleId,
+                        CourseSessionId = session.CourseSessionId,
+                        SessionNumber = session.SessionNumber
+                    };
+                    courseModuleCourseSessionRepo.Add(courseModuleCourseSession);
+                }
+            }
+
             await _unitOfWork.SaveChangesAsync();
+            //Commit transaction
+            if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+            {
+                _logger.LogDebug("Committing transaction with {TransactionId}", transactionId);
+                await _unitOfWork.CommitTransactionAsync();
+            }
 
             _logger.LogInformation("End CreateCourseSessionCommandHandler");
             return Result.Success();
@@ -53,6 +127,13 @@ public class CreateCourseSessionCommandHandler : ICommandHandler<CreateCourseSes
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in CreateCourseSessionCommandHandler: {Message}", ex.Message);
+            //Rollback transaction if we started one
+            if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+            {
+                _logger.LogDebug("Rolling back transaction with {TransactionId}", transactionId);
+                await _unitOfWork.RollbackTransactionAsync();
+            }
+
             return Result.Failure(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
         }
     }
