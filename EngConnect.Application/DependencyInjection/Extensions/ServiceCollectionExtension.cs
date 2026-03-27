@@ -35,6 +35,7 @@ using EngConnect.Application.UseCases.Lessons.UpdateLesson;
 using EngConnect.Application.UseCases.Lessons.UpdateLessonStatus;
 using EngConnect.Application.UseCases.LessonScripts.CreateLessonScript;
 using EngConnect.Application.UseCases.LessonScripts.UpdateLessonScript;
+using EngConnect.Application.UseCases.Meetings.UploadRecordingChunk;
 using EngConnect.Application.UseCases.Students.CreateStudent;
 using EngConnect.Application.UseCases.Students.GetListStudents;
 using EngConnect.Application.UseCases.Students.UpdateAvatarStudent;
@@ -141,5 +142,6 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<UpdateThumbnailCourseCommand>, UpdateThumbnailCourseValidator>();
         services.AddScoped<IValidator<UpdateDemoVideoCourseCommand>, UpdateDemoVideoCourseValidator>();
         
+        services.AddScoped<IValidator<UploadRecordingChunkCommand>, UploadRecordingChunkCommandValidator>();
     }
 }

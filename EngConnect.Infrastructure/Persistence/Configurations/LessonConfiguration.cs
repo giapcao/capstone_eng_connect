@@ -40,6 +40,16 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
         builder.Property(e => e.MeetingUrl)
             .HasColumnName("meeting_url");
 
+        builder.Property(e => e.MeetingStatus)
+            .HasMaxLength(30)
+            .HasColumnName("meeting_status");
+
+        builder.Property(e => e.MeetingStartedAt)
+            .HasColumnName("meeting_started_at");
+
+        builder.Property(e => e.MeetingEndedAt)
+            .HasColumnName("meeting_ended_at");
+
         builder.Property(e => e.CreatedAt)
             .HasColumnName("created_at")
             .HasDefaultValueSql("now()");
