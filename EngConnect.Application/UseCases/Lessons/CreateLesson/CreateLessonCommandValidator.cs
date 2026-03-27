@@ -7,9 +7,6 @@ public class CreateLessonCommandValidator : AbstractValidator<CreateLessonComman
 {
     public CreateLessonCommandValidator()
     {
-        RuleFor(x => x.TutorId)
-            .NotEmpty().WithMessage("Mã gia sư (TutorId) không được để trống.");
-
         RuleFor(x => x.StudentId)
             .NotEmpty().WithMessage("Mã học sinh (StudentId) không được để trống.");
 

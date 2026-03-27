@@ -15,8 +15,8 @@ public class CourseResourceConfiguration : IEntityTypeConfiguration<CourseResour
         builder.Property(e => e.Id)
             .HasColumnName("id");
 
-        builder.Property(e => e.SessionId)
-            .HasColumnName("session_id");
+        builder.Property(e => e.TutorId)
+            .HasColumnName("tutor_id");
 
         builder.Property(e => e.Title)
             .HasMaxLength(255)
@@ -48,11 +48,11 @@ public class CourseResourceConfiguration : IEntityTypeConfiguration<CourseResour
         builder.Property(e => e.DeletedAt)
             .HasColumnName("deleted_at");
 
-        builder.HasOne(d => d.Session)
+        builder.HasOne(d => d.Tutor)
             .WithMany(p => p.CourseResources)
-            .HasForeignKey(d => d.SessionId)
+            .HasForeignKey(d => d.TutorId)
             .OnDelete(DeleteBehavior.ClientSetNull)
-            .HasConstraintName("fk_resource_session");
+            .HasConstraintName("fk_resource_tutor");
     }
 }
 

@@ -27,10 +27,11 @@ namespace EngConnect.Application.UseCases.Authentication.RegisterTutor
         private readonly IJwtTokenService _jwtTokenService;
         private readonly IRedisService _redisService;
         private readonly RedisCacheSettings _redisCacheSettings;
+        private readonly IAwsStorageService _awsStorageService;
 
         public RegisterTutorCommandHandler(ILogger<RegisterTutorCommandHandler> logger, IUnitOfWork unitOfWork, IMapper mapper, 
             IOptions<AppSettings> appSettings, IJwtTokenService jwtTokenService, IRedisService redisService, 
-            IOptions<RedisCacheSettings> redisCacheSettings)
+            IOptions<RedisCacheSettings> redisCacheSettings, IAwsStorageService awsStorageService)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
@@ -39,6 +40,7 @@ namespace EngConnect.Application.UseCases.Authentication.RegisterTutor
             _redisService = redisService;
             _redisCacheSettings = redisCacheSettings.Value;
             _appSettings = appSettings.Value;
+            _awsStorageService = awsStorageService;
         }
 
         public async Task<Result> HandleAsync(
@@ -73,9 +75,34 @@ namespace EngConnect.Application.UseCases.Authentication.RegisterTutor
                 var entity = _mapper.Map<Tutor>(command);
                 entity.UserId = user.Id;
                 entity.Avatar = _appSettings.DefaultAvatarPath;
+                entity.SlotsCount = 0;
+                entity.RatingAverage = 5; // Default rating average
+                entity.RatingCount = 0;
                 entity.Status = nameof(CommonStatus.Active);
                 entity.VerifiedStatus = nameof(TutorVerifiedStatus.Unverified); // Set verified status to false (Unverified)
                 // Tags are not included - left as null
+                
+                // Upload Intro Video if provided
+                if (command.IntroVideoFile != null)
+                {
+                    var introVideoResult = await _awsStorageService.UploadFileAsync(
+                        command.IntroVideoFile, command.UserId, nameof(PrefixFile.IntroVideo), cancellationToken);
+                    if (introVideoResult != null)
+                    {
+                        entity.IntroVideoUrl = introVideoResult.RelativePath;
+                    }
+                }
+                
+                // Upload CV if provided
+                if (command.CvFile != null)
+                {
+                    var cvResult = await _awsStorageService.UploadFileAsync(
+                        command.CvFile, command.UserId, nameof(PrefixFile.CV), cancellationToken);
+                    if (cvResult != null)
+                    {
+                        entity.CvUrl = cvResult.RelativePath;
+                    }
+                }
 
                 repo.Add(entity);
 

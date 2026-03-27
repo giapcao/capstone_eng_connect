@@ -30,9 +30,7 @@ public class User : AuditableEntity<Guid>
     public string PasswordHash { get; set; } = null!;
 
     public string Status { get; set; } = null!;
-
-    public string? RefreshToken { get; set; }
-
+    
     public bool? IsEmailVerified { get; set; }
 
     [InverseProperty("ReviewedByNavigation")]

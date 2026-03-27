@@ -31,9 +31,9 @@ public class Course : AuditableEntity<Guid>
     /// </summary>
     public string? Currency { get; set; }
 
-    public int? NumberOfSessions { get; set; }
+    public int NumberOfSessions { get; set; } = 0;
 
-    public int? NumsSessionInWeek { get; set; }
+    public int NumsSessionInWeek { get; set; } = 0;
 
     public string? ThumbnailUrl { get; set; }
 
@@ -54,9 +54,12 @@ public class Course : AuditableEntity<Guid>
     public virtual ICollection<CourseCategory> CourseCategories { get; set; } = new List<CourseCategory>();
 
     public virtual ICollection<CourseEnrollment> CourseEnrollments { get; set; } = new List<CourseEnrollment>();
+    
+    // 260318: Update relationship of course, courseModule, courseSession, courseResource from 1 - many to many - many
 
-    public virtual ICollection<CourseModule> CourseModules { get; set; } = new List<CourseModule>();
-
+    public virtual ICollection<CourseCourseModule> CourseCourseModules { get; set; } = new List<CourseCourseModule>();
+    
+    
     public virtual ICollection<CourseReview> CourseReviews { get; set; } = new List<CourseReview>();
 
     public virtual ICollection<CourseVerificationRequest> CourseVerificationRequests { get; set; } = new List<CourseVerificationRequest>();

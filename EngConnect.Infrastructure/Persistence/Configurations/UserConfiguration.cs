@@ -62,9 +62,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(20)
             .HasColumnName("status");
 
-        builder.Property(e => e.RefreshToken)
-            .HasColumnName("refresh_token");
-
         builder.Property(e => e.IsEmailVerified)
             .HasColumnName("is_email_verified")
             .HasDefaultValue(false);

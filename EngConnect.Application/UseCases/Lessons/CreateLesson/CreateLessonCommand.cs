@@ -4,8 +4,6 @@ namespace EngConnect.Application.UseCases.Lessons.CreateLesson;
 
 public class CreateLessonCommand : ICommand
 {
-    public Guid TutorId { get; set; }
-    
     public Guid StudentId { get; set; }
     
     public Guid EnrollmentId { get; set; }

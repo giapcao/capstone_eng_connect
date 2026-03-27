@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using EngConnect.BuildingBlock.Application.Base;
+using EngConnect.BuildingBlock.Contracts.Models.Files;
 
 namespace EngConnect.Application.UseCases.Authentication.RegisterTutor
 {
@@ -13,5 +14,9 @@ namespace EngConnect.Application.UseCases.Authentication.RegisterTutor
         public string? Bio { get; set; }
         
         public int? YearsExperience { get; set; }
+        
+        public FileUpload? IntroVideoFile { get; set; }
+        
+        public FileUpload? CvFile { get; set; }
     }
 }

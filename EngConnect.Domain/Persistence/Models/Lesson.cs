@@ -6,8 +6,7 @@ namespace EngConnect.Domain.Persistence.Models;
 
 public class Lesson : AuditableEntity<Guid>
 {
-    public Guid TutorId { get; set; }
-
+    // 260318: remove tutorId
     public Guid StudentId { get; set; }
 
     public Guid EnrollmentId { get; set; }
@@ -35,6 +34,4 @@ public class Lesson : AuditableEntity<Guid>
     public virtual CourseSession? Session { get; set; }
 
     public virtual Student Student { get; set; } = null!;
-
-    public virtual Tutor Tutor { get; set; } = null!;
 }

@@ -38,7 +38,6 @@ public class UpdateCourseSessionCommandHandler : ICommandHandler<UpdateCourseSes
             courseSession.Title = command.Title;
             courseSession.Description = command.Description;
             courseSession.Outcomes = command.Outcomes;
-            courseSession.SessionNumber = command.SessionNumber;
 
             courseSessionRepo.Update(courseSession);
             await _unitOfWork.SaveChangesAsync();

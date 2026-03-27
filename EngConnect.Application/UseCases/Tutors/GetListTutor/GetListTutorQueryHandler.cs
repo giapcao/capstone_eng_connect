@@ -15,11 +15,13 @@ namespace EngConnect.Application.UseCases.Tutors.GetListTutor
     {
         private readonly ILogger<GetListTutorQueryHandler> _logger;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IAwsStorageService _awsStorageService;
 
-        public GetListTutorQueryHandler(ILogger<GetListTutorQueryHandler> logger, IUnitOfWork unitOfWork)
+        public GetListTutorQueryHandler(ILogger<GetListTutorQueryHandler> logger, IUnitOfWork unitOfWork, IAwsStorageService awsStorageService)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
+            _awsStorageService = awsStorageService;
         }
 
         public async Task<Result<PaginationResult<GetTutorResponse>>> HandleAsync(
@@ -55,6 +57,14 @@ namespace EngConnect.Application.UseCases.Tutors.GetListTutor
                 var result =
                     await tutors.ProjectToPaginatedListAsync<Domain.Persistence.Models.Tutor, GetTutorResponse>(
                         query.GetPaginationParams());
+
+                // Convert relative paths to full AWS S3 URLs
+                foreach (var item in result.Items)
+                {
+                    item.Avatar = _awsStorageService.GetFileUrl(item.Avatar);
+                    item.IntroVideoUrl = _awsStorageService.GetFileUrl(item.IntroVideoUrl);
+                    item.CvUrl = _awsStorageService.GetFileUrl(item.CvUrl);
+                }
 
                 _logger.LogInformation("End GetListTutorQueryHandler");
                 return Result.Success(result);
