@@ -3,7 +3,10 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
+using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseModules.UpdateCourseModule;
@@ -33,6 +36,18 @@ public class UpdateCourseModuleCommandHandler : ICommandHandler<UpdateCourseModu
             {
                 _logger.LogWarning("CourseModule not found with ID: {Id}", command.Id);
                 return Result.Failure(HttpStatusCode.NotFound, new Error("CourseModuleNotFound", "Module không tồn tại"));
+            }
+
+            // Check status of courses that use this module
+            var listCourse = await _unitOfWork.GetRepository<CourseCourseModule, Guid>()
+                .FindAll(x => x.CourseModuleId == command.Id)
+                .Include(x => x.Course)
+                .ToListAsync(cancellationToken);
+
+            if (listCourse.Any(x => x.Course.Status == nameof(CourseStatus.Published)))
+            {
+                _logger.LogWarning("CourseModule with ID: {Id} cannot be updated because it's in use by a Published course", command.Id);
+                return Result.Failure(HttpStatusCode.BadRequest, CourseModuleErrors.CourseModuleIsInUse());
             }
 
             courseModule.Title = command.Title;

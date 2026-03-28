@@ -41,7 +41,7 @@ public class GetListCourseModuleQueryHandler : IQueryHandler<GetListCourseModule
 
             if (query.CourseId.HasValue)
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.CourseCourseModules.Any(ccm => ccm.CourseId == query.CourseId.Value));
+                predicate = predicate.CombineAndAlsoExpressions(x => !x.CourseCourseModules.Any(ccm => ccm.CourseId == query.CourseId.Value));
             }
 
             courseModules = courseModules.Where(predicate);

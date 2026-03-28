@@ -136,7 +136,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                 EstimatedTime = TimeSpan.Zero,
                 EstimatedTimeLesson = TimeSpan.FromMinutes(command.EstimatedTimeLesson),
                 Price = command.Price,
-                Currency = command.Currency,
+                Currency = command.Currency ?? "vnd",
                 NumberOfSessions = 0,
                 NumsSessionInWeek = command.NumsSessionInWeek,
                 ThumbnailUrl = thumbnailUrl,

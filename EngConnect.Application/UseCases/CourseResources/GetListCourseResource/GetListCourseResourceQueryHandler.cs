@@ -45,7 +45,7 @@ public class GetListCourseResourceQueryHandler : IQueryHandler<GetListCourseReso
             
             if (query.CourseSessionId.HasValue)
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.CourseSessionCourseResources.Any(cr => cr.CourseSessionId == query.CourseSessionId.Value));
+                predicate = predicate.CombineAndAlsoExpressions(x => !x.CourseSessionCourseResources.Any(cr => cr.CourseSessionId == query.CourseSessionId.Value));
             }
 
             if (ValidationUtil.IsNotNullOrEmpty(query.ResourceType))

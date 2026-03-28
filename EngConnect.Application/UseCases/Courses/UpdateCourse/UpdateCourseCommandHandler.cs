@@ -2,7 +2,9 @@ using System.Net;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
@@ -30,10 +32,17 @@ public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand>
             var course = await courseRepo.FindSingleAsync(
                 x => x.Id == command.Id,
                 cancellationToken: cancellationToken);
-            if (course == null)
+            if (ValidationUtil.IsNullOrEmpty(course))
             {
                 _logger.LogWarning("Course not found with ID: {Id}", command.Id);
                 return Result.Failure(HttpStatusCode.NotFound, new Error("CourseNotFound", "Khóa học không tồn tại"));
+            }
+            
+            // Check status of course
+            if (course.Status != nameof(CourseStatus.InActive))
+            {
+                _logger.LogWarning("Course with ID: {CourseId} cannot be updated", command.Id);
+                return Result.Failure(HttpStatusCode.BadRequest, CourseErrors.PublishedCourseCannotBeUpdated());
             }
 
             //Check tutor
@@ -43,20 +52,27 @@ public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand>
                 return Result.Failure(HttpStatusCode.BadRequest, CourseErrors.TutorIsNotOwner());
             }
 
-            course.Title = command.Title;
-            course.ShortDescription = command.ShortDescription;
-            course.FullDescription = command.FullDescription;
-            course.Outcomes = command.Outcomes;
-            course.Level = command.Level;
-            course.EstimatedTime = TimeSpan.FromMinutes(command.EstimatedTimeLesson * course.NumberOfSessions);
-            course.EstimatedTimeLesson = TimeSpan.FromMinutes(command.EstimatedTimeLesson);
-            course.Price = command.Price;
-            course.Currency = command.Currency;
-            course.NumsSessionInWeek = command.NumsSessionInWeek;
-            course.ThumbnailUrl = command.ThumbnailUrl;
-            course.DemoVideoUrl = command.DemoVideoUrl;
-            course.Status = command.Status;
-            course.IsCertificate = command.IsCertificate;
+            course.Title = command.Title ?? course.Title;
+            course.ShortDescription = command.ShortDescription ?? course.ShortDescription;
+            course.FullDescription = command.FullDescription ?? course.FullDescription;
+            course.Outcomes = command.Outcomes ?? course.Outcomes;
+            course.Level = command.Level ?? course.Level;
+            if (command.EstimatedTimeLesson.HasValue)
+            {
+                course.EstimatedTime = TimeSpan.FromMinutes(
+                    command.EstimatedTimeLesson.Value * course.NumberOfSessions
+                );
+            }
+            course.EstimatedTimeLesson = command.EstimatedTimeLesson.HasValue
+                ? TimeSpan.FromMinutes(command.EstimatedTimeLesson.Value)
+                : course.EstimatedTimeLesson;            
+            course.Price = command.Price ?? course.Price;
+            course.Currency = command.Currency ?? course.Currency;
+            course.NumsSessionInWeek = command.NumsSessionInWeek ?? course.NumsSessionInWeek;
+            
+            // If course is updated, set status to draft and require tutor to submit for verification again
+            course.Status = nameof(CourseStatus.Draft);
+            course.IsCertificate = command.IsCertificate ?? course.IsCertificate;
 
             courseRepo.Update(course);
             await _unitOfWork.SaveChangesAsync();
