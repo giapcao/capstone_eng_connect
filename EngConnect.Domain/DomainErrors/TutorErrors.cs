@@ -46,5 +46,8 @@ namespace EngConnect.Domain.DomainErrors
         
         public static Error TutorProfileIncomplete() =>
             new Error("Tutor.ProfileIncomplete", "Hồ sơ gia sư chưa hoàn chỉnh. Vui lòng cập nhật đầy đủ thông tin hồ sơ trước khi thực hiện hành động này.");
+        
+        public static Error TutorProfileNotVerified() =>
+            new Error("Tutor.ProfileNotVerified", "Hồ sơ gia sư chưa được xác thực. Vui lòng chờ quá trình xác thực hoàn tất trước khi thực hiện hành động này.");
     }
 }

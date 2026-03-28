@@ -4,6 +4,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
@@ -35,14 +36,29 @@ public class CreateCourseSessionCommandHandler : ICommandHandler<CreateCourseSes
             var courseModuleCourseSessionRepo = _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>();
 
             // Check if course module exists
-            var courseModuleExists =
-                await courseModuleRepo.AnyAsync(x => x.Id == command.CourseModuleId, cancellationToken);
-            if (!courseModuleExists)
+            var courseModule =
+                await courseModuleRepo.FindFirstAsync(x => 
+                    x.Id == command.CourseModuleId, 
+                    tracking: false, cancellationToken);
+            if (ValidationUtil.IsNullOrEmpty(courseModule))
             {
                 _logger.LogWarning("Course module not found with ID: {CourseModuleId}", command.CourseModuleId);
-                return Result.Failure(HttpStatusCode.NotFound,
+                return Result.Failure(HttpStatusCode.BadRequest,
                     new Error("CourseModuleNotFound", "Module không tồn tại"));
             }
+            
+            // Check status of course
+            var listCourse = await _unitOfWork.GetRepository<CourseCourseModule, Guid>()
+                .FindAll(x => x.CourseModuleId == command.CourseModuleId, cancellationToken:cancellationToken)
+                .Include(x => x.Course)
+                .ToListAsync(cancellationToken);
+
+            if (listCourse.Any(x => x.Course.Status != nameof(CourseStatus.InActive)))
+            {
+                _logger.LogWarning("Course with ID: {CourseId} cannot be updated", listCourse.Select(x => x.CourseId));
+                return Result.Failure(HttpStatusCode.BadRequest, CourseSessionErrors.CourseSessionIsInUse());
+            }
+            
 
             // Begin transaction
             var transaction = await _unitOfWork.BeginTransactionAsync();

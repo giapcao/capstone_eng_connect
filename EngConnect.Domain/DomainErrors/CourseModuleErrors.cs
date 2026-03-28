@@ -9,4 +9,7 @@ public static class CourseModuleErrors
     
     public static Error RelationshipExist() =>
         new Error("CourseModule.RelationshipExist", "Module đã tồn tại trong một khóa học");
+    
+    public static Error CourseModuleIsInUse() =>
+        new Error("CourseModule.InUse", "Module đang được sử dụng trong một khóa học đã xuất bản và không thể cập nhật.");
 }

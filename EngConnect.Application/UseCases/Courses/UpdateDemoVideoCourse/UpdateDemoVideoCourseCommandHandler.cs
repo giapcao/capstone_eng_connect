@@ -51,6 +51,9 @@ public class UpdateDemoVideoCourseCommandHandler : ICommandHandler<UpdateDemoVid
             }
 
             courseExist.DemoVideoUrl = updateFileResponse.RelativePath;
+            
+            // Set course status to Draft when update demo video, to make sure the course will be reviewed by admin before publish
+            courseExist.Status = nameof(CourseStatus.Draft);
             await _unitOfWork.SaveChangesAsync();
 
             var cacheKey = RedisKeyGenerator.GenerateCourseDemoVideoKey(courseExist.Id);

@@ -28,6 +28,20 @@ public class CreateCourseVerificationRequestCommandHandler : ICommandHandler<Cre
         _logger.LogInformation("Start CreateCourseVerificationRequestCommandHandler {@Command}", command);
         try
         {
+            // Check tutor verified
+            var tutor = await _unitOfWork.GetRepository<Tutor, Guid>().FindSingleAsync(
+                x => x.Id == command.TutorId, tracking: false, cancellationToken);
+            if (ValidationUtil.IsNullOrEmpty(tutor))
+            {
+                _logger.LogWarning("Tutor not found with ID: {TutorId}", command.TutorId);
+                return Result.Failure(HttpStatusCode.BadRequest, TutorErrors.TutorNotFound());
+            }
+            
+            if (tutor.VerifiedStatus != nameof(TutorVerifiedStatus.Verified))
+            {
+                _logger.LogWarning("Tutor with ID: {TutorId} is not verified", command.TutorId);
+                return Result.Failure(HttpStatusCode.BadRequest, TutorErrors.TutorProfileNotVerified());
+            }
             var courseVerificationRequestRepo = _unitOfWork.GetRepository<CourseVerificationRequest, Guid>();
             var courseRepo = _unitOfWork.GetRepository<Course, Guid>();
 

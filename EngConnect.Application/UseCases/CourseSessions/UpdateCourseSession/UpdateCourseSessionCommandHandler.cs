@@ -3,7 +3,10 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
+using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseSessions.UpdateCourseSession;
@@ -33,6 +36,24 @@ public class UpdateCourseSessionCommandHandler : ICommandHandler<UpdateCourseSes
             {
                 _logger.LogWarning("CourseSession not found with ID: {Id}", command.Id);
                 return Result.Failure(HttpStatusCode.NotFound, new Error("CourseSessionNotFound", "Session không tồn tại"));
+            }
+
+            // Check status of courses that use this session
+            var listCourse = await _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>()
+                .FindAll(x => x.CourseSessionId == command.Id)
+                .Include(x => x.CourseModule)
+                    .ThenInclude(cm => cm.CourseCourseModules)
+                        .ThenInclude(ccm => ccm.Course)
+                .ToListAsync(cancellationToken);
+
+            var hasPublishedCourse = listCourse
+                .SelectMany(x => x.CourseModule.CourseCourseModules)
+                .Any(ccm => ccm.Course.Status == nameof(CourseStatus.Published));
+
+            if (hasPublishedCourse)
+            {
+                _logger.LogWarning("CourseSession with ID: {Id} cannot be updated because it's in use by a Published course", command.Id);
+                return Result.Failure(HttpStatusCode.BadRequest, CourseSessionErrors.CourseSessionIsInUse());
             }
 
             courseSession.Title = command.Title;

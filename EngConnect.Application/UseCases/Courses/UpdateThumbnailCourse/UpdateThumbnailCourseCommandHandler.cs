@@ -51,6 +51,9 @@ public class UpdateThumbnailCourseCommandHandler : ICommandHandler<UpdateThumbna
             }
 
             courseExist.ThumbnailUrl = updateFileResponse.RelativePath;
+
+            // Set course status to draft when updating thumbnail
+            courseExist.Status = nameof(CourseStatus.Draft);
             await _unitOfWork.SaveChangesAsync();
 
             var cacheKey = RedisKeyGenerator.GenerateCourseThumbnailKey(courseExist.Id);

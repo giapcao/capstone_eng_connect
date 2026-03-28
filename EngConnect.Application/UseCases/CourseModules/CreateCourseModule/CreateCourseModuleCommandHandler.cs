@@ -4,6 +4,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
@@ -34,13 +35,27 @@ public class CreateCourseModuleCommandHandler : ICommandHandler<CreateCourseModu
             var courseCourseModuleRepo = _unitOfWork.GetRepository<CourseCourseModule, Guid>();
 
             // Check if course exists
-            var courseExists = await courseRepo.AnyAsync(x => x.Id == command.CourseId, cancellationToken);
-            if (!courseExists)
+            var courseExists = await courseRepo.FindFirstAsync(
+                x => x.Id == command.CourseId, 
+                tracking: false, 
+                cancellationToken: cancellationToken);
+            if (ValidationUtil.IsNullOrEmpty(courseExists)) 
             {
                 _logger.LogWarning("Course not found with ID: {CourseId}", command.CourseId);
                 return Result.Failure(HttpStatusCode.NotFound, new Error("CourseNotFound", "Khóa học không tồn tại"));
             }
-
+            
+            // Check status of course
+            if (courseExists.Status != nameof(CourseStatus.Published))
+            {
+                _logger.LogWarning("Course with ID: {CourseId} cannot be updated", command.CourseId);
+                return Result.Failure(HttpStatusCode.BadRequest, CourseModuleErrors.CourseModuleIsInUse());
+            }
+            
+            // Check tutor
+            var tutorExists = await courseRepo.AnyAsync(
+                x => x.Id == command.CourseId && x.TutorId == command.TutorId, cancellationToken);
+            
             // Begin transaction
             var transaction = await _unitOfWork.BeginTransactionAsync();
             transactionId = transaction.TransactionId;

@@ -97,6 +97,8 @@ public class AddCourseResourceToCourseSessionCommandHandler : ICommandHandler<Ad
 
                 courseSessionCourseResourceRepo.Add(courseSessionCourseResource);
             }
+            
+            
 
             await _unitOfWork.SaveChangesAsync();
             

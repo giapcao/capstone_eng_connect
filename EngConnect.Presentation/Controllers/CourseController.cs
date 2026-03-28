@@ -1,6 +1,7 @@
 using EngConnect.Application.UseCases.Courses.Common;
 using EngConnect.Application.UseCases.Courses.CreateCourse;
 using EngConnect.Application.UseCases.Courses.DeleteCourse;
+using EngConnect.Application.UseCases.Courses.InactiveCourse;
 using EngConnect.Application.UseCases.Courses.GetCourseById;
 using EngConnect.Application.UseCases.Courses.GetListCourse;
 using EngConnect.Application.UseCases.Courses.UpdateCourse;
@@ -188,6 +189,21 @@ public class CourseController : BaseApiController
     {
         var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
         var command = new DeleteCourseCommand(id, tutorId);
+        var result = await _commandDispatcher.DispatchAsync(command);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Vô hiệu hóa Course
+    /// </summary>
+    [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
+    [HttpPatch("{id}/inactive")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    public async Task<IActionResult> InactiveCourseAsync([FromRoute] Guid id)
+    {
+        var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
+        var command = new InactiveCourseCommand(id, tutorId);
         var result = await _commandDispatcher.DispatchAsync(command);
         return FromResult(result);
     }

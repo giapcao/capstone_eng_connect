@@ -3,6 +3,7 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 
@@ -36,9 +37,13 @@ public class UpdateCourseVerificationRequestCommandHandler : ICommandHandler<Upd
             }
 
             courseVerificationRequest.Status = command.Status;
-            courseVerificationRequest.ReviewedAt = command.ReviewedAt;
-            courseVerificationRequest.ReviewedBy = command.ReviewedBy;
-            courseVerificationRequest.RejectionReason = command.RejectionReason;
+            courseVerificationRequest.ReviewedAt = DateTime.Now;
+            courseVerificationRequest.ReviewedBy = command.UserId;
+
+            if (command.Status == nameof(CourseVerificationStatus.Rejected))
+            {
+                courseVerificationRequest.RejectionReason = command.RejectionReason;
+            }
 
             courseVerificationRequestRepo.Update(courseVerificationRequest);
             await _unitOfWork.SaveChangesAsync();
