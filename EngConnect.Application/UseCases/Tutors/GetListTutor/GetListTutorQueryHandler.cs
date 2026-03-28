@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Net;
 using EngConnect.Application.UseCases.Tutors.Common;
 using EngConnect.BuildingBlock.Application.Base;
@@ -61,9 +61,9 @@ namespace EngConnect.Application.UseCases.Tutors.GetListTutor
                 // Convert relative paths to full AWS S3 URLs
                 foreach (var item in result.Items)
                 {
-                    item.Avatar = _awsStorageService.GetFileUrl(item.Avatar);
-                    item.IntroVideoUrl = _awsStorageService.GetFileUrl(item.IntroVideoUrl);
-                    item.CvUrl = _awsStorageService.GetFileUrl(item.CvUrl);
+                    item.Avatar = item.Avatar != null ? _awsStorageService.GetFileUrl(item.Avatar) : null;
+                    item.IntroVideoUrl = item.IntroVideoUrl != null ? _awsStorageService.GetFileUrl(item.IntroVideoUrl) : null;
+                    item.CvUrl = item.CvUrl != null ? _awsStorageService.GetFileUrl(item.CvUrl) : null;
                 }
 
                 _logger.LogInformation("End GetListTutorQueryHandler");

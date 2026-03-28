@@ -202,7 +202,7 @@ public class AuthController : BaseApiController
             UserId = userId.Value,
             Headline = request.Headline,
             Bio = request.Bio,
-            YearsExperience = request.YearsExperience,
+            MonthExperience = request.MonthExperience,
             IntroVideoFile = request.IntroVideoFile != null ? new FileUpload
             {
                 FileName = request.IntroVideoFileName ?? request.IntroVideoFile.FileName,

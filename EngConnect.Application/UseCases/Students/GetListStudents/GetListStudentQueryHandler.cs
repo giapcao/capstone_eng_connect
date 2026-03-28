@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Net;
 using EngConnect.Application.UseCases.Students.Common;
 using EngConnect.BuildingBlock.Application.Base;
@@ -54,7 +54,7 @@ public class GetListStudentQueryHandler : IQueryHandler<GetListStudentQuery, Pag
             // Convert relative paths to full AWS S3 URLs
             foreach (var item in result.Items)
             {
-                item.Avatar = _awsStorageService.GetFileUrl(item.Avatar);
+                item.Avatar = item.Avatar != null ? _awsStorageService.GetFileUrl(item.Avatar) : null;
             }
 
             _logger.LogInformation("End GetListStudentQueryHandler)");

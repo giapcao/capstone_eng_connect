@@ -44,7 +44,7 @@ public class GetAvatarTutorQueryHandler : IQueryHandler<GetAvatarTutorQuery, Get
                 var fileCache = new GetAvatarTutorResponse
                 {
                     RelativePath = value,
-                    Url = _awsStorageService.GetFileUrl(value)
+                    Url = value != null ? _awsStorageService.GetFileUrl(value) : null
                 };
 
                 _logger.LogInformation("End GetAvatarTutorQueryHandler (cache hit)");
@@ -66,7 +66,7 @@ public class GetAvatarTutorQueryHandler : IQueryHandler<GetAvatarTutorQuery, Get
                     CommonErrors.NotFound<Tutor>("Avatar"));
             }
 
-            var fileUrl = _awsStorageService.GetFileUrl(tutorExist.Avatar);
+            var fileUrl = tutorExist.Avatar != null ? _awsStorageService.GetFileUrl(tutorExist.Avatar) : null;
 
             var file = new GetAvatarTutorResponse
             {

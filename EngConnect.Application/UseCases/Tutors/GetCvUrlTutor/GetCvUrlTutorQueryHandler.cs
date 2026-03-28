@@ -44,7 +44,7 @@ public class GetCvUrlTutorQueryHandler : IQueryHandler<GetCvUrlTutorQuery, GetCv
                 var fileCache = new GetCvUrlTutorResponse
                 {
                     RelativePath = value,
-                    Url = _awsStorageService.GetFileUrl(value)
+                    Url = value != null ? _awsStorageService.GetFileUrl(value) : null
                 };
 
                 _logger.LogInformation("End GetCvUrlTutorQueryHandler (cache hit)");
@@ -66,7 +66,7 @@ public class GetCvUrlTutorQueryHandler : IQueryHandler<GetCvUrlTutorQuery, GetCv
                     new Error("CvUrlNotFound", "Gia sư chưa upload CV"));
             }
 
-            var fileUrl = _awsStorageService.GetFileUrl(tutorExist.CvUrl);
+            var fileUrl = tutorExist.CvUrl != null ? _awsStorageService.GetFileUrl(tutorExist.CvUrl) : null;
 
             var file = new GetCvUrlTutorResponse
             {

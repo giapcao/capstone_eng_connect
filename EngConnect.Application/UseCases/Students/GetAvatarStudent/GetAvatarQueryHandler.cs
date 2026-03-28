@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using EngConnect.Application.UseCases.Students.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
@@ -42,7 +42,7 @@ public class GetAvatarQueryHandler : IQueryHandler<GetAvatarQuery,GetAvatarRespo
                 var fileCache = new GetAvatarResponse
                 {
                     RelativePath = value,
-                    Url = _awsStorageService.GetFileUrl(value, cancellationToken)
+                    Url = value != null ? _awsStorageService.GetFileUrl(value, cancellationToken) : null
                 };
                 
                 _logger.LogInformation("End GetAvatarQueryHandler");
@@ -62,7 +62,7 @@ public class GetAvatarQueryHandler : IQueryHandler<GetAvatarQuery,GetAvatarRespo
                 return Result.Failure<GetAvatarResponse>(HttpStatusCode.NotFound, CommonErrors.NotFound<Student>("Avatar"));
             }
             
-            var fileUrl = _awsStorageService.GetFileUrl(studentExist.Avatar,cancellationToken);
+            var fileUrl = studentExist.Avatar != null ? _awsStorageService.GetFileUrl(studentExist.Avatar, cancellationToken) : null;
             
             var file = new GetAvatarResponse
             {
