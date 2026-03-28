@@ -86,7 +86,7 @@ public class LoginByUserCommandHandler: ICommandHandler<LoginByUserCommand, User
                 TimeSpan.FromMinutes(_redisCacheSettings.RefreshTokenExpirationMinutes));
 
             //Resolve avatar url via AwsS3Service
-            var avatarUrl = _awsStorageService.GetFileUrl(user.Student?.Avatar);
+            var avatarUrl = user.Student?.Avatar != null ? _awsStorageService.GetFileUrl(user.Student.Avatar) : null;
 
             //Resolve roles
             var roles = user.UserRoles

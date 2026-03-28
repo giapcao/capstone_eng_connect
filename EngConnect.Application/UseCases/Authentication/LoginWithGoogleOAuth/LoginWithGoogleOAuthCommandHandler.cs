@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Security.Claims;
 using EngConnect.Application.UseCases.Authentication.Common;
 using EngConnect.BuildingBlock.Application.Base;
@@ -188,7 +188,7 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
             var accessToken =  _jwtTokenService.GenerateAccessToken(user);
             var refreshToken = _jwtTokenService.GenerateRefreshToken();
             
-            var avatarUrl = _awsStorageService.GetFileUrl(user.Student?.Avatar);
+            var avatarUrl = user.Student?.Avatar != null ? _awsStorageService.GetFileUrl(user.Student.Avatar) : null;
             
             //Remove old refresh token
             var oldRefreshTokenKey = RedisKeyGenerator.GenerateRefreshTokenKeyDeletePattern(user.Id);

@@ -48,7 +48,7 @@ public class GetCourseResourceByIdQueryHandler : IQueryHandler<GetCourseResource
             var result = _mapper.Map<GetCourseResourceResponse>(courseResource);
             
             // Change relative path to full AWS S3 URL
-            result.Url = _awsStorageService.GetFileUrl(result.Url);
+            result.Url = result.Url != null ? _awsStorageService.GetFileUrl(result.Url) : null!;
             
             _logger.LogInformation("End GetCourseResourceByIdQueryHandler");
             return Result.Success(result);

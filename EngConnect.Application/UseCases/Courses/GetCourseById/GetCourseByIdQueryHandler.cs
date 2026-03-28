@@ -57,8 +57,8 @@ public class GetCourseByIdQueryHandler : IQueryHandler<GetCourseByIdQuery, GetCo
             }
 
             // Convert relative paths to full AWS S3 URLs
-            course.ThumbnailUrl = _awsStorageService.GetFileUrl(course.ThumbnailUrl);
-            course.DemoVideoUrl = _awsStorageService.GetFileUrl(course.DemoVideoUrl);
+            course.ThumbnailUrl = course.ThumbnailUrl != null ? _awsStorageService.GetFileUrl(course.ThumbnailUrl) : null;
+            course.DemoVideoUrl = course.DemoVideoUrl != null ? _awsStorageService.GetFileUrl(course.DemoVideoUrl) : null;
 
             _logger.LogInformation("End GetCourseByIdQueryHandler");
             return Result.Success(course);
