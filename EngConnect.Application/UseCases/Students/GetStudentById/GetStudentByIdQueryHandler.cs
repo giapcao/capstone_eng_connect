@@ -50,7 +50,7 @@ public class GetStudentByIdQueryHandler : IQueryHandler<GetStudentByIdQuery, Get
                 School = student.School,
                 Grade = student.Grade,
                 Class = student.Class,
-                Avatar = _awsStorageService.GetFileUrl(student.Avatar, cancellationToken),
+                Avatar = student.Avatar != null ? _awsStorageService.GetFileUrl(student.Avatar, cancellationToken) : null,
                 Tags = student.Tags,
                 Status = student.Status,
                 CreatedAt = student.CreatedAt,

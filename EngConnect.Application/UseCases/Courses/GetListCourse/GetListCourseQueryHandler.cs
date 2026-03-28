@@ -68,8 +68,8 @@ public class GetListCourseQueryHandler : IQueryHandler<GetListCourseQuery, Pagin
             // Convert relative paths to full AWS S3 URLs
             foreach (var item in result.Items)
             {
-                item.ThumbnailUrl = _awsStorageService.GetFileUrl(item.ThumbnailUrl);
-                item.DemoVideoUrl = _awsStorageService.GetFileUrl(item.DemoVideoUrl);
+                item.ThumbnailUrl = item.ThumbnailUrl != null ? _awsStorageService.GetFileUrl(item.ThumbnailUrl) : null;
+                item.DemoVideoUrl = item.DemoVideoUrl != null ? _awsStorageService.GetFileUrl(item.DemoVideoUrl) : null;
             }
 
             _logger.LogInformation("End GetListCourseQueryHandler");
