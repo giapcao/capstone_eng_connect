@@ -18,6 +18,12 @@ public interface IDriveService
     /// <returns></returns>
     Task<FileUploadResult> UploadFileAsync(FileUpload file, Guid userId, string prefix, CancellationToken cancellationToken = default);
 
+    Task<FileUploadResult> UploadMeetingChunkAsync(Guid lessonId, int chunkIndex, FileUpload file,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<FileUploadResult>> GetMeetingChunksAsync(Guid lessonId,
+        CancellationToken cancellationToken = default);
+
     /// <summary>
     ///     Retrieves metadata and access information for a specific file from Google Drive.
     /// </summary>
