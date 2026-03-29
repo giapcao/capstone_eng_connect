@@ -60,6 +60,19 @@ public static class ClaimsPrincipalExtensions
     {
         return principal?.FindFirst("full_name")?.Value;
     }
+    
+    public static string? GetStudentId(this ClaimsPrincipal? principal)
+    {
+        return principal?.FindFirst("student_id")?.Value
+               ?? principal?.FindFirst("studentId")?.Value;
+    }
+    
+    public static string? GetTutorId(this ClaimsPrincipal? principal)
+    {
+        return principal?.FindFirst("tutor_id")?.Value
+               ?? principal?.FindFirst("tutorId")?.Value;
+    }
+    
 
     public static string? GetPhoneNumber(this ClaimsPrincipal? principal)
     {

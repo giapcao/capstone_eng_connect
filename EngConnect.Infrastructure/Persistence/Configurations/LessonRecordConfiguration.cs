@@ -46,8 +46,8 @@ public class LessonRecordConfiguration : IEntityTypeConfiguration<LessonRecord>
             .HasColumnName("deleted_at");
 
         builder.HasOne(d => d.Lesson)
-            .WithMany(p => p.LessonRecords)
-            .HasForeignKey(d => d.LessonId)
+            .WithOne(p => p.LessonRecord)
+            .HasForeignKey<LessonRecord>(d => d.LessonId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("fk_record_lesson");
     }

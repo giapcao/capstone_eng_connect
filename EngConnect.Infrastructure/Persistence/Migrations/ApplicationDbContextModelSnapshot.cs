@@ -355,11 +355,11 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(0)
                         .HasColumnName("number_of_enrollment");
 
-                    b.Property<int?>("NumberOfSessions")
+                    b.Property<int>("NumberOfSessions")
                         .HasColumnType("integer")
                         .HasColumnName("number_of_sessions");
 
-                    b.Property<int?>("NumsSessionInWeek")
+                    b.Property<int>("NumsSessionInWeek")
                         .HasColumnType("integer")
                         .HasColumnName("nums_session_in_week");
 
@@ -477,6 +477,59 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.ToTable("course_category", (string)null);
                 });
 
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseCourseModule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CourseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("course_id");
+
+                    b.Property<Guid>("CourseModuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("course_module_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int?>("ModuleNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("module_number");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("course_course_module_pkey");
+
+                    b.HasIndex("CourseModuleId");
+
+                    b.HasIndex("CourseId", "CourseModuleId")
+                        .IsUnique()
+                        .HasDatabaseName("uq_course_course_module");
+
+                    b.ToTable("course_course_module", (string)null);
+                });
+
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseEnrollment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -560,10 +613,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
-                    b.Property<Guid>("CourseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("course_id");
-
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -584,10 +633,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_deleted");
 
-                    b.Property<int?>("ModuleNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("module_number");
-
                     b.Property<string>("Outcomes")
                         .HasColumnType("text")
                         .HasColumnName("outcomes");
@@ -598,6 +643,10 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("title");
 
+                    b.Property<Guid?>("TutorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tutor_id");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -607,9 +656,62 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("course_module_pkey");
 
-                    b.HasIndex("CourseId");
+                    b.HasIndex("TutorId");
 
                     b.ToTable("course_module", (string)null);
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseModuleCourseSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CourseModuleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("course_module_id");
+
+                    b.Property<Guid>("CourseSessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("course_session_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<int?>("SessionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("session_number");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("course_module_course_session_pkey");
+
+                    b.HasIndex("CourseSessionId");
+
+                    b.HasIndex("CourseModuleId", "CourseSessionId")
+                        .IsUnique()
+                        .HasDatabaseName("uq_course_module_course_session");
+
+                    b.ToTable("course_module_course_session", (string)null);
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseResource", b =>
@@ -640,10 +742,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("resource_type");
 
-                    b.Property<Guid>("SessionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("session_id");
-
                     b.Property<string>("Status")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
@@ -653,6 +751,10 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("title");
+
+                    b.Property<Guid?>("TutorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tutor_id");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -668,7 +770,7 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("course_resource_pkey");
 
-                    b.HasIndex("SessionId");
+                    b.HasIndex("TutorId");
 
                     b.ToTable("course_resource", (string)null);
                 });
@@ -775,22 +877,18 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_deleted");
 
-                    b.Property<Guid>("ModuleId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("module_id");
-
                     b.Property<string>("Outcomes")
                         .HasColumnType("text")
                         .HasColumnName("outcomes");
-
-                    b.Property<int?>("SessionNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("session_number");
 
                     b.Property<string>("Title")
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("title");
+
+                    b.Property<Guid?>("TutorId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tutor_id");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -801,9 +899,58 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("course_session_pkey");
 
-                    b.HasIndex("ModuleId");
+                    b.HasIndex("TutorId");
 
                     b.ToTable("course_session", (string)null);
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseSessionCourseResource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<Guid>("CourseResourceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("course_resource_id");
+
+                    b.Property<Guid>("CourseSessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("course_session_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("course_session_course_resource_pkey");
+
+                    b.HasIndex("CourseResourceId");
+
+                    b.HasIndex("CourseSessionId", "CourseResourceId")
+                        .IsUnique()
+                        .HasDatabaseName("uq_course_session_course_resource");
+
+                    b.ToTable("course_session_course_resource", (string)null);
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseVerificationRequest", b =>
@@ -1025,6 +1172,19 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_deleted");
 
+                    b.Property<DateTime?>("MeetingEndedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("meeting_ended_at");
+
+                    b.Property<DateTime?>("MeetingStartedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("meeting_started_at");
+
+                    b.Property<string>("MeetingStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("meeting_status");
+
                     b.Property<string>("MeetingUrl")
                         .HasColumnType("text")
                         .HasColumnName("meeting_url");
@@ -1216,7 +1376,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("lesson_record_pkey");
 
-                    b.HasIndex("LessonId");
+                    b.HasIndex("LessonId")
+                        .IsUnique();
 
                     b.ToTable("lesson_record", (string)null);
                 });
@@ -1354,6 +1515,72 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.HasIndex("RecordId");
 
                     b.ToTable("lesson_script", (string)null);
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.MeetingParticipant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ConnectionId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("connection_id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("deleted_at");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_deleted");
+
+                    b.Property<DateTime?>("JoinedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("joined_at");
+
+                    b.Property<DateTime?>("LeftAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("left_at");
+
+                    b.Property<Guid>("LessonId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("lesson_id");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("role");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("meeting_participant_pkey");
+
+                    b.HasIndex("LessonId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("meeting_participant", (string)null);
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Order", b =>
@@ -1742,266 +1969,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.ToTable("permission_role", (string)null);
                 });
 
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Quiz", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<int?>("AttemptLimit")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1)
-                        .HasColumnName("attempt_limit");
-
-                    b.Property<Guid>("CourseId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("course_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<int>("DurationSeconds")
-                        .HasColumnType("integer")
-                        .HasColumnName("duration_seconds");
-
-                    b.Property<DateTime?>("ExpiredAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expired_at");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
-                    b.Property<bool?>("IsOpen")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_open");
-
-                    b.Property<int>("MaxScore")
-                        .HasColumnType("integer")
-                        .HasColumnName("max_score");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("title");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("Id")
-                        .HasName("quiz_pkey");
-
-                    b.HasIndex("CourseId");
-
-                    b.ToTable("quiz", (string)null);
-                });
-
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.QuizAttempt", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("completed_at");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<int?>("DurationSeconds")
-                        .HasColumnType("integer")
-                        .HasColumnName("duration_seconds");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
-                    b.Property<Guid>("QuizId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("quiz_id");
-
-                    b.Property<decimal?>("Score")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)")
-                        .HasColumnName("score");
-
-                    b.Property<DateTime>("StartedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("started_at");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("status");
-
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("student_id");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("Id")
-                        .HasName("quiz_attempt_pkey");
-
-                    b.ToTable("quiz_attempt", (string)null);
-                });
-
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.QuizAttemptAnswer", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Answer")
-                        .HasColumnType("text")
-                        .HasColumnName("answer");
-
-                    b.Property<Guid>("AttemptId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("attempt_id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<bool?>("IsCorrect")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_correct");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
-                    b.Property<Guid>("QuestionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("question_id");
-
-                    b.Property<decimal?>("ReceivePoint")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("numeric(5,2)")
-                        .HasColumnName("receive_point");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("Id")
-                        .HasName("quiz_attempt_answer_pkey");
-
-                    b.ToTable("quiz_attempt_answer", (string)null);
-                });
-
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.QuizQuestion", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("CorrectAnswer")
-                        .HasColumnType("text")
-                        .HasColumnName("correct_answer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<bool>("IsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
-
-                    b.Property<string>("Options")
-                        .HasColumnType("json")
-                        .HasColumnName("options");
-
-                    b.Property<int>("Point")
-                        .HasColumnType("integer")
-                        .HasColumnName("point");
-
-                    b.Property<int>("QuestionNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("question_number");
-
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("question_text");
-
-                    b.Property<string>("QuestionType")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("question_type");
-
-                    b.Property<Guid>("QuizId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("quiz_id");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("now()");
-
-                    b.HasKey("Id")
-                        .HasName("quiz_question_pkey");
-
-                    b.HasIndex("QuizId");
-
-                    b.ToTable("quiz_question", (string)null);
-                });
-
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2228,11 +2195,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("is_deleted");
 
-                    b.Property<string>("Priority")
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("priority");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -2323,6 +2285,10 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("id");
 
+                    b.Property<string>("Avatar")
+                        .HasColumnType("text")
+                        .HasColumnName("avatar");
+
                     b.Property<string>("Bio")
                         .HasColumnType("text")
                         .HasColumnName("bio");
@@ -2355,6 +2321,10 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("is_deleted");
+
+                    b.Property<int?>("MonthExperience")
+                        .HasColumnType("integer")
+                        .HasColumnName("month_experience");
 
                     b.Property<decimal?>("RatingAverage")
                         .ValueGeneratedOnAdd()
@@ -2398,10 +2368,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasColumnName("verified_status");
-
-                    b.Property<int?>("YearsExperience")
-                        .HasColumnType("integer")
-                        .HasColumnName("years_experience");
 
                     b.HasKey("Id")
                         .HasName("tutor_pkey");
@@ -2677,10 +2643,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(255)")
                         .HasColumnName("province_name");
 
-                    b.Property<string>("RefreshToken")
-                        .HasColumnType("text")
-                        .HasColumnName("refresh_token");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -2917,6 +2879,25 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Navigation("Course");
                 });
 
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseCourseModule", b =>
+                {
+                    b.HasOne("EngConnect.Domain.Persistence.Models.Course", "Course")
+                        .WithMany("CourseCourseModules")
+                        .HasForeignKey("CourseId")
+                        .IsRequired()
+                        .HasConstraintName("fk_cc_course");
+
+                    b.HasOne("EngConnect.Domain.Persistence.Models.CourseModule", "CourseModule")
+                        .WithMany("CourseCourseModules")
+                        .HasForeignKey("CourseModuleId")
+                        .IsRequired()
+                        .HasConstraintName("fk_cc_course_module");
+
+                    b.Navigation("Course");
+
+                    b.Navigation("CourseModule");
+                });
+
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseEnrollment", b =>
                 {
                     b.HasOne("EngConnect.Domain.Persistence.Models.Course", "Course")
@@ -2938,24 +2919,41 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseModule", b =>
                 {
-                    b.HasOne("EngConnect.Domain.Persistence.Models.Course", "Course")
+                    b.HasOne("EngConnect.Domain.Persistence.Models.Tutor", "Tutor")
                         .WithMany("CourseModules")
-                        .HasForeignKey("CourseId")
-                        .IsRequired()
-                        .HasConstraintName("fk_module_course");
+                        .HasForeignKey("TutorId")
+                        .HasConstraintName("fk_module_tutor");
 
-                    b.Navigation("Course");
+                    b.Navigation("Tutor");
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseModuleCourseSession", b =>
+                {
+                    b.HasOne("EngConnect.Domain.Persistence.Models.CourseModule", "CourseModule")
+                        .WithMany("CourseModuleCourseSessions")
+                        .HasForeignKey("CourseModuleId")
+                        .IsRequired()
+                        .HasConstraintName("fk_cc_course_module");
+
+                    b.HasOne("EngConnect.Domain.Persistence.Models.CourseSession", "CourseSession")
+                        .WithMany("CourseModuleCourseSessions")
+                        .HasForeignKey("CourseSessionId")
+                        .IsRequired()
+                        .HasConstraintName("fk_cc_course_session");
+
+                    b.Navigation("CourseModule");
+
+                    b.Navigation("CourseSession");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseResource", b =>
                 {
-                    b.HasOne("EngConnect.Domain.Persistence.Models.CourseSession", "Session")
+                    b.HasOne("EngConnect.Domain.Persistence.Models.Tutor", "Tutor")
                         .WithMany("CourseResources")
-                        .HasForeignKey("SessionId")
-                        .IsRequired()
-                        .HasConstraintName("fk_resource_session");
+                        .HasForeignKey("TutorId")
+                        .HasConstraintName("fk_resource_tutor");
 
-                    b.Navigation("Session");
+                    b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseReview", b =>
@@ -2995,13 +2993,31 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseSession", b =>
                 {
-                    b.HasOne("EngConnect.Domain.Persistence.Models.CourseModule", "Module")
+                    b.HasOne("EngConnect.Domain.Persistence.Models.Tutor", "Tutor")
                         .WithMany("CourseSessions")
-                        .HasForeignKey("ModuleId")
-                        .IsRequired()
-                        .HasConstraintName("fk_session_module");
+                        .HasForeignKey("TutorId")
+                        .HasConstraintName("fk_session_tutor");
 
-                    b.Navigation("Module");
+                    b.Navigation("Tutor");
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseSessionCourseResource", b =>
+                {
+                    b.HasOne("EngConnect.Domain.Persistence.Models.CourseResource", "CourseResource")
+                        .WithMany("CourseSessionCourseResources")
+                        .HasForeignKey("CourseResourceId")
+                        .IsRequired()
+                        .HasConstraintName("fk_cc_course_resource");
+
+                    b.HasOne("EngConnect.Domain.Persistence.Models.CourseSession", "CourseSession")
+                        .WithMany("CourseSessionCourseResources")
+                        .HasForeignKey("CourseSessionId")
+                        .IsRequired()
+                        .HasConstraintName("fk_cc_course_session");
+
+                    b.Navigation("CourseResource");
+
+                    b.Navigation("CourseSession");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseVerificationRequest", b =>
@@ -3089,8 +3105,8 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonRecord", b =>
                 {
                     b.HasOne("EngConnect.Domain.Persistence.Models.Lesson", "Lesson")
-                        .WithMany("LessonRecords")
-                        .HasForeignKey("LessonId")
+                        .WithOne("LessonRecord")
+                        .HasForeignKey("EngConnect.Domain.Persistence.Models.LessonRecord", "LessonId")
                         .IsRequired()
                         .HasConstraintName("fk_record_lesson");
 
@@ -3133,6 +3149,25 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Navigation("Lesson");
 
                     b.Navigation("Record");
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.MeetingParticipant", b =>
+                {
+                    b.HasOne("EngConnect.Domain.Persistence.Models.Lesson", "Lesson")
+                        .WithMany("MeetingParticipants")
+                        .HasForeignKey("LessonId")
+                        .IsRequired()
+                        .HasConstraintName("fk_meeting_participant_lesson");
+
+                    b.HasOne("EngConnect.Domain.Persistence.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .IsRequired()
+                        .HasConstraintName("fk_meeting_participant_user");
+
+                    b.Navigation("Lesson");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Order", b =>
@@ -3194,28 +3229,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Navigation("Permission");
 
                     b.Navigation("Role");
-                });
-
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Quiz", b =>
-                {
-                    b.HasOne("EngConnect.Domain.Persistence.Models.Course", "Course")
-                        .WithMany("Quizzes")
-                        .HasForeignKey("CourseId")
-                        .IsRequired()
-                        .HasConstraintName("fk_quiz_course");
-
-                    b.Navigation("Course");
-                });
-
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.QuizQuestion", b =>
-                {
-                    b.HasOne("EngConnect.Domain.Persistence.Models.Quiz", "Quiz")
-                        .WithMany("QuizQuestions")
-                        .HasForeignKey("QuizId")
-                        .IsRequired()
-                        .HasConstraintName("fk_quiz_quizquestion");
-
-                    b.Navigation("Quiz");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Student", b =>
@@ -3357,9 +3370,9 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
 
                     b.Navigation("CourseCategories");
 
-                    b.Navigation("CourseEnrollments");
+                    b.Navigation("CourseCourseModules");
 
-                    b.Navigation("CourseModules");
+                    b.Navigation("CourseEnrollments");
 
                     b.Navigation("CourseReviews");
 
@@ -3368,8 +3381,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.Navigation("InverseParentCourse");
 
                     b.Navigation("OrderDetails");
-
-                    b.Navigation("Quizzes");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseEnrollment", b =>
@@ -3383,12 +3394,21 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseModule", b =>
                 {
-                    b.Navigation("CourseSessions");
+                    b.Navigation("CourseCourseModules");
+
+                    b.Navigation("CourseModuleCourseSessions");
+                });
+
+            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseResource", b =>
+                {
+                    b.Navigation("CourseSessionCourseResources");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.CourseSession", b =>
                 {
-                    b.Navigation("CourseResources");
+                    b.Navigation("CourseModuleCourseSessions");
+
+                    b.Navigation("CourseSessionCourseResources");
 
                     b.Navigation("Lessons");
                 });
@@ -3397,11 +3417,13 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("LessonHomeworks");
 
-                    b.Navigation("LessonRecords");
+                    b.Navigation("LessonRecord");
 
                     b.Navigation("LessonRescheduleRequests");
 
                     b.Navigation("LessonScripts");
+
+                    b.Navigation("MeetingParticipants");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonRecord", b =>
@@ -3419,11 +3441,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Permission", b =>
                 {
                     b.Navigation("PermissionRoles");
-                });
-
-            modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Quiz", b =>
-                {
-                    b.Navigation("QuizQuestions");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Role", b =>
@@ -3459,7 +3476,13 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Conversations");
 
+                    b.Navigation("CourseModules");
+
+                    b.Navigation("CourseResources");
+
                     b.Navigation("CourseReviews");
+
+                    b.Navigation("CourseSessions");
 
                     b.Navigation("Courses");
 

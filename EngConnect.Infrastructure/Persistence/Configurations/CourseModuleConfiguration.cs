@@ -15,21 +15,18 @@ public class CourseModuleConfiguration : IEntityTypeConfiguration<CourseModule>
         builder.Property(e => e.Id)
             .HasColumnName("id");
 
-        builder.Property(e => e.CourseId)
-            .HasColumnName("course_id");
+        builder.Property(e => e.TutorId)
+            .HasColumnName("tutor_id");
 
         builder.Property(e => e.Title)
             .HasMaxLength(255)
             .HasColumnName("title");
-
+        
         builder.Property(e => e.Description)
             .HasColumnName("description");
 
         builder.Property(e => e.Outcomes)
             .HasColumnName("outcomes");
-
-        builder.Property(e => e.ModuleNumber)
-            .HasColumnName("module_number");
 
         builder.Property(e => e.CreatedAt)
             .HasColumnName("created_at")
@@ -46,11 +43,11 @@ public class CourseModuleConfiguration : IEntityTypeConfiguration<CourseModule>
         builder.Property(e => e.DeletedAt)
             .HasColumnName("deleted_at");
 
-        builder.HasOne(d => d.Course)
+        builder.HasOne(d => d.Tutor)
             .WithMany(p => p.CourseModules)
-            .HasForeignKey(d => d.CourseId)
+            .HasForeignKey(d => d.TutorId)
             .OnDelete(DeleteBehavior.ClientSetNull)
-            .HasConstraintName("fk_module_course");
+            .HasConstraintName("fk_module_tutor");
     }
 }
 

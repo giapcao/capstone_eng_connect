@@ -12,9 +12,5 @@ public class UpdateCourseSessionCommandValidator : AbstractValidator<UpdateCours
         RuleFor(x => x.Title)
             .MaximumLength(500).When(x => !string.IsNullOrEmpty(x.Title))
             .WithMessage("Tiêu đề không được vượt quá 500 ký tự");
-        
-        RuleFor(x => x.SessionNumber)
-            .GreaterThan(0).When(x => x.SessionNumber.HasValue)
-            .WithMessage("Số thứ tự session phải lớn hơn 0");
     }
 }

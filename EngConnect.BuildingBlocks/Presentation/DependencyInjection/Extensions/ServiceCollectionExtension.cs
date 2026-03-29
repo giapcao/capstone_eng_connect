@@ -192,6 +192,22 @@ public static class ServiceCollectionExtension
                         ClockSkew = TimeSpan.Zero,
                         RoleClaimType = "role"
                     };
+
+                    // Configure SignalR authentication for WebSocket
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) &&
+                                path.StartsWithSegments("/hubs/video-call"))
+                            {
+                                context.Token = accessToken;
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
                 }
             );
         // [20-05-2025] This is needed to disable mapping of claims from JWT to .NET claims.
@@ -236,7 +252,7 @@ public static class ServiceCollectionExtension
         {
             options.ClientId = googleOAuthSettings.ClientId;
             options.ClientSecret = googleOAuthSettings.ClientSecret;
-
+            options.CallbackPath = "/signin-google";
             options.Events = new OAuthEvents
             {
                 OnRedirectToAuthorizationEndpoint = context =>

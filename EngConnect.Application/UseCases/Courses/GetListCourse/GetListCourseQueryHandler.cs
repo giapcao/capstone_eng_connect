@@ -7,6 +7,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 
@@ -16,11 +17,13 @@ public class GetListCourseQueryHandler : IQueryHandler<GetListCourseQuery, Pagin
 {
     private readonly ILogger<GetListCourseQueryHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IAwsStorageService _awsStorageService;
 
-    public GetListCourseQueryHandler(ILogger<GetListCourseQueryHandler> logger, IUnitOfWork unitOfWork)
+    public GetListCourseQueryHandler(ILogger<GetListCourseQueryHandler> logger, IUnitOfWork unitOfWork, IAwsStorageService awsStorageService)
     {
         _logger = logger;
         _unitOfWork = unitOfWork;
+        _awsStorageService = awsStorageService;
     }
 
     public async Task<Result<PaginationResult<GetCourseResponse>>> HandleAsync(GetListCourseQuery query, CancellationToken cancellationToken = default)
@@ -37,6 +40,20 @@ public class GetListCourseQueryHandler : IQueryHandler<GetListCourseQuery, Pagin
             if (query.TutorId.HasValue)
             {
                 predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId.Value);
+            }
+
+            if (query.StudentId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x =>
+                    x.CourseEnrollments.Any(y =>
+                        y.StudentId == query.StudentId.Value &&
+                        y.Status != nameof(CourseEnrollmentStatus.Cancelled)));
+            }
+
+            if (query.CategoryId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x =>
+                    x.CourseCategories.Any(y => y.CategoryId == query.CategoryId.Value));
             }
 
             if (ValidationUtil.IsNotNullOrEmpty(query.Level))
@@ -62,6 +79,13 @@ public class GetListCourseQueryHandler : IQueryHandler<GetListCourseQuery, Pagin
             var result =
                 await courses.ProjectToPaginatedListAsync<Course, GetCourseResponse>(
                     query.GetPaginationParams());
+
+            // Convert relative paths to full AWS S3 URLs
+            foreach (var item in result.Items)
+            {
+                item.ThumbnailUrl = item.ThumbnailUrl != null ? _awsStorageService.GetFileUrl(item.ThumbnailUrl) : null;
+                item.DemoVideoUrl = item.DemoVideoUrl != null ? _awsStorageService.GetFileUrl(item.DemoVideoUrl) : null;
+            }
 
             _logger.LogInformation("End GetListCourseQueryHandler");
             return Result.Success(result);

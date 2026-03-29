@@ -20,6 +20,7 @@ public class GetCourseResponse
     public int? NumsSessionInWeek { get; set; }
     public string? ThumbnailUrl { get; set; }
     public string? DemoVideoUrl { get; set; }
+    public List<GetCourseCategoryResponseInCourse> CourseCategories { get; set; } = [];
     public int? NumberOfEnrollment { get; set; }
     public decimal? RatingAverage { get; set; }
     public int? RatingCount { get; set; }

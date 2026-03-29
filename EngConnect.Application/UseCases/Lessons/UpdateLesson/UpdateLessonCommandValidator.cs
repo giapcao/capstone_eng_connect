@@ -8,9 +8,6 @@ public class UpdateLessonCommandValidator : AbstractValidator<UpdateLessonComman
 {
     public UpdateLessonCommandValidator()
     {
-        RuleFor(x => x.TutorId)
-            .NotEmpty().WithMessage("Mã tutor không được để trống");
-        
         RuleFor(x => x.StudentId)
             .NotEmpty().WithMessage("Mã học sinh không được để trống");
         

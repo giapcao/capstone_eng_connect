@@ -6,6 +6,7 @@ using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.LessonRescheduleRequests.CreateLessonRescheduleRequest;
@@ -44,6 +45,34 @@ public sealed class CreateLessonRescheduleRequestCommandHandler
             if (student is null)
             {
                 return Result.Failure(HttpStatusCode.NotFound, ScheduleErrors.StudentNotFound());
+            }
+
+            var previousLesson = await lessonRepo
+                .FindAll(x => x.TutorId == lesson.TutorId
+                              && x.Id != lesson.Id
+                              && x.EndTime != null
+                              && x.EndTime <= command.Request.ProposedStartTime,
+                    cancellationToken: cancellationToken)
+                .OrderByDescending(x => x.EndTime)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (previousLesson?.EndTime != null && command.Request.ProposedStartTime < previousLesson.EndTime.Value.AddHours(1))
+            {
+                return Result.Failure(HttpStatusCode.BadRequest, ScheduleErrors.ProposedTimeMustHaveOneHourBuffer());
+            }
+
+            var nextLesson = await lessonRepo
+                .FindAll(x => x.TutorId == lesson.TutorId
+                              && x.Id != lesson.Id
+                              && x.StartTime != null
+                              && x.StartTime >= command.Request.ProposedEndTime,
+                    cancellationToken: cancellationToken)
+                .OrderBy(x => x.StartTime)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (nextLesson?.StartTime != null && command.Request.ProposedEndTime > nextLesson.StartTime.Value.AddHours(-1))
+            {
+                return Result.Failure(HttpStatusCode.BadRequest, ScheduleErrors.ProposedTimeMustHaveOneHourBuffer());
             }
 
             var hasPending = await repo.AnyAsync(

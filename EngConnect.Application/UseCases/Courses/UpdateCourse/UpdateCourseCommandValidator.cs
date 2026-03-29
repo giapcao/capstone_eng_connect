@@ -16,11 +16,7 @@ public class UpdateCourseCommandValidator : AbstractValidator<UpdateCourseComman
         RuleFor(x => x.Price)
             .GreaterThanOrEqualTo(0)
             .WithMessage("Giá phải lớn hơn hoặc bằng 0");
-        
-        RuleFor(x => x.NumberOfSessions)
-            .GreaterThan(0)
-            .WithMessage("Số buổi học phải lớn hơn 0");
-        
+
         RuleFor(x => x.NumsSessionInWeek)
             .GreaterThan(0)
             .WithMessage("Số buổi học trong tuần phải lớn hơn 0");

@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Net;
 using EngConnect.Application.UseCases.Students.Common;
 using EngConnect.BuildingBlock.Application.Base;
@@ -16,11 +16,13 @@ public class GetListStudentQueryHandler : IQueryHandler<GetListStudentQuery, Pag
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ILogger<GetListStudentQueryHandler> _logger;
+    private readonly IAwsStorageService _awsStorageService;
 
-    public GetListStudentQueryHandler(ILogger<GetListStudentQueryHandler> logger, IUnitOfWork unitOfWork)
+    public GetListStudentQueryHandler(ILogger<GetListStudentQueryHandler> logger, IUnitOfWork unitOfWork, IAwsStorageService awsStorageService)
     {
         _logger = logger;
         _unitOfWork = unitOfWork;
+        _awsStorageService = awsStorageService;
     }
     
     public async Task<Result<PaginationResult<GetStudentResponse>>> HandleAsync(GetListStudentQuery query, CancellationToken cancellationToken = default)
@@ -48,6 +50,13 @@ public class GetListStudentQueryHandler : IQueryHandler<GetListStudentQuery, Pag
             var result =
                 await students.ProjectToPaginatedListAsync<Student, GetStudentResponse>
                     (query.GetPaginationParams());
+
+            // Convert relative paths to full AWS S3 URLs
+            foreach (var item in result.Items)
+            {
+                item.Avatar = item.Avatar != null ? _awsStorageService.GetFileUrl(item.Avatar) : null;
+            }
+
             _logger.LogInformation("End GetListStudentQueryHandler)");
             return Result.Success(result);
         }

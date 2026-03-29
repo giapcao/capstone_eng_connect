@@ -15,8 +15,8 @@ public class CourseSessionConfiguration : IEntityTypeConfiguration<CourseSession
         builder.Property(e => e.Id)
             .HasColumnName("id");
 
-        builder.Property(e => e.ModuleId)
-            .HasColumnName("module_id");
+        builder.Property(e => e.TutorId)
+            .HasColumnName("tutor_id");
 
         builder.Property(e => e.Title)
             .HasMaxLength(255)
@@ -27,9 +27,6 @@ public class CourseSessionConfiguration : IEntityTypeConfiguration<CourseSession
 
         builder.Property(e => e.Outcomes)
             .HasColumnName("outcomes");
-
-        builder.Property(e => e.SessionNumber)
-            .HasColumnName("session_number");
 
         builder.Property(e => e.CreatedAt)
             .HasColumnName("created_at")
@@ -46,11 +43,11 @@ public class CourseSessionConfiguration : IEntityTypeConfiguration<CourseSession
         builder.Property(e => e.DeletedAt)
             .HasColumnName("deleted_at");
 
-        builder.HasOne(d => d.Module)
+        builder.HasOne(d => d.Tutor)
             .WithMany(p => p.CourseSessions)
-            .HasForeignKey(d => d.ModuleId)
+            .HasForeignKey(d => d.TutorId)
             .OnDelete(DeleteBehavior.ClientSetNull)
-            .HasConstraintName("fk_session_module");
+            .HasConstraintName("fk_session_tutor");
     }
 }
 

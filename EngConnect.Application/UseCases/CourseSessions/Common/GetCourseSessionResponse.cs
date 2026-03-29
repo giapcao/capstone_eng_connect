@@ -11,3 +11,9 @@ public class GetCourseSessionResponse
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
+
+public class GetCourseSessionListResponse
+{
+    public Guid ModuleId { get; set; }
+    public List<GetCourseSessionResponse> CourseSessions { get; set; } = [];
+}

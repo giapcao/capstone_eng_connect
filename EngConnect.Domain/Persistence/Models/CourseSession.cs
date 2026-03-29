@@ -6,7 +6,7 @@ namespace EngConnect.Domain.Persistence.Models;
 
 public class CourseSession : AuditableEntity<Guid>
 {
-    public Guid ModuleId { get; set; }
+    public Guid? TutorId { get; set; }
 
     public string? Title { get; set; }
 
@@ -14,11 +14,11 @@ public class CourseSession : AuditableEntity<Guid>
 
     public string? Outcomes { get; set; }
 
-    public int? SessionNumber { get; set; }
-
-    public virtual ICollection<CourseResource> CourseResources { get; set; } = new List<CourseResource>();
-
     public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
 
-    public virtual CourseModule Module { get; set; } = null!;
+    // 260318: Update relationship of course, courseModule, courseSession, courseResource from 1 - many to many - many
+    public virtual ICollection<CourseModuleCourseSession> CourseModuleCourseSessions { get; set; } = new List<CourseModuleCourseSession>();
+    public virtual ICollection<CourseSessionCourseResource> CourseSessionCourseResources { get; set; } = new List<CourseSessionCourseResource>();
+
+    public virtual Tutor Tutor { get; set; } = null!;
 }

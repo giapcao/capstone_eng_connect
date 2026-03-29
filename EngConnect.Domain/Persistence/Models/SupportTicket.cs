@@ -14,8 +14,6 @@ public class SupportTicket : AuditableEntity<Guid>
 
     public string? Type { get; set; }
 
-    public string? Priority { get; set; }
-
     public string Status { get; set; } = null!;
 
     public DateTime? ClosedAt { get; set; }

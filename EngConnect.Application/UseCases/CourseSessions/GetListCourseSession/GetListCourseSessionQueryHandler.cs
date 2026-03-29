@@ -31,19 +31,24 @@ public class GetListCourseSessionQueryHandler : IQueryHandler<GetListCourseSessi
                 .FindAll();
 
             Expression<Func<CourseSession, bool>>? predicate = x => true;
-
-            // Apply filters
-            if (query.ModuleId.HasValue)
+            
+            if (query.TutorId.HasValue)
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.ModuleId == query.ModuleId.Value);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId.Value);
+            }
+            
+            if (query.CourseModuleId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => !x.CourseModuleCourseSessions.Any(cmcs => cmcs.CourseModuleId == query.CourseModuleId.Value));
             }
 
             courseSessions = courseSessions.Where(predicate);
 
             // Apply search and sort
             courseSessions = courseSessions.ApplySearch(query.GetSearchParams(),
-                    x => x.Title,
-                    x => x.Description)
+                    x => x.Title ?? string.Empty,
+                    x => x.Description ?? string.Empty,
+                    x => x.Outcomes ?? string.Empty)
                 .ApplySorting(query.GetSortParams());
 
             // Map to GetCourseSessionResponse

@@ -7,7 +7,10 @@ using EngConnect.Application.UseCases.CourseSessions.UpdateCourseSession;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Presentation.Controllers;
+using EngConnect.BuildingBlock.Presentation.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EngConnect.Presentation.Controllers;
@@ -29,7 +32,8 @@ public class CourseSessionController : BaseApiController
     }
 
     /// <summary>
-    /// Lấy danh sách CourseSession
+    /// Lấy danh sách CourseSession theo tutorId
+    /// Nếu có CourseModuleId thì sẽ lấy danh sách CourseSession chưa có trong courseModule đó
     /// </summary>
     [HttpGet]
     [Produces("application/json")]
@@ -56,11 +60,14 @@ public class CourseSessionController : BaseApiController
     /// <summary>
     /// Tạo mới CourseSession
     /// </summary>
+    [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPost]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<GetCourseSessionResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateAsync([FromBody] CreateCourseSessionCommand command)
     {
+        var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
+        command.TutorId = tutorId;
         var result = await _commandDispatcher.DispatchAsync(command);
         return FromResult(result);
     }
@@ -70,7 +77,7 @@ public class CourseSessionController : BaseApiController
     /// </summary>
     [HttpPatch("{id}")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<GetCourseSessionListResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateAsync([FromRoute] Guid id, [FromBody] UpdateCourseSessionCommand command)
     {
         command.Id = id;

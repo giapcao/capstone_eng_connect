@@ -15,4 +15,7 @@ public interface IRedisService
     Task<bool>HashDeleteAsync(string key, string field);
     Task<Dictionary<string, int>> HashGetAllAsync(string key);
     Task<long> HashIncrementAsync(string key, string field, long value);
+    Task<bool> SortedSetAddAsync(string key, string member, double score, TimeSpan? timeToLive = null);
+    Task<IEnumerable<string>> SortedSetRangeAsync(string key);
+    Task<long> SortedSetLengthAsync(string key);
 }

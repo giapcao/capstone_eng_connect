@@ -28,11 +28,14 @@ public class TutorConfiguration : IEntityTypeConfiguration<Tutor>
         builder.Property(e => e.IntroVideoUrl)
             .HasColumnName("intro_video_url");
 
-        builder.Property(e => e.YearsExperience)
-            .HasColumnName("years_experience");
+        builder.Property(e => e.MonthExperience)
+            .HasColumnName("month_experience");
 
         builder.Property(e => e.CvUrl)
             .HasColumnName("cv_url");
+
+        builder.Property(e => e.Avatar)
+            .HasColumnName("avatar");
 
         builder.Property(e => e.Tags)
             .HasColumnName("tags")

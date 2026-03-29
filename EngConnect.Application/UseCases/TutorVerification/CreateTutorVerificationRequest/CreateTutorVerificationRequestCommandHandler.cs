@@ -6,12 +6,9 @@ using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
+using StackExchange.Redis;
 
 namespace EngConnect.Application.UseCases.TutorVerification.CreateTutorVerificationRequest
 {
@@ -39,18 +36,22 @@ namespace EngConnect.Application.UseCases.TutorVerification.CreateTutorVerificat
 
             try
             {
-                var tutorRepo = _unitOfWork.GetRepository<Domain.Persistence.Models.Tutor, Guid>();
+                var tutorRepo = _unitOfWork.GetRepository<Tutor, Guid>();
                 var requestRepo = _unitOfWork.GetRepository<TutorVerificationRequest, Guid>();
 
                 var tutor = await tutorRepo.FindFirstAsync(
                     t => t.Id == command.Request.TutorId,
                     cancellationToken: cancellationToken);
 
-                if (tutor is null)
+                // Check if tutor exists
+                if (ValidationUtil.IsNullOrEmpty(tutor))
                 {
-                    return Result.Failure(HttpStatusCode.NotFound, TutorErrors.TutorNotFound());
+                    _logger.LogWarning("Tutor with ID {TutorId} not found when creating verification request.",
+                        command.Request.TutorId);
+                    return Result.Failure(HttpStatusCode.BadRequest, TutorErrors.TutorNotFound());
                 }
 
+                // Check if there's already a pending request for the tutor
                 var pendingStatus = nameof(TutorVerificationRequestStatus.Pending);
 
                 var hasPending = await requestRepo.AnyAsync(
@@ -60,15 +61,26 @@ namespace EngConnect.Application.UseCases.TutorVerification.CreateTutorVerificat
                 if (hasPending)
                 {
                     return Result.Failure(
-                        HttpStatusCode.BadRequest,
-                        TutorErrors.VerificationRequestAlreadyPending(command.Request.TutorId));
+                        HttpStatusCode.BadRequest, TutorErrors.VerificationRequestAlreadyPending(command.Request.TutorId));
+                }
+                
+                // Check the profile completeness of the tutor
+                if (ValidationUtil.IsNullOrEmpty(tutor.Bio) ||
+                    ValidationUtil.IsNullOrEmpty(tutor.CvUrl) ||
+                    ValidationUtil.IsNullOrEmpty(tutor.IntroVideoUrl) ||
+                    ValidationUtil.IsNullOrEmpty(tutor.Headline) ||
+                    ValidationUtil.IsNullOrEmpty(tutor.MonthExperience))
+                {
+                    _logger.LogWarning("Tutor with ID {TutorId} has incomplete profile when creating verification request.", command.Request.TutorId);
+                    return Result.Failure(HttpStatusCode.BadRequest, TutorErrors.TutorProfileIncomplete());
                 }
 
                 var entity = new TutorVerificationRequest
                 {
                     TutorId = command.Request.TutorId,
                     Status = pendingStatus,
-                    SubmittedAt = DateTime.UtcNow
+                    SubmittedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
                 };
 
                 requestRepo.Add(entity);

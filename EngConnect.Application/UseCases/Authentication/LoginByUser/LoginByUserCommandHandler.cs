@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using EngConnect.Application.UseCases.Authentication.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
@@ -9,6 +9,7 @@ using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Abstraction;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -21,14 +22,18 @@ public class LoginByUserCommandHandler: ICommandHandler<LoginByUserCommand, User
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IRedisService _redisService;
     private readonly RedisCacheSettings _redisCacheSettings;
+    private readonly IAwsStorageService _awsStorageService;
+
     public LoginByUserCommandHandler(IUnitOfWork unitOfWork, ILogger<LoginByUserCommandHandler> logger, IJwtTokenService jwtTokenService, 
-        IRedisService redisService, IOptions<RedisCacheSettings> redisCacheSettings)
+        IRedisService redisService, IOptions<RedisCacheSettings> redisCacheSettings, 
+        IAwsStorageService awsStorageService)
     {
         _unitOfWork = unitOfWork;
         _logger = logger;
         _jwtTokenService = jwtTokenService;
         _redisService = redisService;
         _redisCacheSettings = redisCacheSettings.Value;
+        _awsStorageService = awsStorageService;
     }
 
     public async Task<Result<UserLoginResponse>> HandleAsync(LoginByUserCommand command, CancellationToken cancellationToken = default)
@@ -36,15 +41,20 @@ public class LoginByUserCommandHandler: ICommandHandler<LoginByUserCommand, User
         _logger.LogInformation("Start LoginByCustomerCommandHandler {@Command}", command);
         try
         {
-            var customerRepo =  _unitOfWork.GetRepository<User, Guid>();
+            var customerRepo = _unitOfWork.GetRepository<User, Guid>();
             
             //Clean input
             var input = command.Email?.Trim().ToLowerInvariant();
-            //Check customer exist
-            var user = await customerRepo.FindFirstAsync(
-                x => 
-                    x.Email.ToLower() == input, 
-                cancellationToken: cancellationToken);
+
+            //Check customer exist (including roles and student avatar)
+            var user = await customerRepo
+                .FindAll(x => x.Email.ToLower() == input)
+                .Include(x => x.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Include(x => x.Student)
+                .Include(x => x.Tutor)
+                .FirstOrDefaultAsync(cancellationToken);
+
             if (ValidationUtil.IsNullOrEmpty(user))
             {
                 _logger.LogWarning("Customer not found with email: {email}", command.Email);
@@ -67,14 +77,32 @@ public class LoginByUserCommandHandler: ICommandHandler<LoginByUserCommand, User
             
             //Store the new refresh token
             var newRefreshTokenKey = RedisKeyGenerator.GenerateRefreshTokenKey(user.Id, refreshToken);
+            
+            // Delete old refresh tokens of the user
+            var userRefreshTokenKeyPattern = RedisKeyGenerator.GenerateRefreshTokenKeyDeletePattern(user.Id);
+            await _redisService.DeleteCacheWithPatternAsync(userRefreshTokenKeyPattern);
+            
             await _redisService.SetCacheAsync(newRefreshTokenKey, refreshToken,
                 TimeSpan.FromMinutes(_redisCacheSettings.RefreshTokenExpirationMinutes));
-            
+
+            //Resolve avatar url via AwsS3Service
+            var avatarUrl = user.Student?.Avatar != null ? _awsStorageService.GetFileUrl(user.Student.Avatar) : null;
+
+            //Resolve roles
+            var roles = user.UserRoles
+                .Select(ur => ur.Role?.Code)
+                .Where(code => code != null)
+                .Select(code => code!)
+                .ToList();
+
             _logger.LogInformation("End LoginByCustomerCommandHandler");
             return Result.Success(new UserLoginResponse
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
+                Username = user.UserName,
+                Roles = roles,
+                AvatarUrl = avatarUrl,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken
             });
