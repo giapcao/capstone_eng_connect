@@ -50,6 +50,12 @@ public class GetListCourseQueryHandler : IQueryHandler<GetListCourseQuery, Pagin
                         y.Status != nameof(CourseEnrollmentStatus.Cancelled)));
             }
 
+            if (query.CategoryId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x =>
+                    x.CourseCategories.Any(y => y.CategoryId == query.CategoryId.Value));
+            }
+
             if (ValidationUtil.IsNotNullOrEmpty(query.Level))
             {
                 predicate = predicate.CombineAndAlsoExpressions(x => x.Level == query.Level);
