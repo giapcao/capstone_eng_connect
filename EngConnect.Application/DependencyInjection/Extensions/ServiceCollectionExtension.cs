@@ -143,6 +143,7 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<UpdateThumbnailCourseCommand>, UpdateThumbnailCourseValidator>();
         services.AddScoped<IValidator<UpdateDemoVideoCourseCommand>, UpdateDemoVideoCourseValidator>();
         
+        services.AddScoped<IValidator<UploadRecordingChunkCommand>, UploadRecordingChunkCommandValidator>();
 
         // Ai Summarize Section
         services.AddScoped<IValidator<GetAiSummaryCommand>, GetAiSummaryCommandValidator>();

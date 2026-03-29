@@ -42,13 +42,13 @@ public class MeetingController : BaseApiController
     /// End a meeting (tutor only)
     /// </summary>
     [HttpPost("{lessonId:guid}/end")]
-    public async Task<IActionResult> EndMeeting(Guid lessonId, CancellationToken cancellationToken)
+    public async Task<IActionResult> EndMeeting(Guid lessonId, [FromQuery] int? totalChunks, CancellationToken cancellationToken)
     {
         var userIdClaim = User.FindFirst("sub")?.Value ?? User.FindFirst("userId")?.Value;
         if (!Guid.TryParse(userIdClaim, out var userId))
             return Unauthorized();
 
-        var command = new EndMeetingCommand(lessonId, userId);
+        var command = new EndMeetingCommand(lessonId, userId, totalChunks);
         var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
         return FromResult(result);
     }
