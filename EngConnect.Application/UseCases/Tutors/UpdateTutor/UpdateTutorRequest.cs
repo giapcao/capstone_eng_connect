@@ -6,7 +6,7 @@
 
         public string? Bio { get; set; }
         
-        public int? YearsExperience { get; set; }
+        public int? MonthExperience { get; set; }
 
         public string? Status { get; set; }
     }

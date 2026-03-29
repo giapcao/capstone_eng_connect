@@ -50,7 +50,7 @@ namespace EngConnect.Application.UseCases.Tutors.UpdateTutor
 
                 entity.Headline = command.Request.Headline ?? entity.Headline;
                 entity.Bio = command.Request.Bio ?? entity.Bio; 
-                entity.MonthExperience = command.Request.YearsExperience ?? entity.MonthExperience;
+                entity.MonthExperience = command.Request.MonthExperience ?? entity.MonthExperience;
                 entity.Status = command.Request.Status ?? entity.Status;
                 
                 repo.Update(entity);

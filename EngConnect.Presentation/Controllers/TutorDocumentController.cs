@@ -1,8 +1,11 @@
 using System.Net;
 using EngConnect.Application.UseCases.TutorDocuments.Common;
+using EngConnect.Application.UseCases.TutorDocuments.GetListTutorDocument;
+using EngConnect.Application.UseCases.TutorDocuments.GetTutorDocumentById;
 using EngConnect.Application.UseCases.TutorDocuments.RemoveTutorDocument;
 using EngConnect.Application.UseCases.TutorDocuments.UploadTutorDocument;
 using EngConnect.BuildingBlock.Application.Base;
+using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.Constants;
@@ -22,10 +25,44 @@ namespace EngConnect.Presentation.Controllers;
 public class TutorDocumentController : BaseApiController
 {
     private readonly ICommandDispatcher _commandDispatcher;
+    private readonly IQueryDispatcher _queryDispatcher;
 
-    public TutorDocumentController(ICommandDispatcher commandDispatcher)
+    public TutorDocumentController(ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher)
     {
         _commandDispatcher = commandDispatcher;
+        _queryDispatcher = queryDispatcher;
+    }
+
+    /// <summary>
+    /// Lấy danh sách tài liệu của gia sư
+    /// </summary>
+    [Authorize]
+    [HttpGet]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<PaginationResult<GetTutorDocumentResponse>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetListAsync([FromQuery] GetListTutorDocumentQuery query, CancellationToken cancellationToken = default)
+    {
+        if (Guid.TryParse(User.GetTutorId(), out var tutorId))
+        {
+            query.TutorId = tutorId;
+        }
+
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Lấy thông tin tài liệu theo ID
+    /// </summary>
+    [Authorize]
+    [HttpGet("{documentId:guid}")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<GetTutorDocumentResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByIdAsync([FromRoute] Guid documentId, CancellationToken cancellationToken = default)
+    {
+        var query = new GetTutorDocumentByIdQuery(documentId);
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        return FromResult(result);
     }
 
     /// <summary>

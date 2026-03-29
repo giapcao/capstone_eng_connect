@@ -44,7 +44,7 @@ public class GetIntroVideoUrlTutorQueryHandler : IQueryHandler<GetIntroVideoUrlT
                 var fileCache = new GetIntroVideoUrlTutorResponse
                 {
                     RelativePath = value,
-                    Url = _awsStorageService.GetFileUrl(value)
+                    Url = value != null ? _awsStorageService.GetFileUrl(value) : null
                 };
 
                 _logger.LogInformation("End GetIntroVideoUrlTutorQueryHandler (cache hit)");
@@ -66,7 +66,7 @@ public class GetIntroVideoUrlTutorQueryHandler : IQueryHandler<GetIntroVideoUrlT
                     new Error("IntroVideoUrlNotFound", "Gia sư chưa upload video giới thiệu"));
             }
 
-            var fileUrl = _awsStorageService.GetFileUrl(tutorExist.IntroVideoUrl);
+            var fileUrl = tutorExist.IntroVideoUrl != null ? _awsStorageService.GetFileUrl(tutorExist.IntroVideoUrl) : null;
 
             var file = new GetIntroVideoUrlTutorResponse
             {
