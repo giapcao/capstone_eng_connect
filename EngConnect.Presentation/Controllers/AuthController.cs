@@ -1,13 +1,16 @@
-﻿using EngConnect.Application.UseCases.Authentication.LoginByUser;
+﻿using EngConnect.Application.UseCases.Authentication.Common;
+using EngConnect.Application.UseCases.Authentication.LoginByUser;
 using EngConnect.Application.UseCases.Authentication.LoginWithGoogleOAuth;
 using EngConnect.Application.UseCases.Authentication.Logout;
 using EngConnect.Application.UseCases.Authentication.RefreshToken;
 using EngConnect.Application.UseCases.Authentication.RegisterStudent;
 using EngConnect.Application.UseCases.Authentication.RegisterTutor;
 using EngConnect.Application.UseCases.Authentication.RegisterUser;
+using EngConnect.Application.UseCases.Authentication.RegisterUserStaff;
 using EngConnect.Application.UseCases.Authentication.VerifyEmail;
 using EngConnect.Application.UseCases.Authentication.VerifyGoogleLogin;
 using EngConnect.BuildingBlock.Application.Base;
+using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
@@ -181,12 +184,54 @@ public class AuthController : BaseApiController
     /// <summary>
     /// Đăng ký tutor mới
     /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
+    [Authorize]
     [HttpPost("register-tutor")]
+    [Consumes("multipart/form-data")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-    public async Task<IActionResult> RegisterTutorAsync([FromBody] RegisterTutorCommand command)
+    public async Task<IActionResult> RegisterTutorAsync([FromForm] RegisterTutorRequest request)
+    {
+        var userId = User.GetUserId();
+        if (ValidationUtil.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        var command = new RegisterTutorCommand
+        {
+            UserId = userId.Value,
+            Headline = request.Headline,
+            Bio = request.Bio,
+            YearsExperience = request.YearsExperience,
+            IntroVideoFile = request.IntroVideoFile != null ? new FileUpload
+            {
+                FileName = request.IntroVideoFileName ?? request.IntroVideoFile.FileName,
+                ContentType = request.IntroVideoFile.ContentType ?? "video/mp4",
+                Length = request.IntroVideoFile.Length,
+                Content = request.IntroVideoFile.OpenReadStream()
+            } : null,
+            CvFile = request.CvFile != null ? new FileUpload
+            {
+                FileName = request.CvFileName ?? request.CvFile.FileName,
+                ContentType = request.CvFile.ContentType ?? "application/pdf",
+                Length = request.CvFile.Length,
+                Content = request.CvFile.OpenReadStream()
+            } : null
+        };
+
+        var res = await _commandDispatcher.DispatchAsync(command);
+        return FromResult(res);
+    }
+
+    /// <summary>
+    /// Đăng ký Staff mới (không gửi email xác thực)
+    /// </summary>
+    /// <param name="command"></param>
+    /// <returns></returns>
+    [HttpPost("register-staff")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<RegisterUserStaffResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> RegisterUserStaffAsync([FromBody] RegisterUserStaffCommand command)
     {
         var res = await _commandDispatcher.DispatchAsync(command);
         return FromResult(res);

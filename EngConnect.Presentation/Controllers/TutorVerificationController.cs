@@ -4,12 +4,15 @@ using EngConnect.Application.UseCases.TutorVerification.DeleteTutorVerificationR
 using EngConnect.Application.UseCases.TutorVerification.GetListTutorVerificationRequest;
 using EngConnect.Application.UseCases.TutorVerification.GetTutorVerificationRequestById;
 using EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificationRequest;
-using EngConnect.Application.UseCases.TutorVerification.UpdateTutorVerificationRequest;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
+using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.BuildingBlock.Presentation.Controllers;
+using EngConnect.BuildingBlock.Presentation.Utils;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EngConnect.Presentation.Controllers
@@ -33,13 +36,14 @@ namespace EngConnect.Presentation.Controllers
         /// <summary>
         /// Gia sư gửi yêu cầu xác minh hồ sơ.
         /// </summary>
-        [HttpPost("{tutorId:guid}/verification-requests")]
+        [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
+        [HttpPost]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Result), StatusCodes.Status201Created)]
         public async Task<IActionResult> CreateTutorVerificationRequestAsync(
-            Guid tutorId,
             CancellationToken cancellationToken = default)
         {
+            var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
 
             var request = new CreateTutorVerificationRequest
             {
@@ -49,18 +53,14 @@ namespace EngConnect.Presentation.Controllers
             var command = new CreateTutorVerificationRequestCommand(request);
             var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
 
-            if (!result.IsSuccess)
-            {
-                return FromResult(result);
-            }
-
             return FromResult(result);
         }
 
         /// <summary>
         /// Quản trị viên duyệt / từ chối yêu cầu xác minh gia sư.
         /// </summary>
-        [HttpPost("verification-requests/{requestId:guid}/review")]
+        [Authorize(Roles = $"{nameof(UserRoleEnum.Admin)},{nameof(UserRoleEnum.Staff)}")]        
+        [HttpPost("review/{requestId:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
         public async Task<IActionResult> ReviewTutorVerificationRequestAsync(
@@ -68,12 +68,23 @@ namespace EngConnect.Presentation.Controllers
             [FromBody] ReviewTutorVerificationRequest body,
             CancellationToken cancellationToken = default)
         {
-            if (body is null)
+            if (ValidationUtil.IsNullOrEmpty(body))
             {
                 return BadRequest(CommonErrors.ValidationFailed("Dữ liệu không thể null."));
             }
+            
+            // Take admin/staff id
+            var reviewUserId = User.GetUserId();
 
-            var request = body with { RequestId = requestId };
+            if (ValidationUtil.IsNullOrEmpty(reviewUserId))
+            {
+                return BadRequest(CommonErrors.ValidationFailed("Không tìm thấy thông tin admin/staff."));
+            }
+            var request = body with
+            {
+                RequestId = requestId,
+                AdminUserId = reviewUserId,
+            };
 
             var command = new ReviewTutorVerificationRequestCommand(request);
             var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
@@ -84,13 +95,21 @@ namespace EngConnect.Presentation.Controllers
         /// <summary>
         /// Lấy danh sách yêu cầu xác minh gia sư (có filter/search/sort/pagination).
         /// </summary>
-        [HttpGet("verification-requests")]
+        [Authorize(Roles = $"{nameof(UserRoleEnum.Admin)},{nameof(UserRoleEnum.Staff)}, {nameof(UserRoleEnum.Tutor)}")]
+        [HttpGet]
         [Produces("application/json")]
-        [ProducesResponseType(typeof(Result<PaginationResult<EngConnect.Application.UseCases.TutorVerification.Common.GetTutorVerificationRequestResponse>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Result<PaginationResult<GetTutorVerificationRequestResponse>>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetListTutorVerificationRequestsAsync(
             [FromQuery] GetListTutorVerificationRequestQuery query,
             CancellationToken cancellationToken = default)
         {
+            var role = User.GetRoles();
+            if (ValidationUtil.IsNotNullOrEmpty(role) && role.Contains(nameof(UserRoleEnum.Tutor)))
+            {
+                // If the user is a tutor, only return their own requests
+                var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
+                query.TutorId = tutorId;
+            }
             var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
             return FromResult(result);
         }
@@ -98,7 +117,8 @@ namespace EngConnect.Presentation.Controllers
         /// <summary>
         /// Lấy chi tiết 1 yêu cầu xác minh gia sư theo RequestId.
         /// </summary>
-        [HttpGet("verification-requests/{requestId:guid}")]
+        [Authorize(Roles = $"{nameof(UserRoleEnum.Admin)},{nameof(UserRoleEnum.Staff)}, {nameof(UserRoleEnum.Tutor)}")]
+        [HttpGet("{requestId:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Result<GetTutorVerificationRequestResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetTutorVerificationRequestByIdAsync(
@@ -112,33 +132,9 @@ namespace EngConnect.Presentation.Controllers
         }
 
         /// <summary>
-        /// Cập nhật yêu cầu xác minh gia sư (update full fields).
-        /// </summary>
-        [HttpPut("verification-requests/{requestId:guid}")]
-        [Produces("application/json")]
-        [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-        public async Task<IActionResult> UpdateTutorVerificationRequestAsync(
-            Guid requestId,
-            [FromBody] UpdateTutorVerificationRequest body,
-            CancellationToken cancellationToken = default)
-        {
-            if (body is null)
-            {
-                return BadRequest(CommonErrors.ValidationFailed("Dữ liệu không thể null."));
-            }
-
-            var request = body with { RequestId = requestId };
-
-            var command = new UpdateTutorVerificationRequestCommand(request);
-            var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
-
-            return FromResult(result);
-        }
-
-        /// <summary>
         /// Xóa 1 yêu cầu xác minh gia sư theo RequestId.
         /// </summary>
-        [HttpDelete("verification-requests/{requestId:guid}")]
+        [HttpDelete("{requestId:guid}")]
         [Produces("application/json")]
         [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
         public async Task<IActionResult> DeleteTutorVerificationRequestAsync(

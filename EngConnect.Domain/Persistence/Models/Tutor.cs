@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
 using EngConnect.Domain.Constants;
@@ -15,9 +15,11 @@ public class Tutor : AuditableEntity<Guid>
 
     public string? IntroVideoUrl { get; set; }
 
-    public int? YearsExperience { get; set; }
+    public int? MonthExperience { get; set; }
 
     public string? CvUrl { get; set; }
+
+    public string? Avatar { get; set; }
 
     public List<string>? Tags { get; set; }
 
@@ -38,8 +40,12 @@ public class Tutor : AuditableEntity<Guid>
     public virtual ICollection<CourseReview> CourseReviews { get; set; } = new List<CourseReview>();
 
     public virtual ICollection<Course> Courses { get; set; } = new List<Course>();
+    
+    // 260318: Update relationship of course, courseModule, courseSession, courseResource from 1 - many to many - many
+    public virtual ICollection<CourseModule> CourseModules { get; set; } = new List<CourseModule>();
+    public virtual ICollection<CourseSession> CourseSessions { get; set; } = new List<CourseSession>();
+    public virtual ICollection<CourseResource> CourseResources { get; set; } = new List<CourseResource>();
 
-    public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
 
     public virtual ICollection<TutorDocument> TutorDocuments { get; set; } = new List<TutorDocument>();
 
@@ -48,7 +54,9 @@ public class Tutor : AuditableEntity<Guid>
     public virtual ICollection<EnrollmentSlot> EnrollmentSlots { get; set; } = new List<EnrollmentSlot>();
 
     public virtual ICollection<TutorVerificationRequest> TutorVerificationRequests { get; set; } = new List<TutorVerificationRequest>();
-
+    
+    public virtual ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
+    
     public virtual User User { get; set; } = null!;
     
     public static Tutor CreateTutorWithUserId(Guid userId)
@@ -68,7 +76,7 @@ public class Tutor : AuditableEntity<Guid>
         string? headline,
         string? bio,
         string? introVideoUrl,
-        int? yearsExperience,
+        int? monthExperience,
         string? cvUrl)
     {
         return new Tutor
@@ -78,7 +86,7 @@ public class Tutor : AuditableEntity<Guid>
             Headline = headline,
             Bio = bio,
             IntroVideoUrl = introVideoUrl,
-            YearsExperience = yearsExperience,
+            MonthExperience = monthExperience,
             CvUrl = cvUrl,
             SlotsCount = 0,
             RatingAverage = 0,

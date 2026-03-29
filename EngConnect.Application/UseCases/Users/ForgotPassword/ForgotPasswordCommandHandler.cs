@@ -51,7 +51,7 @@ public class ForgotPasswordCommandHandler: ICommandHandler<ForgotPasswordCommand
             
             //Generate reset password token
             var resetToken = GenerateResetToken();
-            var tokenExpiration = TimeSpan.FromMinutes(_redisCacheSettings.EmailResetPasswordTokenExpirationInMinutes);
+            var tokenExpiration = TimeSpan.FromMinutes(_redisCacheSettings.PasswordResetTokenExpirationMinutes);
             
             
             //Persist reset password event in database

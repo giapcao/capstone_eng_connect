@@ -6,6 +6,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Settings;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
+using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.BuildingBlock.EventBus.Constants;
 using EngConnect.BuildingBlock.EventBus.Events;
@@ -14,6 +15,8 @@ using EngConnect.Domain.Abstraction;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using EngConnect.Domain.Settings;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -27,7 +30,8 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
     private readonly ILogger<LoginWithGoogleOAuthCommandHandler> _logger;
     private readonly RedisCacheSettings _redisCacheSettings;
     private readonly RedirectUrlSettings _redisRedirectUrlSettings;
-    private readonly IMessageBusWithOutboxService _messageBusWithOutboxService;
+    private readonly IAwsStorageService _awsStorageService;
+    private readonly AppSettings _appSettings;
 
     public LoginWithGoogleOAuthCommandHandler(
         IUnitOfWork unitOfWork, 
@@ -36,7 +40,8 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
         ILogger<LoginWithGoogleOAuthCommandHandler> logger, 
         IOptions<RedisCacheSettings> redisCacheSettings, 
         IOptions<RedirectUrlSettings> redisRedirectUrlSettings, 
-        IMessageBusWithOutboxService messageBusWithOutboxService)
+        IAwsStorageService awsStorageService, 
+        IOptions<AppSettings> appSettings)
     {
         _unitOfWork = unitOfWork;
         _redisService = redisService;
@@ -44,7 +49,8 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
         _logger = logger;
         _redisCacheSettings = redisCacheSettings.Value;
         _redisRedirectUrlSettings = redisRedirectUrlSettings.Value;
-        _messageBusWithOutboxService = messageBusWithOutboxService;
+        _awsStorageService = awsStorageService;
+        _appSettings = appSettings.Value;
     }
 
     public async Task<Result<string>> HandleAsync(LoginWithGoogleOAuthCommand command, CancellationToken cancellationToken = default)
@@ -81,7 +87,12 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
             
             //Check if user exists
             var userRepo = _unitOfWork.GetRepository<Domain.Persistence.Models.User, Guid>();
-            var user = await userRepo.FindFirstAsync(x => x.Email == email, cancellationToken: cancellationToken);
+            var user = await userRepo.FindAll(x => x.Email == email)
+                .Include(x => x.UserRoles)
+                    .ThenInclude(ur => ur.Role)
+                .Include(x => x.Student)
+                .Include(x => x.Tutor)
+                .FirstOrDefaultAsync(cancellationToken);
 
             if (ValidationUtil.IsNullOrEmpty(user))
             {
@@ -125,6 +136,28 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
                 
                 userRepo.Add(user);
                 
+                //Create student profile
+                var student = Student.CreateStudentWithUserId(
+                    user.Id, _appSettings.DefaultAvatarPath);
+                _unitOfWork.GetRepository<Student, Guid>().Add(student);
+
+                //Assign Student role
+                var roleStudentCode = nameof(UserRoleEnum.Student);
+                var roleRepo = _unitOfWork.GetRepository<Role, Guid>();
+                var studentRole = await roleRepo.FindFirstAsync(
+                    x => x.Code == roleStudentCode,
+                    cancellationToken: cancellationToken);
+                if (studentRole != null)
+                {
+                    var userRole = new UserRole { UserId = user.Id, RoleId = studentRole.Id };
+                    _unitOfWork.GetRepository<UserRole, Guid>().Add(userRole);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                else
+                {
+                    _logger.LogWarning("Role with code '{Code}' not found — skipping role assignment", roleStudentCode);
+                }
+                
                 //Persist user google register event in outbox for welcome email
                 var @event = UserRegisterByGoogleOAuthEvent.Create(
                     user.Id, 
@@ -155,20 +188,36 @@ public class LoginWithGoogleOAuthCommandHandler: ICommandHandler<LoginWithGoogle
             var accessToken =  _jwtTokenService.GenerateAccessToken(user);
             var refreshToken = _jwtTokenService.GenerateRefreshToken();
             
+            var avatarUrl = _awsStorageService.GetFileUrl(user.Student?.Avatar);
+            
+            //Remove old refresh token
+            var oldRefreshTokenKey = RedisKeyGenerator.GenerateRefreshTokenKeyDeletePattern(user.Id);
+            await _redisService.DeleteCacheWithPatternAsync(oldRefreshTokenKey);
+            
             //Store refresh token in Redis (can throw exception - will trigger rollback if in transaction)
             await _redisService.SetCacheAsync(
                 RedisKeyGenerator.GenerateRefreshTokenKey(user.Id, refreshToken),
                 refreshToken, TimeSpan.FromMinutes(_redisCacheSettings.RefreshTokenExpirationMinutes));
+            
+            var userRoles = user.UserRoles
+                .Select(ur => ur.Role?.Code)
+                .Where(code => code != null)
+                .Select(code => code!)
+                .ToList();
             
             //Generate login response
             var loginResponse = new UserLoginResponse
             {
                 FirstName = user.FirstName,
                 LastName = user.LastName,
+                Username = user.UserName,
+                Roles = userRoles,
+                AvatarUrl = avatarUrl,
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
             };
             
+            _logger.LogInformation("Login response generated for user {loginResponse}", loginResponse);
             //Generate temporary cache key for redirect URL after login success
             var token =  Guid.NewGuid().ToString("N");
             

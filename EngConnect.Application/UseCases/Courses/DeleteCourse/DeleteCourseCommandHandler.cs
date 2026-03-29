@@ -34,6 +34,13 @@ public class DeleteCourseCommandHandler : ICommandHandler<DeleteCourseCommand>
                 _logger.LogWarning("Course not found with ID: {Id}", command.Id);
                 return Result.Failure(HttpStatusCode.NotFound, new Error("CourseNotFound", "Khóa học không tồn tại"));
             }
+            
+            //Check tutor
+            if (course.TutorId != command.TutorId)
+            {
+                _logger.LogWarning("Unauthorized delete attempt by user ID: {tutorId} for course ID: {CourseId}", command.TutorId, command.Id);
+                return Result.Failure(HttpStatusCode.Unauthorized, new Error("Unauthorized", "Bạn không có quyền xóa khóa học này"));
+            }
 
             courseRepo.Delete(course);
             await _unitOfWork.SaveChangesAsync();

@@ -1,5 +1,6 @@
-﻿using System.Net;
+using System.Net;
 using EngConnect.Application.UseCases.Tutors.Common;
+using EngConnect.Application.UseCases.Users.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -13,11 +14,14 @@ namespace EngConnect.Application.UseCases.Tutors.GetTutorById
     {
         private readonly ILogger<GetTutorByIdQueryHandler> _logger;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IAwsStorageService _awsStorageService;
 
-        public GetTutorByIdQueryHandler(ILogger<GetTutorByIdQueryHandler> logger, IUnitOfWork unitOfWork)
+        public GetTutorByIdQueryHandler(ILogger<GetTutorByIdQueryHandler> logger, IUnitOfWork unitOfWork,
+            IAwsStorageService awsStorageService)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
+            _awsStorageService = awsStorageService;
         }
 
         public async Task<Result<GetTutorResponse>> HandleAsync(
@@ -33,26 +37,7 @@ namespace EngConnect.Application.UseCases.Tutors.GetTutorById
                 var tutor = await repo
                     .FindAll()
                     .Where(x => x.Id == query.Id)
-                    .Select(x => new GetTutorResponse
-                    {
-                        Id = x.Id,
-                        UserId = x.UserId,
-                        Headline = x.Headline,
-                        Bio = x.Bio,
-                        IntroVideoUrl = x.IntroVideoUrl,
-                        YearsExperience = x.YearsExperience,
-                        CvUrl = x.CvUrl,
-                        Tags = x.Tags,
-                        SlotsCount = x.SlotsCount,
-                        Status = x.Status,
-                        VerifiedStatus = x.VerifiedStatus,
-                        RatingAverage = x.RatingAverage,
-                        RatingCount = x.RatingCount,
-                        CreatedAt = x.CreatedAt,
-                        UpdatedAt = x.UpdatedAt,
-                        IsDeleted = x.IsDeleted,
-                        DeletedAt = x.DeletedAt
-                    })
+                    .Include(x => x.User)
                     .FirstOrDefaultAsync(cancellationToken);
 
                 if (tutor is null)
@@ -60,8 +45,38 @@ namespace EngConnect.Application.UseCases.Tutors.GetTutorById
                     return Result.Failure<GetTutorResponse>(HttpStatusCode.NotFound, CommonErrors.NotFound<Domain.Persistence.Models.Tutor>("Tutor"));
                 }
 
+                var response = new GetTutorResponse
+                {
+                    Id = tutor.Id,
+                    UserId = tutor.UserId,
+                    Headline = tutor.Headline,
+                    Bio = tutor.Bio,
+                    IntroVideoUrl = _awsStorageService.GetFileUrl(tutor.IntroVideoUrl),
+                    MonthExperience = tutor.MonthExperience,
+                    CvUrl = _awsStorageService.GetFileUrl(tutor.CvUrl),
+                    Tags = tutor.Tags,
+                    Avatar = _awsStorageService.GetFileUrl(tutor.Avatar, cancellationToken),
+                    SlotsCount = tutor.SlotsCount,
+                    Status = tutor.Status,
+                    VerifiedStatus = tutor.VerifiedStatus,
+                    RatingAverage = tutor.RatingAverage,
+                    RatingCount = tutor.RatingCount,
+                    CreatedAt = tutor.CreatedAt,
+                    UpdatedAt = tutor.UpdatedAt,
+                    IsDeleted = tutor.IsDeleted,
+                    DeletedAt = tutor.DeletedAt,
+                    User = new UserInfo
+                    {
+                        FirstName = tutor.User.FirstName,
+                        LastName = tutor.User.LastName,
+                        UserName = tutor.User.UserName,
+                        Email = tutor.User.Email,
+                        Phone = tutor.User.Phone,
+                    }
+                };
+
                 _logger.LogInformation("End GetTutorByIdQueryHandler");
-                return Result.Success(tutor);
+                return Result.Success(response);
             }
             catch (Exception ex)
             {

@@ -28,7 +28,7 @@ public class UserRegisterEventConsumer : IConsumer<UserRegisterEvent>
 
     public async Task Consume(ConsumeContext<UserRegisterEvent> context)
     {
-        _logger.LogInformation("Start CustomerRegisterEventConsumer {@EventData}", context.Message);
+        _logger.LogInformation("Start UserRegisterEventConsumer {@EventData}", context.Message);
         try
         {
             var eventData = context.Message;
@@ -53,11 +53,11 @@ public class UserRegisterEventConsumer : IConsumer<UserRegisterEvent>
                 HtmlBody = emailContent
             });
 
-            _logger.LogInformation("End CustomerRegisterEventConsumer");
+            _logger.LogInformation("End UserRegisterEventConsumer");
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error consuming CustomerRegisteredEvent: {Message}", e.Message);
+            _logger.LogError(e, "Error consuming UserRegisterEvent: {Message}", e.Message);
         }
     }
 

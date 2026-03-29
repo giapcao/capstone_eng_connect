@@ -128,7 +128,7 @@ public static class Startup
 
         app.UseRouting();
         //Implement temp cors
-        app.UseCors("AllowFrontend");
+        // app.UseCors("AllowFrontend");
         app.UseAuthentication();
         app.UseAuthorization();
         

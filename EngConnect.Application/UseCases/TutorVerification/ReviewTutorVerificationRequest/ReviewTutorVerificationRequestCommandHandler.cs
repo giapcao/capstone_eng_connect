@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 
 namespace EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificationRequest
 {
@@ -46,7 +47,7 @@ namespace EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificat
                     r => r.Id == command.Request.RequestId,
                     cancellationToken: cancellationToken);
 
-                if (request is null)
+                if (ValidationUtil.IsNullOrEmpty(request))
                 {
                     return Result.Failure(
                         HttpStatusCode.NotFound,
@@ -74,7 +75,7 @@ namespace EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificat
                     t => t.Id == request.TutorId,
                     cancellationToken: cancellationToken);
 
-                if (tutor is not null)
+                if (ValidationUtil.IsNotNullOrEmpty(tutor))
                 {
                     tutor.VerifiedStatus = command.Request.Approved
                         ? nameof(TutorVerifiedStatus.Verified)

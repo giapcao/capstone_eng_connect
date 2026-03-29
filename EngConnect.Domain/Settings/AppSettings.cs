@@ -10,4 +10,7 @@ public class AppSettings
     //260307: Add ForwardHeader and HttpDirection Flag
     public bool EnableForwardedHeaders { get; set; }
     public bool EnableHttpsRedirection { get; set; }
+    
+    //260321: Add default avatar path
+    public string DefaultAvatarPath { get; set; } = null!;
 }

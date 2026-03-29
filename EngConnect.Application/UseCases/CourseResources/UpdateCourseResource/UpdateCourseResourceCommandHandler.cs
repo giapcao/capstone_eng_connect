@@ -1,4 +1,5 @@
 using System.Net;
+using EngConnect.Application.UseCases.CourseResources.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseResources.UpdateCourseResource;
 
-public class UpdateCourseResourceCommandHandler : ICommandHandler<UpdateCourseResourceCommand>
+public class UpdateCourseResourceCommandHandler : ICommandHandler<UpdateCourseResourceCommand, GetCourseResourceResponse>
 {
     private readonly ILogger<UpdateCourseResourceCommandHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -19,7 +20,8 @@ public class UpdateCourseResourceCommandHandler : ICommandHandler<UpdateCourseRe
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(UpdateCourseResourceCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<GetCourseResourceResponse>> HandleAsync(UpdateCourseResourceCommand command,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Start UpdateCourseResourceCommandHandler {@Command}", command);
         try
@@ -32,7 +34,8 @@ public class UpdateCourseResourceCommandHandler : ICommandHandler<UpdateCourseRe
             if (courseResource == null)
             {
                 _logger.LogWarning("CourseResource not found with ID: {Id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, new Error("CourseResourceNotFound", "Tài nguyên không tồn tại"));
+                return Result.Failure<GetCourseResourceResponse>(HttpStatusCode.NotFound,
+                    new Error("CourseResourceNotFound", "Tài nguyên không tồn tại"));
             }
 
             courseResource.Title = command.Title;
@@ -44,12 +47,23 @@ public class UpdateCourseResourceCommandHandler : ICommandHandler<UpdateCourseRe
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("End UpdateCourseResourceCommandHandler");
-            return Result.Success();
+            return Result.Success(new GetCourseResourceResponse
+            {
+                Id = courseResource.Id,
+                TutorId = courseResource.TutorId ?? Guid.Empty,
+                Title = courseResource.Title,
+                ResourceType = courseResource.ResourceType,
+                Url = courseResource.Url,
+                Status = courseResource.Status,
+                CreatedAt = courseResource.CreatedAt,
+                UpdatedAt = courseResource.UpdatedAt
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in UpdateCourseResourceCommandHandler: {Message}", ex.Message);
-            return Result.Failure(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
+            return Result.Failure<GetCourseResourceResponse>(HttpStatusCode.InternalServerError,
+                CommonErrors.InternalServerError());
         }
     }
 }
