@@ -1,4 +1,5 @@
 using System.Net;
+using EngConnect.Application.UseCases.CourseModules.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseModules.UpdateCourseModule;
 
-public class UpdateCourseModuleCommandHandler : ICommandHandler<UpdateCourseModuleCommand>
+public class UpdateCourseModuleCommandHandler : ICommandHandler<UpdateCourseModuleCommand, GetCourseModuleResponse>
 {
     private readonly ILogger<UpdateCourseModuleCommandHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -22,12 +23,14 @@ public class UpdateCourseModuleCommandHandler : ICommandHandler<UpdateCourseModu
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(UpdateCourseModuleCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<GetCourseModuleResponse>> HandleAsync(UpdateCourseModuleCommand command,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Start UpdateCourseModuleCommandHandler {@Command}", command);
         try
         {
             var courseModuleRepo = _unitOfWork.GetRepository<CourseModule, Guid>();
+            var courseCourseModuleRepo = _unitOfWork.GetRepository<CourseCourseModule, Guid>();
 
             var courseModule = await courseModuleRepo.FindSingleAsync(
                 x => x.Id == command.Id,
@@ -35,19 +38,19 @@ public class UpdateCourseModuleCommandHandler : ICommandHandler<UpdateCourseModu
             if (courseModule == null)
             {
                 _logger.LogWarning("CourseModule not found with ID: {Id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, new Error("CourseModuleNotFound", "Module không tồn tại"));
+                return Result.Failure<GetCourseModuleResponse>(HttpStatusCode.NotFound,
+                    new Error("CourseModuleNotFound", "Course module not found"));
             }
 
-            // Check status of courses that use this module
-            var listCourse = await _unitOfWork.GetRepository<CourseCourseModule, Guid>()
-                .FindAll(x => x.CourseModuleId == command.Id)
+            var listCourse = await courseCourseModuleRepo.FindAll(x => x.CourseModuleId == command.Id)
                 .Include(x => x.Course)
                 .ToListAsync(cancellationToken);
 
             if (listCourse.Any(x => x.Course.Status == nameof(CourseStatus.Published)))
             {
                 _logger.LogWarning("CourseModule with ID: {Id} cannot be updated because it's in use by a Published course", command.Id);
-                return Result.Failure(HttpStatusCode.BadRequest, CourseModuleErrors.CourseModuleIsInUse());
+                return Result.Failure<GetCourseModuleResponse>(HttpStatusCode.BadRequest,
+                    CourseModuleErrors.CourseModuleIsInUse());
             }
 
             courseModule.Title = command.Title;
@@ -57,13 +60,42 @@ public class UpdateCourseModuleCommandHandler : ICommandHandler<UpdateCourseModu
             courseModuleRepo.Update(courseModule);
             await _unitOfWork.SaveChangesAsync();
 
+            var targetCourseId = listCourse.Select(x => x.CourseId).FirstOrDefault();
+            if (targetCourseId == Guid.Empty)
+            {
+                return Result.Success(new GetCourseModuleResponse
+                {
+                    Id = courseModule.Id,
+                    CourseId = Guid.Empty,
+                    Title = courseModule.Title,
+                    Description = courseModule.Description,
+                    Outcomes = courseModule.Outcomes,
+                    CreatedAt = courseModule.CreatedAt,
+                    UpdatedAt = courseModule.UpdatedAt
+                });
+            }
+
+            await courseCourseModuleRepo.FindAll(x =>
+                    x.CourseId == targetCourseId && x.CourseModuleId == courseModule.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
             _logger.LogInformation("End UpdateCourseModuleCommandHandler");
-            return Result.Success();
+            return Result.Success(new GetCourseModuleResponse
+            {
+                Id = courseModule.Id,
+                CourseId = targetCourseId,
+                Title = courseModule.Title,
+                Description = courseModule.Description,
+                Outcomes = courseModule.Outcomes,
+                CreatedAt = courseModule.CreatedAt,
+                UpdatedAt = courseModule.UpdatedAt
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in UpdateCourseModuleCommandHandler: {Message}", ex.Message);
-            return Result.Failure(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
+            return Result.Failure<GetCourseModuleResponse>(HttpStatusCode.InternalServerError,
+                CommonErrors.InternalServerError());
         }
     }
 }

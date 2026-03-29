@@ -1,4 +1,5 @@
 using System.Net;
+using EngConnect.Application.UseCases.Courses.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.Courses.UpdateCourse;
 
-public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand>
+public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand, GetCourseResponse>
 {
     private readonly ILogger<UpdateCourseCommandHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -22,7 +23,7 @@ public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand>
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(UpdateCourseCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<GetCourseResponse>> HandleAsync(UpdateCourseCommand command, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Start UpdateCourseCommandHandler {@Command}", command);
         try
@@ -35,21 +36,21 @@ public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand>
             if (ValidationUtil.IsNullOrEmpty(course))
             {
                 _logger.LogWarning("Course not found with ID: {Id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, new Error("CourseNotFound", "Khóa học không tồn tại"));
+                return Result.Failure<GetCourseResponse>(HttpStatusCode.NotFound, new Error("CourseNotFound", "Khóa học không tồn tại"));
             }
             
             // Check status of course
             if (course.Status != nameof(CourseStatus.InActive))
             {
                 _logger.LogWarning("Course with ID: {CourseId} cannot be updated", command.Id);
-                return Result.Failure(HttpStatusCode.BadRequest, CourseErrors.PublishedCourseCannotBeUpdated());
+                return Result.Failure<GetCourseResponse>(HttpStatusCode.BadRequest, CourseErrors.PublishedCourseCannotBeUpdated());
             }
 
             //Check tutor
             if (course.TutorId != command.TutorId)
             {
                 _logger.LogWarning("Tutor ID mismatch for course ID: {CourseId}", command.Id);
-                return Result.Failure(HttpStatusCode.BadRequest, CourseErrors.TutorIsNotOwner());
+                return Result.Failure<GetCourseResponse>(HttpStatusCode.BadRequest, CourseErrors.TutorIsNotOwner());
             }
 
             course.Title = command.Title ?? course.Title;
@@ -78,12 +79,37 @@ public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand>
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("End UpdateCourseCommandHandler");
-            return Result.Success();
+            return Result.Success(new GetCourseResponse
+            {
+                Id = course.Id,
+                TutorId = course.TutorId,
+                ParentCourseId = course.ParentCourseId,
+                Title = course.Title,
+                ShortDescription = course.ShortDescription,
+                FullDescription = course.FullDescription,
+                Outcomes = course.Outcomes,
+                Level = course.Level,
+                EstimatedTime = course.EstimatedTime,
+                EstimatedTimeLesson = course.EstimatedTimeLesson,
+                Price = course.Price,
+                Currency = course.Currency,
+                NumberOfSessions = course.NumberOfSessions,
+                NumsSessionInWeek = course.NumsSessionInWeek,
+                ThumbnailUrl = course.ThumbnailUrl,
+                DemoVideoUrl = course.DemoVideoUrl,
+                Status = course.Status,
+                IsCertificate = course.IsCertificate,
+                NumberOfEnrollment = course.NumberOfEnrollment,
+                RatingAverage = course.RatingAverage,
+                RatingCount = course.RatingCount,
+                CreatedAt = course.CreatedAt,
+                UpdatedAt = course.UpdatedAt
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in UpdateCourseCommandHandler: {Message}", ex.Message);
-            return Result.Failure(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
+            return Result.Failure<GetCourseResponse>(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
         }
     }
 }

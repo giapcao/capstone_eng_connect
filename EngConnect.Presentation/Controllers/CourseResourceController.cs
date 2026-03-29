@@ -67,7 +67,7 @@ public class CourseResourceController : BaseApiController
     [HttpPost]
     [Consumes("multipart/form-data")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<GetCourseResourceResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateAsync([FromForm] CreateCourseResourceRequest request)
     {
         var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
@@ -96,7 +96,7 @@ public class CourseResourceController : BaseApiController
     [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPatch("{id}")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<GetCourseResourceResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateAsync([FromRoute] Guid id, [FromBody] UpdateCourseResourceCommand command)
     {
         command.Id = id;

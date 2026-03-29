@@ -1,29 +1,29 @@
+using EngConnect.Application.Common;
 using EngConnect.Application.UseCases.Courses.Common;
 using EngConnect.Application.UseCases.Courses.CreateCourse;
 using EngConnect.Application.UseCases.Courses.DeleteCourse;
-using EngConnect.Application.UseCases.Courses.InactiveCourse;
 using EngConnect.Application.UseCases.Courses.GetCourseById;
 using EngConnect.Application.UseCases.Courses.GetListCourse;
+using EngConnect.Application.UseCases.Courses.InactiveCourse;
 using EngConnect.Application.UseCases.Courses.UpdateCourse;
-using EngConnect.Application.UseCases.Courses.UpdateThumbnailCourse;
 using EngConnect.Application.UseCases.Courses.UpdateDemoVideoCourse;
-using EngConnect.Application.Common;
+using EngConnect.Application.UseCases.Courses.UpdateThumbnailCourse;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.Constants;
+using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.BuildingBlock.Presentation.Controllers;
 using EngConnect.BuildingBlock.Presentation.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
-using EngConnect.BuildingBlock.Domain.DomainErrors;
 
 namespace EngConnect.Presentation.Controllers;
 
 /// <summary>
-/// Api quản lý Course
+/// Api quan ly Course
 /// </summary>
 [ApiController]
 [Route("api/courses")]
@@ -39,7 +39,7 @@ public class CourseController : BaseApiController
     }
 
     /// <summary>
-    /// Lấy danh sách Course
+    /// Lay danh sach Course
     /// </summary>
     [Authorize]
     [HttpGet]
@@ -52,7 +52,41 @@ public class CourseController : BaseApiController
     }
 
     /// <summary>
-    /// Lấy thông tin Course theo ID
+    /// Lay danh sach Course cua nguoi dung hien tai
+    /// </summary>
+    [Authorize(Roles = $"{nameof(UserRoleEnum.Student)},{nameof(UserRoleEnum.Tutor)}")]
+    [HttpGet("my-course")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<PaginationResult<GetCourseResponse>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMyCoursesAsync([FromQuery] GetListCourseQuery query, CancellationToken cancellationToken = default)
+    {
+        if (User.IsInRole(nameof(UserRoleEnum.Tutor)))
+        {
+            if (!Guid.TryParse(User.GetTutorId(), out var tutorId))
+            {
+                return FromResult(Result.Failure(HttpStatusCode.BadRequest,
+                    CommonErrors.ValidationFailed("Khong tim thay Id cua gia su.")));
+            }
+
+            query.TutorId = tutorId;
+        }
+        else if (User.IsInRole(nameof(UserRoleEnum.Student)))
+        {
+            if (!Guid.TryParse(User.GetStudentId(), out var studentId))
+            {
+                return FromResult(Result.Failure(HttpStatusCode.BadRequest,
+                    CommonErrors.ValidationFailed("Khong tim thay Id cua hoc sinh.")));
+            }
+
+            query.StudentId = studentId;
+        }
+
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Lay thong tin Course theo ID
     /// </summary>
     [HttpGet("{id}")]
     [Produces("application/json")]
@@ -65,7 +99,7 @@ public class CourseController : BaseApiController
     }
 
     /// <summary>
-    /// Tạo mới Course
+    /// Tao moi Course
     /// </summary>
     [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPost]
@@ -79,7 +113,7 @@ public class CourseController : BaseApiController
         if (!Guid.TryParse(User.GetTutorId(), out var tutorId))
         {
             return FromResult(Result.Failure(HttpStatusCode.BadRequest,
-                CommonErrors.ValidationFailed("Không tìm thấy Id của gia sư.")));
+                CommonErrors.ValidationFailed("Khong tim thay Id cua gia su.")));
         }
 
         var command = new CreateCourseCommand
@@ -94,24 +128,27 @@ public class CourseController : BaseApiController
             EstimatedTimeLesson = request.EstimatedTimeLesson,
             Price = request.Price,
             Currency = request.Currency,
-
             NumsSessionInWeek = request.NumsSessionInWeek,
             IsCertificate = request.IsCertificate,
             CategoryIds = request.CategoryIds,
-            ThumbnailFile = request.ThumbnailFile != null ? new FileUpload
-            {
-                FileName = request.ThumbnailFileName ?? request.ThumbnailFile.FileName,
-                ContentType = request.ThumbnailFile.ContentType ?? "application/octet-stream",
-                Length = request.ThumbnailFile.Length,
-                Content = request.ThumbnailFile.OpenReadStream()
-            } : null,
-            DemoVideoFile = request.DemoVideoFile != null ? new FileUpload
-            {
-                FileName = request.DemoVideoFileName ?? request.DemoVideoFile.FileName,
-                ContentType = request.DemoVideoFile.ContentType ?? "video/mp4",
-                Length = request.DemoVideoFile.Length,
-                Content = request.DemoVideoFile.OpenReadStream()
-            } : null
+            ThumbnailFile = request.ThumbnailFile != null
+                ? new FileUpload
+                {
+                    FileName = request.ThumbnailFileName ?? request.ThumbnailFile.FileName,
+                    ContentType = request.ThumbnailFile.ContentType ?? "application/octet-stream",
+                    Length = request.ThumbnailFile.Length,
+                    Content = request.ThumbnailFile.OpenReadStream()
+                }
+                : null,
+            DemoVideoFile = request.DemoVideoFile != null
+                ? new FileUpload
+                {
+                    FileName = request.DemoVideoFileName ?? request.DemoVideoFile.FileName,
+                    ContentType = request.DemoVideoFile.ContentType ?? "video/mp4",
+                    Length = request.DemoVideoFile.Length,
+                    Content = request.DemoVideoFile.OpenReadStream()
+                }
+                : null
         };
 
         var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
@@ -119,7 +156,7 @@ public class CourseController : BaseApiController
     }
 
     /// <summary>
-    /// Cập nhật thumbnail khóa học
+    /// Cap nhat thumbnail khoa hoc
     /// </summary>
     [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPut("{id}/thumbnail")]
@@ -141,7 +178,7 @@ public class CourseController : BaseApiController
     }
 
     /// <summary>
-    /// Cập nhật demo video khóa học
+    /// Cap nhat demo video khoa hoc
     /// </summary>
     [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPut("{id}/demo-video")]
@@ -163,7 +200,7 @@ public class CourseController : BaseApiController
     }
 
     /// <summary>
-    /// Cập nhật Course
+    /// Cap nhat Course
     /// </summary>
     [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPatch("{id}")]
@@ -179,7 +216,7 @@ public class CourseController : BaseApiController
     }
 
     /// <summary>
-    /// Xóa Course
+    /// Xoa Course
     /// </summary>
     [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpDelete("{id}")]
@@ -194,7 +231,7 @@ public class CourseController : BaseApiController
     }
 
     /// <summary>
-    /// Vô hiệu hóa Course
+    /// Vo hieu hoa Course
     /// </summary>
     [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPatch("{id}/inactive")]
