@@ -119,4 +119,25 @@ public class RedisService(IConnectionMultiplexer redis) : IRedisService
     {
         return await _redis.HashIncrementAsync(key, field, value);
     }
+    
+    public async Task<bool> SortedSetAddAsync(string key, string member, double score, TimeSpan? timeToLive = null)
+    {
+        var result = await _redis.SortedSetAddAsync(key, member, score);
+        if (timeToLive.HasValue)
+        {
+            await _redis.KeyExpireAsync(key, timeToLive);
+        }
+        return result;
+    }
+    
+    public async Task<IEnumerable<string>> SortedSetRangeAsync(string key)
+    {
+        var data = await _redis.SortedSetRangeByRankAsync(key, 0, -1);
+        return data.Select(x => x.ToString());
+    }
+
+    public async Task<long> SortedSetLengthAsync(string key)
+    {
+        return await _redis.SortedSetLengthAsync(key);
+    }
 }
