@@ -2,7 +2,6 @@
 
 public class GetCourseResponseDetail: GetCourseResponse
 {
-    public List<GetCourseCategoryResponseInCourse> CourseCategories { get; set; } = [];
     public List<GetCourseModuleResponseInCourse> CourseCourseModules { get; set; } = [];
 }
 
