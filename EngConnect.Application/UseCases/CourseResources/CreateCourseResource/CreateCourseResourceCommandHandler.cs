@@ -1,4 +1,5 @@
 using System.Net;
+using EngConnect.Application.UseCases.CourseResources.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseResources.CreateCourseResource;
 
-public class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseResourceCommand>
+public class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseResourceCommand, GetCourseResourceResponse>
 {
     private readonly ILogger<CreateCourseResourceCommandHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -24,7 +25,8 @@ public class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseRe
         _awsStorageService = awsStorageService;
     }
 
-    public async Task<Result> HandleAsync(CreateCourseResourceCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<GetCourseResourceResponse>> HandleAsync(CreateCourseResourceCommand command,
+        CancellationToken cancellationToken = default)
     {
         //Track if we are using a transaction
         Guid? transactionId = null;
@@ -42,14 +44,15 @@ public class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseRe
             if (ValidationUtil.IsNullOrEmpty(tutorExists))
             {
                 _logger.LogWarning("Tutor not found with ID: {TutorId}", command.TutorId);
-                return Result.Failure(HttpStatusCode.BadRequest, TutorErrors.TutorNotFound());
+                return Result.Failure<GetCourseResourceResponse>(HttpStatusCode.BadRequest, TutorErrors.TutorNotFound());
             }
             // Check course session exists
             var courseSessionExists = await courseSessionRepo.AnyAsync(x => x.Id == command.CourseSessionId, cancellationToken);
             if (!courseSessionExists)
             {
                 _logger.LogWarning("Course session not found with ID: {CourseSessionId}", command.CourseSessionId);
-                return Result.Failure(HttpStatusCode.BadRequest, new Error("CourseSessionNotFound", "Session không tồn tại"));
+                return Result.Failure<GetCourseResourceResponse>(HttpStatusCode.BadRequest,
+                    new Error("CourseSessionNotFound", "Session không tồn tại"));
             }
             
             // Begin transaction
@@ -90,7 +93,17 @@ public class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseRe
                 await _unitOfWork.CommitTransactionAsync();
             }
             _logger.LogInformation("End CreateCourseResourceCommandHandler");
-            return Result.Success();
+            return Result.Success(new GetCourseResourceResponse
+            {
+                Id = courseResource.Id,
+                TutorId = courseResource.TutorId ?? Guid.Empty,
+                Title = courseResource.Title,
+                ResourceType = courseResource.ResourceType,
+                Url = _awsStorageService.GetFileUrl(courseResource.Url),
+                Status = courseResource.Status,
+                CreatedAt = courseResource.CreatedAt,
+                UpdatedAt = courseResource.UpdatedAt
+            });
         }
         catch (Exception ex)
         {
@@ -101,7 +114,8 @@ public class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseRe
                 _logger.LogDebug("Rolling back transaction with {TransactionId} due to error", transactionId);
                 await _unitOfWork.RollbackTransactionAsync();
             }
-            return Result.Failure(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
+            return Result.Failure<GetCourseResourceResponse>(HttpStatusCode.InternalServerError,
+                CommonErrors.InternalServerError());
         }
     }
 }

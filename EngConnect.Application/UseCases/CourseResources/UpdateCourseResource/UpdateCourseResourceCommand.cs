@@ -1,9 +1,10 @@
 using System.Text.Json.Serialization;
+using EngConnect.Application.UseCases.CourseResources.Common;
 using EngConnect.BuildingBlock.Application.Base;
 
 namespace EngConnect.Application.UseCases.CourseResources.UpdateCourseResource;
 
-public class UpdateCourseResourceCommand : ICommand
+public class UpdateCourseResourceCommand : ICommand<GetCourseResourceResponse>
 {
     [JsonIgnore]
     public Guid Id { get; set; }

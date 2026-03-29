@@ -1,4 +1,5 @@
 using System.Net;
+using EngConnect.Application.UseCases.CourseSessions.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -11,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseSessions.UpdateCourseSession;
 
-public class UpdateCourseSessionCommandHandler : ICommandHandler<UpdateCourseSessionCommand>
+public class UpdateCourseSessionCommandHandler : ICommandHandler<UpdateCourseSessionCommand, GetCourseSessionResponse>
 {
     private readonly ILogger<UpdateCourseSessionCommandHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -22,38 +23,41 @@ public class UpdateCourseSessionCommandHandler : ICommandHandler<UpdateCourseSes
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(UpdateCourseSessionCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<GetCourseSessionResponse>> HandleAsync(UpdateCourseSessionCommand command,
+        CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Start UpdateCourseSessionCommandHandler {@Command}", command);
         try
         {
             var courseSessionRepo = _unitOfWork.GetRepository<CourseSession, Guid>();
+            var courseModuleCourseSessionRepo = _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>();
 
             var courseSession = await courseSessionRepo.FindSingleAsync(
                 x => x.Id == command.Id,
                 cancellationToken: cancellationToken);
+
             if (courseSession == null)
             {
                 _logger.LogWarning("CourseSession not found with ID: {Id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, new Error("CourseSessionNotFound", "Session không tồn tại"));
+                return Result.Failure<GetCourseSessionResponse>(HttpStatusCode.NotFound,
+                    new Error("CourseSessionNotFound", "Session khong ton tai"));
             }
 
-            // Check status of courses that use this session
-            var listCourse = await _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>()
-                .FindAll(x => x.CourseSessionId == command.Id)
+            var relations = await courseModuleCourseSessionRepo.FindAll(x => x.CourseSessionId == command.Id)
                 .Include(x => x.CourseModule)
-                    .ThenInclude(cm => cm.CourseCourseModules)
-                        .ThenInclude(ccm => ccm.Course)
+                    .ThenInclude(x => x.CourseCourseModules)
+                        .ThenInclude(x => x.Course)
                 .ToListAsync(cancellationToken);
 
-            var hasPublishedCourse = listCourse
+            var hasPublishedCourse = relations
                 .SelectMany(x => x.CourseModule.CourseCourseModules)
-                .Any(ccm => ccm.Course.Status == nameof(CourseStatus.Published));
+                .Any(x => x.Course.Status == nameof(CourseStatus.Published));
 
             if (hasPublishedCourse)
             {
                 _logger.LogWarning("CourseSession with ID: {Id} cannot be updated because it's in use by a Published course", command.Id);
-                return Result.Failure(HttpStatusCode.BadRequest, CourseSessionErrors.CourseSessionIsInUse());
+                return Result.Failure<GetCourseSessionResponse>(HttpStatusCode.BadRequest,
+                    CourseSessionErrors.CourseSessionIsInUse());
             }
 
             courseSession.Title = command.Title;
@@ -63,13 +67,42 @@ public class UpdateCourseSessionCommandHandler : ICommandHandler<UpdateCourseSes
             courseSessionRepo.Update(courseSession);
             await _unitOfWork.SaveChangesAsync();
 
+            var targetModuleId = relations.Select(x => x.CourseModuleId).FirstOrDefault();
+            if (targetModuleId == Guid.Empty)
+            {
+                return Result.Success(new GetCourseSessionResponse
+                {
+                    Id = courseSession.Id,
+                    ModuleId = Guid.Empty,
+                    Title = courseSession.Title,
+                    Description = courseSession.Description,
+                    Outcomes = courseSession.Outcomes,
+                    CreatedAt = courseSession.CreatedAt,
+                    UpdatedAt = courseSession.UpdatedAt
+                });
+            }
+
+            await courseModuleCourseSessionRepo.FindAll(x =>
+                    x.CourseModuleId == targetModuleId && x.CourseSessionId == courseSession.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
             _logger.LogInformation("End UpdateCourseSessionCommandHandler");
-            return Result.Success();
+            return Result.Success(new GetCourseSessionResponse
+            {
+                Id = courseSession.Id,
+                ModuleId = targetModuleId,
+                Title = courseSession.Title,
+                Description = courseSession.Description,
+                Outcomes = courseSession.Outcomes,
+                CreatedAt = courseSession.CreatedAt,
+                UpdatedAt = courseSession.UpdatedAt
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in UpdateCourseSessionCommandHandler: {Message}", ex.Message);
-            return Result.Failure(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
+            return Result.Failure<GetCourseSessionResponse>(HttpStatusCode.InternalServerError,
+                CommonErrors.InternalServerError());
         }
     }
 }

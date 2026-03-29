@@ -62,7 +62,7 @@ public class CourseSessionController : BaseApiController
     [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
     [HttpPost]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<GetCourseSessionResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateAsync([FromBody] CreateCourseSessionCommand command)
     {
         var tutorId = Guid.Parse(User.GetTutorId() ?? string.Empty);
@@ -76,7 +76,7 @@ public class CourseSessionController : BaseApiController
     /// </summary>
     [HttpPatch("{id}")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Result<GetCourseSessionListResponse>), StatusCodes.Status200OK)]
     public async Task<IActionResult> UpdateAsync([FromRoute] Guid id, [FromBody] UpdateCourseSessionCommand command)
     {
         command.Id = id;

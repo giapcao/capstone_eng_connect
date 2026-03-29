@@ -9,6 +9,8 @@ public record GetListCourseQuery : BaseQuery<PaginationResult<GetCourseResponse>
 {
     [BindNever]
     public Guid? TutorId { get; set; }
+    [BindNever]
+    public Guid? StudentId { get; set; }
     public string? Level { get; set; }
     public string? Status { get; set; }
 }

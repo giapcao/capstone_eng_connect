@@ -7,6 +7,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 
@@ -39,6 +40,14 @@ public class GetListCourseQueryHandler : IQueryHandler<GetListCourseQuery, Pagin
             if (query.TutorId.HasValue)
             {
                 predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId.Value);
+            }
+
+            if (query.StudentId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x =>
+                    x.CourseEnrollments.Any(y =>
+                        y.StudentId == query.StudentId.Value &&
+                        y.Status != nameof(CourseEnrollmentStatus.Cancelled)));
             }
 
             if (ValidationUtil.IsNotNullOrEmpty(query.Level))

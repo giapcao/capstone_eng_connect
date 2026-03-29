@@ -1,4 +1,5 @@
 using System.Net;
+using EngConnect.Application.UseCases.Courses.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.Courses.CreateCourse;
 
-public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
+public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand, GetCourseResponse>
 {
     private readonly ILogger<CreateCourseCommandHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -25,7 +26,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
         _awsStorageService = awsStorageService;
     }
 
-    public async Task<Result> HandleAsync(CreateCourseCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result<GetCourseResponse>> HandleAsync(CreateCourseCommand command, CancellationToken cancellationToken = default)
     {
         //Track if we are using a transaction
         Guid? transactionId = null;
@@ -40,7 +41,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
             if (!tutorExists)
             {
                 _logger.LogWarning("Tutor not found with ID: {TutorId}", command.TutorId);
-                return Result.Failure(HttpStatusCode.NotFound, new Error("TutorNotFound", "Giáo viên không tồn tại"));
+                return Result.Failure<GetCourseResponse>(HttpStatusCode.NotFound, new Error("TutorNotFound", "Giáo viên không tồn tại"));
             }
 
             // Check if parent course exists (if provided)
@@ -50,7 +51,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                 if (!parentCourseExists)
                 {
                     _logger.LogWarning("Parent course not found with ID: {ParentCourseId}", command.ParentCourseId);
-                    return Result.Failure(HttpStatusCode.NotFound, new Error("ParentCourseNotFound", "Khóa học cha không tồn tại"));
+                    return Result.Failure<GetCourseResponse>(HttpStatusCode.NotFound, new Error("ParentCourseNotFound", "Khóa học cha không tồn tại"));
                 }
             }
             
@@ -73,7 +74,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                 {
                     _logger.LogWarning("Failed to upload thumbnail file");
                     await _unitOfWork.RollbackTransactionAsync();
-                    return Result.Failure(HttpStatusCode.BadRequest, new Error("ThumbnailUploadFailed", "Không thể upload ảnh thumbnail"));
+                    return Result.Failure<GetCourseResponse>(HttpStatusCode.BadRequest, new Error("ThumbnailUploadFailed", "Không thể upload ảnh thumbnail"));
                 }
                 
                 thumbnailUrl = thumbnailUploadResult.RelativePath;
@@ -93,7 +94,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                 {
                     _logger.LogWarning("Failed to upload demo video file");
                     await _unitOfWork.RollbackTransactionAsync();
-                    return Result.Failure(HttpStatusCode.BadRequest, new Error("DemoVideoUploadFailed", "Không thể upload video demo"));
+                    return Result.Failure<GetCourseResponse>(HttpStatusCode.BadRequest, new Error("DemoVideoUploadFailed", "Không thể upload video demo"));
                 }
                 
                 demoVideoUrl = videoUploadResult.RelativePath;
@@ -110,7 +111,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                 if (categories.Count != command.CategoryIds.Length)
                 {
                     _logger.LogWarning("One or more categories not found with IDs: {CategoryIds}", command.CategoryIds);
-                    return Result.Failure(HttpStatusCode.NotFound, CourseErrors.CategoryNotFound());
+                    return Result.Failure<GetCourseResponse>(HttpStatusCode.NotFound, CourseErrors.CategoryNotFound());
                 }
                 
                 //Create categories
@@ -136,7 +137,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                 EstimatedTime = TimeSpan.Zero,
                 EstimatedTimeLesson = TimeSpan.FromMinutes(command.EstimatedTimeLesson),
                 Price = command.Price,
-                Currency = command.Currency ?? "vnd",
+                Currency = command.Currency,
                 NumberOfSessions = 0,
                 NumsSessionInWeek = command.NumsSessionInWeek,
                 ThumbnailUrl = thumbnailUrl,
@@ -159,7 +160,32 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
             }
 
             _logger.LogInformation("End CreateCourseCommandHandler");
-            return Result.Success();
+            return Result.Success(new GetCourseResponse
+            {
+                Id = course.Id,
+                TutorId = course.TutorId,
+                ParentCourseId = course.ParentCourseId,
+                Title = course.Title,
+                ShortDescription = course.ShortDescription,
+                FullDescription = course.FullDescription,
+                Outcomes = course.Outcomes,
+                Level = course.Level,
+                EstimatedTime = course.EstimatedTime,
+                EstimatedTimeLesson = course.EstimatedTimeLesson,
+                Price = course.Price,
+                Currency = course.Currency,
+                NumberOfSessions = course.NumberOfSessions,
+                NumsSessionInWeek = course.NumsSessionInWeek,
+                ThumbnailUrl = thumbnailUrl != null ? _awsStorageService.GetFileUrl(thumbnailUrl) : null,
+                DemoVideoUrl = demoVideoUrl != null ? _awsStorageService.GetFileUrl(demoVideoUrl) : null,
+                Status = course.Status,
+                IsCertificate = course.IsCertificate,
+                NumberOfEnrollment = course.NumberOfEnrollment,
+                RatingAverage = course.RatingAverage,
+                RatingCount = course.RatingCount,
+                CreatedAt = course.CreatedAt,
+                UpdatedAt = course.UpdatedAt
+            });
         }
         catch (Exception ex)
         {
@@ -170,7 +196,7 @@ public class CreateCourseCommandHandler : ICommandHandler<CreateCourseCommand>
                 _logger.LogDebug("Rolling back transaction with {TransactionId}", transactionId);
                 await _unitOfWork.RollbackTransactionAsync();
             }
-            return Result.Failure(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
+            return Result.Failure<GetCourseResponse>(HttpStatusCode.InternalServerError, CommonErrors.InternalServerError());
         }
     }
 }

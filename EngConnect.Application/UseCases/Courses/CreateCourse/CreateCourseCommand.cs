@@ -1,9 +1,10 @@
+using EngConnect.Application.UseCases.Courses.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Models.Files;
 
 namespace EngConnect.Application.UseCases.Courses.CreateCourse;
 
-public class CreateCourseCommand : ICommand
+public class CreateCourseCommand : ICommand<GetCourseResponse>
 {
     public required Guid TutorId { get; set; }
     public Guid? ParentCourseId { get; set; }
