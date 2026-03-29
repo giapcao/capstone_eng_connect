@@ -32,7 +32,8 @@ public class CourseSessionController : BaseApiController
     }
 
     /// <summary>
-    /// Lấy danh sách CourseSession
+    /// Lấy danh sách CourseSession theo tutorId
+    /// Nếu có CourseModuleId thì sẽ lấy danh sách CourseSession chưa có trong courseModule đó
     /// </summary>
     [HttpGet]
     [Produces("application/json")]

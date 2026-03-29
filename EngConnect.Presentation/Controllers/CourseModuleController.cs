@@ -32,7 +32,8 @@ public class CourseModuleController : BaseApiController
     }
 
     /// <summary>
-    /// Lấy danh sách CourseModule
+    /// Lấy danh sách CourseModule theo tutorId
+    /// Nếu truyền courseId thì sẽ lấy danh sách CourseModule chưa có trong course đó
     /// </summary>
     [HttpGet]
     [Produces("application/json")]
