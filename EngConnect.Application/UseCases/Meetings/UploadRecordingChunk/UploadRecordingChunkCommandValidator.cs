@@ -8,7 +8,7 @@ public class UploadRecordingChunkCommandValidator : AbstractValidator<UploadReco
     {
         RuleFor(x => x.LessonId).NotEmpty();
         RuleFor(x => x.UserId).NotEmpty();
-        RuleFor(x => x.ChunkIndex).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.ChunkTimestamp).GreaterThan(0);
         RuleFor(x => x.File).NotNull();
         RuleFor(x => x.File.FileName).NotEmpty();
         RuleFor(x => x.File.Content).NotNull();

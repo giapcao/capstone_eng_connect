@@ -18,7 +18,7 @@ public interface IDriveService
     /// <returns></returns>
     Task<FileUploadResult> UploadFileAsync(FileUpload file, Guid userId, string prefix, CancellationToken cancellationToken = default);
 
-    Task<FileUploadResult> UploadMeetingChunkAsync(Guid lessonId, int chunkIndex, FileUpload file,
+    Task<FileUploadResult> UploadMeetingChunkAsync(Guid lessonId, long chunkTimestamp, FileUpload file,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<FileUploadResult>> GetMeetingChunksAsync(Guid lessonId,

@@ -73,7 +73,7 @@ public class UploadRecordingChunkCommandHandler : ICommandHandler<UploadRecordin
                 $"lesson-{command.LessonId}");
             Directory.CreateDirectory(lessonTempFolder);
 
-            var tempFilePath = Path.Combine(lessonTempFolder, $"chunk-{command.ChunkIndex:D6}{extension}");
+            var tempFilePath = Path.Combine(lessonTempFolder, $"chunk-{command.ChunkTimestamp}{extension}");
 
             if (command.File.Content.CanSeek)
             {
@@ -88,7 +88,7 @@ public class UploadRecordingChunkCommandHandler : ICommandHandler<UploadRecordin
             var uploadChunkEvent = UploadMeetingRecordingChunkEvent.Create(
                 command.LessonId,
                 command.UserId,
-                command.ChunkIndex,
+                command.ChunkTimestamp,
                 tempFilePath,
                 Path.GetFileName(command.File.FileName),
                 string.IsNullOrWhiteSpace(command.File.ContentType) ? "video/webm" : command.File.ContentType);
