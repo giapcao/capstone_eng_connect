@@ -13,9 +13,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EngConnect.Presentation.Controllers;
 
-/// <summary>
-/// API quản lý bài học
-/// </summary>
 [ApiController]
 [Route("api/lessons")]
 public class LessonController : BaseApiController
@@ -29,12 +26,6 @@ public class LessonController : BaseApiController
         _queryDispatcher = queryDispatcher;
     }
     
-    /// <summary>
-    /// Lấy bài học theo Id
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpGet("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result<GetLessonResponse>), StatusCodes.Status200OK)]
@@ -44,12 +35,6 @@ public class LessonController : BaseApiController
         return FromResult(result);
     }
     
-    /// <summary>
-    /// Lấy danh sách bài học (Có phân trang)
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result<PaginationResult<GetLessonResponse>>), StatusCodes.Status200OK)]
@@ -59,12 +44,6 @@ public class LessonController : BaseApiController
         return FromResult(result);
     }
     
-    /// <summary>
-    /// Tạo bài học
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpPost]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
@@ -74,13 +53,6 @@ public class LessonController : BaseApiController
         return FromResult(result);
     }
 
-    /// <summary>
-    /// Cập nhật bài học
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="command"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpPut("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
@@ -91,13 +63,6 @@ public class LessonController : BaseApiController
         return FromResult(result);
     }
     
-    /// <summary>
-    /// Cập nhật trạng thái bài học
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="command"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpPatch("{id:guid}/status")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
@@ -108,12 +73,6 @@ public class LessonController : BaseApiController
         return FromResult(result);
     }
     
-    /// <summary>
-    /// Xóa bài học
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpDelete("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
