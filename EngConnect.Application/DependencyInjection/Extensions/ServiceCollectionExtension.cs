@@ -153,6 +153,15 @@ public static class ServiceCollectionExtension
         services.AddScoped<IValidator<UpdateThumbnailCourseCommand>, UpdateThumbnailCourseValidator>();
         services.AddScoped<IValidator<UpdateDemoVideoCourseCommand>, UpdateDemoVideoCourseValidator>();
         
+        services.AddScoped<IValidator<CreateSupportTicketCommand>, CreateSupportTicketCommandValidator>();
+        services.AddScoped<IValidator<UpdateSupportTicketCommand>, UpdateSupportTicketCommandValidator>();
+        services.AddScoped<IValidator<UpdateSupportTicketStatusCommand>, UpdateSupportTicketStatusCommandValidator>();
+        services.AddScoped<IValidator<CreateSupportTicketMessageCommand>, CreateSupportTicketMessageCommandValidator>();
+        services.AddScoped<IValidator<UpdateSupportTicketMessageCommand>, UpdateSupportTicketMessageCommandValidator>();
+        services.AddScoped<IValidator<UploadRecordingChunkCommand>, UploadRecordingChunkCommandValidator>();
+
+        // Ai Summarize Section
+        services.AddScoped<IValidator<GetAiSummaryCommand>, GetAiSummaryCommandValidator>();
         services.AddScoped<IValidator<UploadRecordingChunkCommand>, UploadRecordingChunkCommandValidator>();
         services.AddScoped<IValidator<GetAiSummaryCommand>, GetAiSummaryCommandValidator>();
     }
