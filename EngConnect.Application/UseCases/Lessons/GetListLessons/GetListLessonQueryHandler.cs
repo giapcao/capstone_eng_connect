@@ -32,13 +32,13 @@ public class GetListLessonQueryHandler : IQueryHandler<GetListLessonQuery, Pagin
         {
             var lessonRepository = _unitOfWork.GetRepository<Lesson, Guid>();
             
-            var lessons = lessonRepository.FindAll();
+            IQueryable<Lesson> lessons = lessonRepository.FindAll();
             
             Expression<Func<Lesson, bool>> predicate = x => true;
             
             if (ValidationUtil.IsNotNullOrEmpty(query.Status))
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.Status != null && query.Status.ToLower().Contains(x.Status.ToLower()));
+                predicate = predicate.CombineAndAlsoExpressions(x => x.Status != null && x.Status.ToLower().Contains(query.Status.ToLower()));
             }
             
             if (query.StartTimeFrom.HasValue)
@@ -47,13 +47,18 @@ public class GetListLessonQueryHandler : IQueryHandler<GetListLessonQuery, Pagin
             if (query.StartTimeTo.HasValue)
                 predicate = predicate.CombineAndAlsoExpressions(x => x.StartTime <= query.StartTimeTo);
 
+            if (query.TutorId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId);
+            }
+
             if (query.StudentId.HasValue)
             {
                 predicate = predicate.CombineAndAlsoExpressions(x => x.StudentId == query.StudentId);
             }
             
             lessons = lessons.Where(predicate);
-            
+
             lessons = lessons.ApplySorting(query.GetSortParams());
 
             var result =

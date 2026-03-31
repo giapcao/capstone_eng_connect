@@ -38,38 +38,58 @@ public class GetAiSummaryCommandHandler : ICommandHandler<GetAiSummaryCommand, A
             var transcript = string.Join(" ", chunk);
             var lesson = await _unitOfWork.GetRepository<Lesson, Guid>().FindByIdAsync(command.LessonId,
                 false, cancellationToken: cancellationToken, l => l.Student.User
-                , l => l.Tutor.User,l=>l.LessonRecord!,l=>l.Session!);
-            if (lesson == null )
+                , l => l.Tutor.User, l => l.LessonRecord!, l => l.Session!);
+            if (lesson == null)
             {
                 return Result.Failure<AnalysisResponse>(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("LessonId"));
             }
-            
+
             if (lesson.LessonRecord == null) return Result.Failure<AnalysisResponse>(HttpStatusCode.NotFound, CommonErrors.NotFound<LessonRecord>("Record"));
             if (lesson.Session?.Outcomes == null) return Result.Failure<AnalysisResponse>(HttpStatusCode.NotFound, CommonErrors.NotFound<CourseSession>("Session outcomes"));
-            
-            var analysisResponse = await _aiService.AnalyzeContentAsync( new AnalysisRequest(transcript, lesson.Session.Outcomes));
+
+            var analysisResponse = await _aiService.AnalyzeContentAsync(new AnalysisRequest(transcript, lesson.Session.Outcomes));
 
             if (analysisResponse is null)
             {
                 _logger.LogWarning("AI summarize returned null for query {@Command}", command);
                 return Result.Failure<AnalysisResponse>(HttpStatusCode.BadRequest, CommonErrors.ValidationFailed("gg "));
             }
-            
+
             var passCount = analysisResponse.Detail.Pass.Count;
             var total = passCount + analysisResponse.Detail.Fail.Count;
-        
-            analysisResponse.CoveragePercent = total == 0 
-                ? 0 
+
+            analysisResponse.CoveragePercent = total == 0
+                ? 0
                 : Math.Round((decimal)passCount / total * 100, 2);
 
             if (analysisResponse.CoveragePercent < SummarizePromptConstant.PercentageEvaluation)
             {
                 AddWarningToOutBox(lesson, analysisResponse);
             }
-            
-            var lessonScript = CreateLessonScript(lesson.Id, lesson.LessonRecord.Id,transcript, analysisResponse);
 
-            _unitOfWork.GetRepository<LessonScript, Guid>().Add(lessonScript);
+            var lessonScriptRepo = _unitOfWork.GetRepository<LessonScript, Guid>();
+            var lessonScript = await lessonScriptRepo.FindFirstAsync(
+                x => x.LessonId == lesson.Id || x.RecordId == lesson.LessonRecord.Id,
+                tracking: true,
+                cancellationToken: cancellationToken);
+
+            if (lessonScript == null)
+            {
+                lessonScript = CreateLessonScript(lesson.Id, lesson.LessonRecord.Id, transcript, analysisResponse);
+                lessonScriptRepo.Add(lessonScript);
+            }
+            else
+            {
+                lessonScript.LessonId = lesson.Id;
+                lessonScript.RecordId = lesson.LessonRecord.Id;
+                lessonScript.Language = nameof(Language.Vi);
+                lessonScript.FullText = transcript;
+                lessonScript.SummarizeText = analysisResponse.AiSummarizeText;
+                lessonScript.LessonOutcome = JsonSerializer.Serialize(analysisResponse.Detail);
+                lessonScript.CoveragePercent = analysisResponse.CoveragePercent;
+                lessonScriptRepo.Update(lessonScript);
+            }
+
             await _unitOfWork.SaveChangesAsync();
             await _redisService.DeleteCacheAsync(command.LessonId.ToString());
             _logger.LogInformation("End GetAiSummaryCommandHandler");
@@ -86,15 +106,15 @@ public class GetAiSummaryCommandHandler : ICommandHandler<GetAiSummaryCommand, A
     {
         var student = lesson.Student.User;
         var tutor = lesson.Tutor.User;
-        
-        var baseEvent = WarningInvalidLessonEvent.Create(student.Id,student.FirstName + " " + student.LastName
-            ,student.Email,tutor.FirstName + " "+ tutor.LastName,tutor.Email,lesson.StartTime,lesson.EndTime
-            ,analysisResponse.CoveragePercent,analysisResponse.Detail);
-                
-        var notificationEvent = NotificationHelper.CreateNotification(baseEvent, 
-            [student.Id, tutor.Id],[],nameof(Channel.Email));
-                
-        var outboxEvent = OutboxEvent.CreateOutboxEvent(nameof(Lesson), lesson.Id,notificationEvent);
+
+        var baseEvent = WarningInvalidLessonEvent.Create(student.Id, student.FirstName + " " + student.LastName
+            , student.Email, tutor.FirstName + " " + tutor.LastName, tutor.Email, lesson.StartTime, lesson.EndTime
+            , analysisResponse.CoveragePercent, analysisResponse.Detail);
+
+        var notificationEvent = NotificationHelper.CreateNotification(baseEvent,
+            [student.Id, tutor.Id], [], nameof(Channel.Email));
+
+        var outboxEvent = OutboxEvent.CreateOutboxEvent(nameof(Lesson), lesson.Id, notificationEvent);
         _unitOfWork.GetRepository<OutboxEvent, Guid>().Add(outboxEvent);
     }
     
@@ -108,7 +128,7 @@ public class GetAiSummaryCommandHandler : ICommandHandler<GetAiSummaryCommand, A
             FullText = transcript,
             SummarizeText = analysisResponse.AiSummarizeText,
             LessonOutcome = JsonSerializer.Serialize(analysisResponse.Detail),
-            CoveragePercent = analysisResponse.CoveragePercent 
+            CoveragePercent = analysisResponse.CoveragePercent
         };
     }
 }

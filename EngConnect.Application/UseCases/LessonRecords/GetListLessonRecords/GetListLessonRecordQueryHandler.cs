@@ -28,12 +28,13 @@ public class GetListLessonRecordQueryHandler : IQueryHandler<GetListLessonRecord
         _logger.LogInformation("Start GetListLessonRecordQueryHandler: {@query}", query);
         try
         {
-            var lessonRecords = _unitOfWork.GetRepository<LessonRecord, Guid>().FindAll();
+            IQueryable<LessonRecord> lessonRecords = _unitOfWork.GetRepository<LessonRecord, Guid>()
+                .FindAll();
             
             Expression<Func<LessonRecord, bool>> predicate = x => true;
             
-            if(query.LessonId.HasValue)
-                predicate = predicate.CombineAndAlsoExpressions(x=>x.LessonId == query.LessonId);
+            if (query.LessonId.HasValue)
+                predicate = predicate.CombineAndAlsoExpressions(x => x.LessonId == query.LessonId);
             
             lessonRecords = lessonRecords.Where(predicate);
             

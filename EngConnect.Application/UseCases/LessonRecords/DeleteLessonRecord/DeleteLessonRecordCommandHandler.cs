@@ -25,13 +25,18 @@ public class DeleteLessonRecordCommandHandler : ICommandHandler<DeleteLessonReco
         try
         {
             var lessonRecord = await _unitOfWork.GetRepository<LessonRecord, Guid>()
-                .FindByIdAsync(command.Id, cancellationToken: cancellationToken);
+                .FindByIdAsync(command.Id, true, cancellationToken, x => x.LessonScript!);
 
             if (lessonRecord == null)
             {
                 _logger.LogWarning("LessonRecord not found: {id}", command.Id);
                 return Result.Failure(HttpStatusCode.NotFound,
                     CommonErrors.NotFound<LessonRecord>("Bản ghi bài học"));
+            }
+
+            if (lessonRecord.LessonScript != null)
+            {
+                _unitOfWork.GetRepository<LessonScript, Guid>().Delete(lessonRecord.LessonScript);
             }
 
             _unitOfWork.GetRepository<LessonRecord, Guid>().Delete(lessonRecord);

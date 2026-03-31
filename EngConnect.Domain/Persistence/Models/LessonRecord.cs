@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using EngConnect.BuildingBlock.Contracts.Abstraction.Entities;
 
 namespace EngConnect.Domain.Persistence.Models;
@@ -18,5 +17,5 @@ public class LessonRecord : AuditableEntity<Guid>
 
     public virtual Lesson Lesson { get; set; } = null!;
 
-    public virtual ICollection<LessonScript> LessonScripts { get; set; } = new List<LessonScript>();
+    public virtual LessonScript? LessonScript { get; set; }
 }

@@ -29,10 +29,20 @@ public class CreateLessonRecordCommandHandler : ICommandHandler<CreateLessonReco
             var lessonExists = await _unitOfWork.GetRepository<Lesson, Guid>()
                 .AnyAsync(x => x.Id == command.LessonId, cancellationToken: cancellationToken);
 
+            var lessonRecordExists = await _unitOfWork.GetRepository<LessonRecord, Guid>()
+                .AnyAsync(x => x.LessonId == command.LessonId, cancellationToken: cancellationToken);
+
             if (!lessonExists)
             {
                 _logger.LogWarning("Lesson not found: {lessonId}", command.LessonId);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("Bài học"));
+                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("BÃ i há»c"));
+            }
+
+            if (lessonRecordExists)
+            {
+                _logger.LogWarning("LessonRecord already exists for lesson: {lessonId}", command.LessonId);
+                return Result.Failure(HttpStatusCode.Conflict,
+                    CommonErrors.ValidationFailed("Lesson already has a lesson record"));
             }
 
             var lessonRecord = command.Adapt<LessonRecord>();

@@ -54,14 +54,14 @@ public class LessonScriptConfiguration : IEntityTypeConfiguration<LessonScript>
             .HasColumnName("deleted_at");
 
         builder.HasOne(d => d.Lesson)
-            .WithMany(p => p.LessonScripts)
-            .HasForeignKey(d => d.LessonId)
+            .WithOne(p => p.LessonScript)
+            .HasForeignKey<LessonScript>(d => d.LessonId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("fk_script_lesson");
 
         builder.HasOne(d => d.Record)
-            .WithMany(p => p.LessonScripts)
-            .HasForeignKey(d => d.RecordId)
+            .WithOne(p => p.LessonScript)
+            .HasForeignKey<LessonScript>(d => d.RecordId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("fk_script_record");
     }
