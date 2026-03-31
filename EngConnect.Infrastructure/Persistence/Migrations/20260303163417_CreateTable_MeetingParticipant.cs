@@ -11,12 +11,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "community_comment");
-
-            migrationBuilder.DropTable(
-                name: "community_post");
-
             migrationBuilder.AddColumn<DateTime>(
                 name: "meeting_ended_at",
                 table: "lesson",
@@ -95,45 +89,6 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
             migrationBuilder.DropColumn(
                 name: "meeting_status",
                 table: "lesson");
-
-            migrationBuilder.CreateTable(
-                name: "community_comment",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    author_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    content = table.Column<string>(type: "text", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    parent_comment_id = table.Column<Guid>(type: "uuid", nullable: true),
-                    post_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("community_comment_pkey", x => x.id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "community_post",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    author_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    content = table.Column<string>(type: "text", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
-                    deleted_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    is_pinned = table.Column<bool>(type: "boolean", nullable: true, defaultValue: false),
-                    title = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
-                    type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true, defaultValueSql: "now()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("community_post_pkey", x => x.id);
-                });
         }
     }
 }
