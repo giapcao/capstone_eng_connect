@@ -15,6 +15,8 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
+using EngConnect.Domain.Constants;
 
 namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerificationRequest
 {
@@ -48,7 +50,7 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
                 var userRepo = _unitOfWork.GetRepository<User, Guid>();
                 var outboxRepo = _unitOfWork.GetRepository<OutboxEvent, Guid>();
 
-                var request = await requestRepo.FindFirstAsync(r => r.Id == command.Request.RequestId);
+                var request = await requestRepo.FindFirstAsync(r => r.Id == command.Request.RequestId, cancellationToken: cancellationToken);
 
                 if (request is null)
                 {
@@ -56,7 +58,7 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
                         CourseErrors.VerificationRequestNotFound());
                 }
 
-                if (request.Status != "pending")
+                if (request.Status != nameof(CourseVerificationStatus.Pending))
                 {
                     return Result.Failure(HttpStatusCode.BadRequest,
                         CourseErrors.VerificationRequestAlreadyReviewed());
@@ -67,7 +69,7 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
                     return Result.Failure(HttpStatusCode.BadRequest, CourseErrors.InvalidRejectionReason());
                 }
 
-                request.Status = command.Request.Approved ? "approved" : "rejected";
+                request.Status = command.Request.Approved ? nameof(CourseVerificationStatus.Approved) : nameof(CourseVerificationStatus.Rejected);
                 request.ReviewedBy = command.Request.AdminUserId;
                 request.ReviewedAt = DateTime.UtcNow;
                 request.RejectionReason = command.Request.Approved
@@ -77,9 +79,9 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
                 // Update course.Status
                 var course = await courseRepo.FindFirstAsync(c => c.Id == request.CourseId);
 
-                if (course is not null)
+                if (ValidationUtil.IsNotNullOrEmpty(course))
                 {
-                    course.Status = command.Request.Approved ? "published" : "rejected";
+                    course.Status = command.Request.Approved ? nameof(CourseStatus.Published) : nameof(CourseStatus.Draft);
 
                     var tutor = await tutorRepo.FindByIdAsync(course.TutorId, tracking: false,
                         cancellationToken: cancellationToken);

@@ -40,7 +40,7 @@ public class UpdateCourseCommandHandler : ICommandHandler<UpdateCourseCommand, G
             }
             
             // Check status of course
-            if (course.Status != nameof(CourseStatus.InActive))
+            if (course.Status == nameof(CourseStatus.Published))
             {
                 _logger.LogWarning("Course with ID: {CourseId} cannot be updated", command.Id);
                 return Result.Failure<GetCourseResponse>(HttpStatusCode.BadRequest, CourseErrors.PublishedCourseCannotBeUpdated());

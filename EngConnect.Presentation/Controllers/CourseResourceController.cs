@@ -1,21 +1,22 @@
+using System.Net;
 using EngConnect.Application.UseCases.CourseResources.Common;
 using EngConnect.Application.UseCases.CourseResources.CreateCourseResource;
 using EngConnect.Application.UseCases.CourseResources.DeleteCourseResource;
 using EngConnect.Application.UseCases.CourseResources.GetCourseResourceById;
 using EngConnect.Application.UseCases.CourseResources.GetListCourseResource;
+using EngConnect.Application.UseCases.CourseResources.GetListCourseResourceByTutor;
 using EngConnect.Application.UseCases.CourseResources.UpdateCourseResource;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
+using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.BuildingBlock.Presentation.Controllers;
 using EngConnect.BuildingBlock.Presentation.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
-using EngConnect.BuildingBlock.Contracts.Models.Files;
-using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 
 namespace EngConnect.Presentation.Controllers;
 
@@ -36,13 +37,33 @@ public class CourseResourceController : BaseApiController
     }
 
     /// <summary>
-    /// Lấy danh sách CourseResource
+    /// Lấy danh sách CourseResource theo CourseSessionId
     /// </summary>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result<PaginationResult<GetCourseResourceResponse>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetListAsync([FromQuery] GetListCourseResourceQuery query, CancellationToken cancellationToken = default)
     {
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Lấy danh sách CourseResource của tutor hiện tại chưa thuộc courseSession.
+    /// </summary>
+    [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
+    [HttpGet("by-tutor")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<PaginationResult<GetCourseResourceResponse>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetListByTutorAsync([FromQuery] GetListCourseResourceByTutorQuery query, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(User.GetTutorId(), out var tutorId))
+        {
+            return FromResult(Result.Failure(HttpStatusCode.BadRequest,
+                CommonErrors.ValidationFailed("Khong tim thay Id cua gia su.")));
+        }
+
+        query.TutorId = tutorId;
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
         return FromResult(result);
     }
@@ -79,13 +100,13 @@ public class CourseResourceController : BaseApiController
             ResourceType = request.ResourceType,
             ResourceFile = new FileUpload
             {
-                FileName =  request.ResourceFileName ?? request.ResourceFile.FileName,
+                FileName = request.ResourceFileName ?? request.ResourceFile.FileName,
                 ContentType = request.ResourceFile.ContentType ?? "application/octet-stream",
                 Content = request.ResourceFile.OpenReadStream(),
-                Length =  request.ResourceFile.Length
+                Length = request.ResourceFile.Length
             }
         };
-        
+
         var result = await _commandDispatcher.DispatchAsync(command);
         return FromResult(result);
     }

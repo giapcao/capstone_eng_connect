@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Net;
 using EngConnect.Application.UseCases.CourseResources.Common;
 using EngConnect.BuildingBlock.Application.Base;
@@ -30,49 +29,42 @@ public class GetListCourseResourceQueryHandler : IQueryHandler<GetListCourseReso
         _logger.LogInformation("Start GetListCourseResourceQueryHandler {@Query}", query);
         try
         {
-            var courseResources = _unitOfWork.GetRepository<CourseResource, Guid>()
-                .FindAll();
+            var courseResources = _unitOfWork.GetRepository<CourseSessionCourseResource, Guid>().FindAll();
 
-            Expression<Func<CourseResource, bool>>? predicate = x => true;
-
-            // Apply filters
-
-
-            if (query.TutorId.HasValue)
-            {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId.Value);
-            }
-            
             if (query.CourseSessionId.HasValue)
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => !x.CourseSessionCourseResources.Any(cr => cr.CourseSessionId == query.CourseSessionId.Value));
+                courseResources = courseResources.Where(x => x.CourseSessionId == query.CourseSessionId.Value);
             }
 
             if (ValidationUtil.IsNotNullOrEmpty(query.ResourceType))
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.ResourceType == query.ResourceType);
+                courseResources = courseResources.Where(x => x.CourseResource.ResourceType == query.ResourceType);
             }
 
             if (ValidationUtil.IsNotNullOrEmpty(query.Status))
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.Status == query.Status);
+                courseResources = courseResources.Where(x => x.CourseResource.Status == query.Status);
             }
-            
 
-            courseResources = courseResources.Where(predicate);
-
-            // Apply search and sort
-            courseResources = courseResources.ApplySearch(query.GetSearchParams(),
+            var resultQuery = courseResources
+                .Select(x => new GetCourseResourceResponse
+                {
+                    Id = x.CourseResourceId,
+                    TutorId = x.CourseResource.TutorId ?? Guid.Empty,
+                    Title = x.CourseResource.Title,
+                    ResourceType = x.CourseResource.ResourceType,
+                    Url = x.CourseResource.Url,
+                    Status = x.CourseResource.Status,
+                    CreatedAt = x.CourseResource.CreatedAt,
+                    UpdatedAt = x.CourseResource.UpdatedAt
+                })
+                .ApplySearch(query.GetSearchParams(),
                     x => x.Title ?? string.Empty,
                     x => x.Url)
                 .ApplySorting(query.GetSortParams());
 
-            // Map to GetCourseResourceResponse
-            var result =
-                await courseResources.ProjectToPaginatedListAsync<CourseResource, GetCourseResourceResponse>(
-                    query.GetPaginationParams());
+            var result = await resultQuery.ToPaginatedListAsync(query.GetPaginationParams());
 
-            // Convert relative paths to full AWS S3 URLs
             foreach (var item in result.Items)
             {
                 item.Url = item.Url != null ? _awsStorageService.GetFileUrl(item.Url) : null!;

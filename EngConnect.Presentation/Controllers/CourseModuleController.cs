@@ -1,13 +1,16 @@
+using System.Net;
 using EngConnect.Application.UseCases.CourseModules.Common;
 using EngConnect.Application.UseCases.CourseModules.CreateCourseModule;
 using EngConnect.Application.UseCases.CourseModules.DeleteCourseModule;
 using EngConnect.Application.UseCases.CourseModules.GetCourseModuleById;
 using EngConnect.Application.UseCases.CourseModules.GetListCourseModule;
+using EngConnect.Application.UseCases.CourseModules.GetListCourseModuleByTutor;
 using EngConnect.Application.UseCases.CourseModules.UpdateCourseModule;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.Constants;
+using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.BuildingBlock.Presentation.Controllers;
 using EngConnect.BuildingBlock.Presentation.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -32,14 +35,33 @@ public class CourseModuleController : BaseApiController
     }
 
     /// <summary>
-    /// Lấy danh sách CourseModule theo tutorId
-    /// Nếu truyền courseId thì sẽ lấy danh sách CourseModule chưa có trong course đó
+    /// Lấy danh sách CourseModule theo CourseId
     /// </summary>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result<PaginationResult<GetCourseModuleResponse>>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetListAsync([FromQuery] GetListCourseModuleQuery query, CancellationToken cancellationToken = default)
     {
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Lấy danh sách CourseModule của tutor hiện tại chưa thuộc course.
+    /// </summary>
+    [Authorize(Roles = nameof(UserRoleEnum.Tutor))]
+    [HttpGet("by-tutor")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<PaginationResult<GetCourseModuleResponse>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetListByTutorAsync([FromQuery] GetListCourseModuleByTutorQuery query, CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(User.GetTutorId(), out var tutorId))
+        {
+            return FromResult(Result.Failure(HttpStatusCode.BadRequest,
+                CommonErrors.ValidationFailed("Khong tim thay Id cua gia su.")));
+        }
+
+        query.TutorId = tutorId;
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
         return FromResult(result);
     }

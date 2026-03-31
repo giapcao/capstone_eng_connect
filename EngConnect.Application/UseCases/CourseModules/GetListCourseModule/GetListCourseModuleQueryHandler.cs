@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Net;
 using EngConnect.Application.UseCases.CourseModules.Common;
 using EngConnect.BuildingBlock.Application.Base;
@@ -6,7 +5,6 @@ using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
-using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 
@@ -28,35 +26,32 @@ public class GetListCourseModuleQueryHandler : IQueryHandler<GetListCourseModule
         _logger.LogInformation("Start GetListCourseModuleQueryHandler {@Query}", query);
         try
         {
-            var courseModules = _unitOfWork.GetRepository<CourseModule, Guid>()
-                .FindAll();
-
-            Expression<Func<CourseModule, bool>>? predicate = x => true;
-
-            // Apply filters
-            if (query.TutorId.HasValue)
-            {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId.Value);
-            }
+            var courseModules = _unitOfWork.GetRepository<CourseCourseModule, Guid>().FindAll();
 
             if (query.CourseId.HasValue)
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => !x.CourseCourseModules.Any(ccm => ccm.CourseId == query.CourseId.Value));
+                courseModules = courseModules.Where(x => x.CourseId == query.CourseId.Value);
             }
 
-            courseModules = courseModules.Where(predicate);
-
-            // Apply search and sort
-            courseModules = courseModules.ApplySearch(query.GetSearchParams(),
-                    x => x.Title,
+            var resultQuery = courseModules
+                .Select(x => new GetCourseModuleResponse
+                {
+                    Id = x.CourseModuleId,
+                    CourseId = x.CourseId,
+                    Title = x.CourseModule.Title,
+                    Description = x.CourseModule.Description,
+                    Outcomes = x.CourseModule.Outcomes,
+                    ModuleNumber = x.ModuleNumber,
+                    CreatedAt = x.CourseModule.CreatedAt,
+                    UpdatedAt = x.CourseModule.UpdatedAt
+                })
+                .ApplySearch(query.GetSearchParams(),
+                    x => x.Title ?? string.Empty,
                     x => x.Description ?? string.Empty,
                     x => x.Outcomes ?? string.Empty)
                 .ApplySorting(query.GetSortParams());
 
-            // Map to GetCourseModuleResponse
-            var result =
-                await courseModules.ProjectToPaginatedListAsync<CourseModule, GetCourseModuleResponse>(
-                    query.GetPaginationParams());
+            var result = await resultQuery.ToPaginatedListAsync(query.GetPaginationParams());
 
             _logger.LogInformation("End GetListCourseModuleQueryHandler");
             return Result.Success(result);

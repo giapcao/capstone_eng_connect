@@ -32,11 +32,6 @@ namespace EngConnect.Presentation.Controllers
             [FromBody] ReviewCourseVerificationRequest body,
             CancellationToken cancellationToken = default)
         {
-            if (body is null)
-            {
-                return BadRequest(CommonErrors.ValidationFailed("Dữ liệu không thể null."));
-            }
-
             var request = body with { RequestId = requestId };
 
             var command = new ReviewCourseVerificationRequestCommand(request);
