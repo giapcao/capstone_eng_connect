@@ -41,7 +41,6 @@ public class CourseController : BaseApiController
     /// <summary>
     /// Lay danh sach Course
     /// </summary>
-    [Authorize]
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result<PaginationResult<GetCourseResponse>>), StatusCodes.Status200OK)]
