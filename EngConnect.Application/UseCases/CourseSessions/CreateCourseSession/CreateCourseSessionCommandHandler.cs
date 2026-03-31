@@ -5,6 +5,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
@@ -34,12 +35,22 @@ public class CreateCourseSessionCommandHandler : ICommandHandler<CreateCourseSes
             var courseModuleRepo = _unitOfWork.GetRepository<CourseModule, Guid>();
             var courseModuleCourseSessionRepo = _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>();
 
-            var courseModuleExists = await courseModuleRepo.AnyAsync(x => x.Id == command.CourseModuleId, cancellationToken);
-            if (!courseModuleExists)
+            var courseModule = await courseModuleRepo.FindAll(x => x.Id == command.CourseModuleId)
+                .Include(x => x.CourseCourseModules)
+                    .ThenInclude(x => x.Course)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (courseModule == null)
             {
                 _logger.LogWarning("Course module not found with ID: {CourseModuleId}", command.CourseModuleId);
                 return Result.Failure<GetCourseSessionListResponse>(HttpStatusCode.NotFound,
                     new Error("CourseModuleNotFound", "Module khong ton tai"));
+            }
+
+            if (courseModule.CourseCourseModules.Any(x => x.Course.Status == nameof(CourseStatus.Published)))
+            {
+                _logger.LogWarning("Course sessions cannot be changed because course module {CourseModuleId} belongs to a published course", command.CourseModuleId);
+                return Result.Failure<GetCourseSessionListResponse>(HttpStatusCode.BadRequest,
+                    CourseErrors.PublishedCourseCannotBeUpdated());
             }
 
             var transaction = await _unitOfWork.BeginTransactionAsync();

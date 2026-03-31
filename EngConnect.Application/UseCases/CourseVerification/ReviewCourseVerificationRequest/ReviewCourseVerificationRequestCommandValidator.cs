@@ -17,23 +17,19 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
             RuleFor(x => x.Request)
                 .NotNull()
                 .WithMessage(CommonErrors.ValidationFailed("Dữ liệu không thể null.").Message);
+            RuleFor(x => x.Request.RequestId)
+                .NotEmpty()
+                .WithMessage(CourseErrors.InvalidVerificationRequestId().Message);
 
-            When(x => x.Request is not null, () =>
+            RuleFor(x => x.Request.AdminUserId)
+                .NotEmpty()
+                .WithMessage(CommonErrors.ValidationFailed("AdminUserId không thể null.").Message);
+
+            When(x => !x.Request.Approved, () =>
             {
-                RuleFor(x => x.Request.RequestId)
+                RuleFor(x => x.Request.RejectionReason)
                     .NotEmpty()
-                    .WithMessage(CourseErrors.InvalidVerificationRequestId().Message);
-
-                RuleFor(x => x.Request.AdminUserId)
-                    .NotEmpty()
-                    .WithMessage(CommonErrors.ValidationFailed("AdminUserId không thể null.").Message);
-
-                When(x => x.Request.Approved == false, () =>
-                {
-                    RuleFor(x => x.Request.RejectionReason)
-                        .NotEmpty()
-                        .WithMessage(CourseErrors.InvalidRejectionReason().Message);
-                });
+                    .WithMessage(CourseErrors.InvalidRejectionReason().Message);
             });
         }
     }

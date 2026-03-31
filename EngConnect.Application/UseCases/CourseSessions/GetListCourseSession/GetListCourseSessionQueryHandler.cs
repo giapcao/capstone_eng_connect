@@ -1,4 +1,3 @@
-using System.Linq.Expressions;
 using System.Net;
 using EngConnect.Application.UseCases.CourseSessions.Common;
 using EngConnect.BuildingBlock.Application.Base;
@@ -27,34 +26,32 @@ public class GetListCourseSessionQueryHandler : IQueryHandler<GetListCourseSessi
         _logger.LogInformation("Start GetListCourseSessionQueryHandler {@Query}", query);
         try
         {
-            var courseSessions = _unitOfWork.GetRepository<CourseSession, Guid>()
-                .FindAll();
+            var courseSessions = _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>().FindAll();
 
-            Expression<Func<CourseSession, bool>>? predicate = x => true;
-            
-            if (query.TutorId.HasValue)
-            {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId.Value);
-            }
-            
             if (query.CourseModuleId.HasValue)
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => !x.CourseModuleCourseSessions.Any(cmcs => cmcs.CourseModuleId == query.CourseModuleId.Value));
+                courseSessions = courseSessions.Where(x => x.CourseModuleId == query.CourseModuleId.Value);
             }
 
-            courseSessions = courseSessions.Where(predicate);
-
-            // Apply search and sort
-            courseSessions = courseSessions.ApplySearch(query.GetSearchParams(),
+            var resultQuery = courseSessions
+                .Select(x => new GetCourseSessionResponse
+                {
+                    Id = x.CourseSessionId,
+                    ModuleId = x.CourseModuleId,
+                    Title = x.CourseSession.Title,
+                    Description = x.CourseSession.Description,
+                    Outcomes = x.CourseSession.Outcomes,
+                    SessionNumber = x.SessionNumber,
+                    CreatedAt = x.CourseSession.CreatedAt,
+                    UpdatedAt = x.CourseSession.UpdatedAt
+                })
+                .ApplySearch(query.GetSearchParams(),
                     x => x.Title ?? string.Empty,
                     x => x.Description ?? string.Empty,
                     x => x.Outcomes ?? string.Empty)
                 .ApplySorting(query.GetSortParams());
 
-            // Map to GetCourseSessionResponse
-            var result =
-                await courseSessions.ProjectToPaginatedListAsync<CourseSession, GetCourseSessionResponse>(
-                    query.GetPaginationParams());
+            var result = await resultQuery.ToPaginatedListAsync(query.GetPaginationParams());
 
             _logger.LogInformation("End GetListCourseSessionQueryHandler");
             return Result.Success(result);

@@ -5,6 +5,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
@@ -34,12 +35,19 @@ public class CreateCourseModuleCommandHandler : ICommandHandler<CreateCourseModu
             var courseRepo = _unitOfWork.GetRepository<Course, Guid>();
             var courseCourseModuleRepo = _unitOfWork.GetRepository<CourseCourseModule, Guid>();
 
-            var courseExists = await courseRepo.AnyAsync(x => x.Id == command.CourseId, cancellationToken);
-            if (!courseExists)
+            var course = await courseRepo.FindSingleAsync(x => x.Id == command.CourseId, cancellationToken: cancellationToken);
+            if (course == null)
             {
                 _logger.LogWarning("Course not found with ID: {CourseId}", command.CourseId);
                 return Result.Failure<GetCourseModuleListResponse>(HttpStatusCode.NotFound,
                     new Error("CourseNotFound", "Course not found"));
+            }
+
+            if (course.Status == nameof(CourseStatus.Published))
+            {
+                _logger.LogWarning("Course modules cannot be changed because course {CourseId} is published", command.CourseId);
+                return Result.Failure<GetCourseModuleListResponse>(HttpStatusCode.BadRequest,
+                    CourseErrors.PublishedCourseCannotBeUpdated());
             }
 
             var transaction = await _unitOfWork.BeginTransactionAsync();
