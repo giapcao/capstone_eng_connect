@@ -27,24 +27,22 @@ public class UpdateLessonScriptCommandHandler : ICommandHandler<UpdateLessonScri
         {
             var lessonScriptExists = await _unitOfWork.GetRepository<LessonScript, Guid>()
                 .FindByIdAsync(command.Id, cancellationToken: cancellationToken);
-            
-            var lessonExists = await  _unitOfWork.GetRepository<Lesson, Guid>()
-                .AnyAsync(x => x.Id == command.LessonId, cancellationToken);
-            
-            var lessonRecordExists = await _unitOfWork.GetRepository<LessonRecord, Guid>()
-                .AnyAsync(x => x.Id == command.RecordId, cancellationToken);
-            
+
             if (lessonScriptExists == null)
             {
-                _logger.LogWarning("LessonScript không tồn tại {id}", command.Id);
+                _logger.LogWarning("LessonScript khÃ´ng tá»“n táº¡i {id}", command.Id);
                 return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<LessonScript>("Id"));
             }
-            
-            command.Adapt(lessonScriptExists);
-            
-            if (!lessonRecordExists)
+
+            var lessonExists = await _unitOfWork.GetRepository<Lesson, Guid>()
+                .AnyAsync(x => x.Id == command.LessonId, cancellationToken);
+
+            var lessonRecord = await _unitOfWork.GetRepository<LessonRecord, Guid>()
+                .FindFirstAsync(x => x.Id == command.RecordId, cancellationToken: cancellationToken);
+
+            if (lessonRecord == null)
             {
-                _logger.LogWarning("LessonRecord không tồn tại {RecordId}", command.RecordId);
+                _logger.LogWarning("LessonRecord khÃ´ng tá»“n táº¡i {RecordId}", command.RecordId);
                 return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<LessonRecord>("RecordId"));
             }
 
@@ -53,7 +51,36 @@ public class UpdateLessonScriptCommandHandler : ICommandHandler<UpdateLessonScri
                 _logger.LogWarning("Lesson not found {LessonId}", command.LessonId);
                 return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("LessonId"));
             }
-            
+
+            if (lessonRecord.LessonId != command.LessonId)
+            {
+                _logger.LogWarning("LessonScript lesson/record mismatch. LessonId: {lessonId}, RecordId: {recordId}", command.LessonId, command.RecordId);
+                return Result.Failure(HttpStatusCode.BadRequest,
+                    CommonErrors.ValidationFailed("RecordId does not belong to LessonId"));
+            }
+
+            var lessonScriptByLessonExists = await _unitOfWork.GetRepository<LessonScript, Guid>()
+                .AnyAsync(x => x.LessonId == command.LessonId && x.Id != command.Id, cancellationToken: cancellationToken);
+
+            if (lessonScriptByLessonExists)
+            {
+                _logger.LogWarning("Another LessonScript already exists for lesson: {lessonId}", command.LessonId);
+                return Result.Failure(HttpStatusCode.Conflict,
+                    CommonErrors.ValidationFailed("Lesson already has a lesson script"));
+            }
+
+            var lessonScriptByRecordExists = await _unitOfWork.GetRepository<LessonScript, Guid>()
+                .AnyAsync(x => x.RecordId == command.RecordId && x.Id != command.Id, cancellationToken: cancellationToken);
+
+            if (lessonScriptByRecordExists)
+            {
+                _logger.LogWarning("Another LessonScript already exists for record: {recordId}", command.RecordId);
+                return Result.Failure(HttpStatusCode.Conflict,
+                    CommonErrors.ValidationFailed("Lesson record already has a lesson script"));
+            }
+
+            command.Adapt(lessonScriptExists);
+
             _unitOfWork.GetRepository<LessonScript, Guid>().Update(lessonScriptExists);
             await _unitOfWork.SaveChangesAsync();
             

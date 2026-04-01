@@ -12,9 +12,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EngConnect.Presentation.Controllers;
 
-/// <summary>
-/// API quản lý bản ghi bài học
-/// </summary>
 [ApiController]
 [Route("api/lesson-records")]
 public class LessonRecordController : BaseApiController
@@ -28,12 +25,6 @@ public class LessonRecordController : BaseApiController
         _queryDispatcher = queryDispatcher;
     }
 
-    /// <summary>
-    /// Lấy bản ghi bài học theo Id
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpGet("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result<GetLessonRecordResponse>), StatusCodes.Status200OK)]
@@ -43,12 +34,6 @@ public class LessonRecordController : BaseApiController
         return FromResult(result);
     }
 
-    /// <summary>
-    /// Lấy danh sách bản ghi bài học (Có phân trang)
-    /// </summary>
-    /// <param name="query"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result<PaginationResult<GetLessonRecordResponse>>), StatusCodes.Status200OK)]
@@ -58,12 +43,6 @@ public class LessonRecordController : BaseApiController
         return FromResult(result);
     }
 
-    /// <summary>
-    /// Tạo bản ghi bài học
-    /// </summary>
-    /// <param name="command"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpPost]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
@@ -73,13 +52,6 @@ public class LessonRecordController : BaseApiController
         return FromResult(result);
     }
 
-    /// <summary>
-    /// Cập nhật bản ghi bài học
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="command"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpPut("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
@@ -90,12 +62,6 @@ public class LessonRecordController : BaseApiController
         return FromResult(result);
     }
 
-    /// <summary>
-    /// Xóa bản ghi bài học
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     [HttpDelete("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]

@@ -31,16 +31,26 @@ public class UpdateLessonRecordCommandHandler : ICommandHandler<UpdateLessonReco
             if (lessonRecord == null)
             {
                 _logger.LogWarning("LessonRecord not found: {id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<LessonRecord>("Bản ghi bài học"));
+                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<LessonRecord>("Báº£n ghi bÃ i há»c"));
             }
 
             var lessonExists = await _unitOfWork.GetRepository<Lesson, Guid>()
                 .AnyAsync(x => x.Id == command.LessonId, cancellationToken: cancellationToken);
 
+            var lessonRecordExists = await _unitOfWork.GetRepository<LessonRecord, Guid>()
+                .AnyAsync(x => x.LessonId == command.LessonId && x.Id != command.Id, cancellationToken: cancellationToken);
+
             if (!lessonExists)
             {
                 _logger.LogWarning("Lesson not found: {lessonId}", command.LessonId);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("Bài học"));
+                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("BÃ i há»c"));
+            }
+
+            if (lessonRecordExists)
+            {
+                _logger.LogWarning("Another LessonRecord already exists for lesson: {lessonId}", command.LessonId);
+                return Result.Failure(HttpStatusCode.Conflict,
+                    CommonErrors.ValidationFailed("Lesson already has a lesson record"));
             }
 
             command.Adapt(lessonRecord);

@@ -29,7 +29,10 @@ public class GetLessonByIdQueryHandler : IQueryHandler<GetLessonByIdQuery, GetLe
         try
         {
             var lesson = await _unitOfWork.GetRepository<Lesson, Guid>()
-                .FindByIdAsync(query.Id, cancellationToken: cancellationToken);
+                .FindByIdAsync(query.Id, true, cancellationToken,
+                    x => x.LessonRecord!,
+                    x => x.LessonScript!,
+                    x => x.LessonHomeworks);
 
             if (lesson == null)
             {
