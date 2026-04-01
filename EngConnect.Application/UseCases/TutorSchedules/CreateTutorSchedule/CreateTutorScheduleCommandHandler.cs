@@ -2,6 +2,7 @@ using System.Net;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
@@ -32,9 +33,9 @@ public sealed class CreateTutorScheduleCommandHandler : ICommandHandler<CreateTu
             var scheduleRepo = _unitOfWork.GetRepository<TutorSchedule, Guid>();
 
             var tutor = await tutorRepo.FindFirstAsync(t => t.Id == command.Request.TutorId, cancellationToken: cancellationToken);
-            if (tutor is null)
+            if (ValidationUtil.IsNullOrEmpty(tutor))
             {
-                return Result.Failure(HttpStatusCode.NotFound, ScheduleErrors.TutorNotFound());
+                return Result.Failure(HttpStatusCode.BadRequest, ScheduleErrors.TutorNotFound());
             }
 
             var entity = new TutorSchedule

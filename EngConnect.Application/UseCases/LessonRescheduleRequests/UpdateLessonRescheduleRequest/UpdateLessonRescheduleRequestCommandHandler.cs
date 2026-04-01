@@ -3,6 +3,7 @@ using EngConnect.Application.UseCases.TutorSchedules.Extensions;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.BuildingBlock.EventBus.Constants;
@@ -46,7 +47,7 @@ public sealed class UpdateLessonRescheduleRequestCommandHandler : ICommandHandle
 
                 if (request is null)
                 {
-                    return Result.Failure(HttpStatusCode.NotFound, ScheduleErrors.RescheduleRequestNotFound());
+                    return Result.Failure(HttpStatusCode.BadRequest, ScheduleErrors.RescheduleRequestNotFound());
                 }
 
                 if (!ScheduleStatusExtensions.IsPendingLessonRescheduleRequestStatus(request.Status))
@@ -114,7 +115,7 @@ public sealed class UpdateLessonRescheduleRequestCommandHandler : ICommandHandle
                     var student = await studentRepo.FindByIdAsync(request.StudentId, tracking: false,
                         cancellationToken: cancellationToken);
 
-                    if (student is null)
+                    if (ValidationUtil.IsNullOrEmpty(student))
                     {
                         return Result.Failure(HttpStatusCode.NotFound, ScheduleErrors.StudentNotFound());
                     }
@@ -124,7 +125,7 @@ public sealed class UpdateLessonRescheduleRequestCommandHandler : ICommandHandle
 
                     if (studentUser is null)
                     {
-                        return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<User>("thông tin ng??i dùng h?c sinh."));
+                        return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<User>("thï¿½ng tin ng??i dï¿½ng h?c sinh."));
                     }
 
                     var reviewedEvent = LessonRescheduleRequestReviewedEvent.Create(
