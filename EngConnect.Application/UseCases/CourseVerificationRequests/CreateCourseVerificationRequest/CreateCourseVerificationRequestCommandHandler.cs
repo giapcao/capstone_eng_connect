@@ -51,7 +51,7 @@ public class CreateCourseVerificationRequestCommandHandler : ICommandHandler<Cre
             // Check if course exists
             var courseExists =
                 await courseRepo.FindFirstAsync(x => x.Id == command.CourseId, 
-                    tracking: false, cancellationToken);
+                    tracking: true, cancellationToken);
             if (ValidationUtil.IsNullOrEmpty(courseExists))
             {
                 _logger.LogWarning("Course not found with ID: {CourseId}", command.CourseId);
