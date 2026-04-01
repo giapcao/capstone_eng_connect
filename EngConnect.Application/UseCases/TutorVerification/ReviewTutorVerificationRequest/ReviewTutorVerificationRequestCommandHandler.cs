@@ -1,17 +1,17 @@
 ﻿using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.BuildingBlock.EventBus.Constants;
+using EngConnect.BuildingBlock.EventBus.Events;
+using EngConnect.BuildingBlock.EventBus.Utils;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 
 namespace EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificationRequest
@@ -42,6 +42,8 @@ namespace EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificat
             {
                 var requestRepo = _unitOfWork.GetRepository<TutorVerificationRequest, Guid>();
                 var tutorRepo = _unitOfWork.GetRepository<Domain.Persistence.Models.Tutor, Guid>();
+                var userRepo = _unitOfWork.GetRepository<User, Guid>();
+                var outboxRepo = _unitOfWork.GetRepository<OutboxEvent, Guid>();
 
                 var request = await requestRepo.FindFirstAsync(
                     r => r.Id == command.Request.RequestId,
@@ -80,6 +82,33 @@ namespace EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificat
                     tutor.VerifiedStatus = command.Request.Approved
                         ? nameof(TutorVerifiedStatus.Verified)
                         : nameof(TutorVerifiedStatus.Rejected);
+
+                    var tutorUser = await userRepo.FindByIdAsync(
+                        tutor.UserId,
+                        tracking: false,
+                        cancellationToken: cancellationToken);
+
+                    if (tutorUser is not null)
+                    {
+                        var reviewedEvent = TutorVerificationReviewedEvent.Create(
+                            adminUserId: command.Request.AdminUserId!.Value,
+                            tutorId: tutor.Id,
+                            tutorEmail: tutorUser.Email,
+                            tutorFullName: $"{tutorUser.FirstName} {tutorUser.LastName}",
+                            status: request.Status,
+                            rejectionReason: request.RejectionReason);
+
+                        var notificationEvent = NotificationHelper.CreateNotification(
+                            reviewedEvent,
+                            [tutorUser.Id],
+                            [nameof(UserRoleEnum.Tutor)],
+                            nameof(Channel.Email));
+
+                        outboxRepo.Add(OutboxEvent.CreateOutboxEvent(
+                            nameof(Tutor),
+                            tutor.Id,
+                            notificationEvent));
+                    }
                 }
 
                 await _unitOfWork.SaveChangesAsync();

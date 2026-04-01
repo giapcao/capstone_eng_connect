@@ -12,19 +12,16 @@ public class CreateTutorScheduleCommandValidator : AbstractValidator<CreateTutor
             .NotNull()
             .WithMessage(CommonErrors.ValidationFailed("Dữ liệu không thể null.").Message);
 
-        When(x => x.Request is not null, () =>
-        {
-            RuleFor(x => x.Request.TutorId)
-                .NotEmpty()
-                .WithMessage(ScheduleErrors.TutorNotFound().Message);
+        RuleFor(x => x.Request.TutorId)
+            .NotEmpty()
+            .WithMessage(ScheduleErrors.TutorNotFound().Message);
 
-            RuleFor(x => x.Request.Weekday)
-                .NotEmpty()
-                .WithMessage(CommonErrors.ValidationFailed("Weekday không được để trống.").Message);
+        RuleFor(x => x.Request.Weekday)
+            .NotEmpty()
+            .WithMessage(CommonErrors.ValidationFailed("Weekday không được để trống.").Message);
 
-            RuleFor(x => x.Request)
-                .Must(x => x.StartTime < x.EndTime)
-                .WithMessage(ScheduleErrors.InvalidTimeRange().Message);
-        });
+        RuleFor(x => x.Request)
+            .Must(x => x.StartTime < x.EndTime)
+            .WithMessage(ScheduleErrors.InvalidTimeRange().Message);
     }
 }
