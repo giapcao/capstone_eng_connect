@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.EventBus.Events;
@@ -74,14 +75,13 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
             var mergedFileName = $"lesson-{eventData.LessonId}-{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
             var mergedFilePath = Path.Combine(tempWorkingFolder, mergedFileName);
 
-            await using (var mergedOutputStream = new FileStream(mergedFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                foreach (var chunkPath in orderedChunks)
-                {
-                    await using var chunkStream = new FileStream(chunkPath, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    await chunkStream.CopyToAsync(mergedOutputStream, context.CancellationToken);
-                }
-            }
+            var concatListFilePath = Path.Combine(tempWorkingFolder, "concat-list.txt");
+            var concatLines = orderedChunks
+                .Select(chunkPath => $"file '{chunkPath.Replace("'", "'\\''")}'")
+                .ToArray();
+            await File.WriteAllLinesAsync(concatListFilePath, concatLines, context.CancellationToken);
+
+            await MergeChunksWithFfmpegAsync(concatListFilePath, mergedFilePath, context.CancellationToken);
 
             var mergedFileInfo = new FileInfo(mergedFilePath);
             await using var uploadStream = new FileStream(mergedFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -89,7 +89,7 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
             var mergedFile = new FileUpload
             {
                 FileName = mergedFileName,
-                ContentType = "video/webm",
+                ContentType = GetContentTypeFromExtension(extension),
                 Length = mergedFileInfo.Length,
                 Content = uploadStream
             };
@@ -185,5 +185,55 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
         }
 
         return long.MaxValue;
+    }
+
+    private async Task MergeChunksWithFfmpegAsync(string concatListFilePath, string outputFilePath,
+        CancellationToken cancellationToken)
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "ffmpeg",
+            Arguments = $"-y -f concat -safe 0 -i \"{concatListFilePath}\" -c copy \"{outputFilePath}\"",
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using var process = new Process { StartInfo = startInfo };
+
+        if (!process.Start())
+        {
+            throw new InvalidOperationException("Failed to start ffmpeg process.");
+        }
+
+        var stdOutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        var stdErrTask = process.StandardError.ReadToEndAsync(cancellationToken);
+
+        await process.WaitForExitAsync(cancellationToken);
+
+        var stdOut = await stdOutTask;
+        var stdErr = await stdErrTask;
+
+        if (process.ExitCode != 0)
+        {
+            _logger.LogError("ffmpeg failed with code {ExitCode}. StdOut: {StdOut}. StdErr: {StdErr}",
+                process.ExitCode,
+                stdOut,
+                stdErr);
+            throw new InvalidOperationException($"ffmpeg failed with exit code {process.ExitCode}.");
+        }
+    }
+
+    private static string GetContentTypeFromExtension(string extension)
+    {
+        return extension.ToLowerInvariant() switch
+        {
+            ".mp4" => "video/mp4",
+            ".webm" => "video/webm",
+            ".mov" => "video/quicktime",
+            ".mkv" => "video/x-matroska",
+            _ => "application/octet-stream"
+        };
     }
 }
