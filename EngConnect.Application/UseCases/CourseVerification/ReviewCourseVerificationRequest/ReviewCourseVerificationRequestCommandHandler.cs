@@ -9,12 +9,7 @@ using EngConnect.BuildingBlock.EventBus.Utils;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.Domain.Constants;
 
@@ -49,7 +44,13 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
                 var tutorRepo = _unitOfWork.GetRepository<Tutor, Guid>();
                 var userRepo = _unitOfWork.GetRepository<User, Guid>();
                 var outboxRepo = _unitOfWork.GetRepository<OutboxEvent, Guid>();
-
+                
+                // Check adminUserId is valid
+                var adminUser = await userRepo.FindByIdAsync(command.Request.AdminUserId, tracking: false, cancellationToken: cancellationToken);
+                if (ValidationUtil.IsNullOrEmpty(adminUser))
+                {
+                    return Result.Failure(HttpStatusCode.BadRequest, UserErrors.UserNotFound());
+                }
                 var request = await requestRepo.FindFirstAsync(r => r.Id == command.Request.RequestId, cancellationToken: cancellationToken);
 
                 if (request is null)

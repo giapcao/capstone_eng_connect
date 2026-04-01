@@ -10,10 +10,10 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
 {
     public record ReviewCourseVerificationRequest
     {
-        [BindNever]
+        [JsonIgnore]
         public Guid RequestId { get; init; }
         [JsonIgnore]
-        public Guid AdminUserId { get; init; }
+        public Guid AdminUserId { get; set; }
         public bool Approved { get; init; }
         public string? RejectionReason { get; init; }
     }
