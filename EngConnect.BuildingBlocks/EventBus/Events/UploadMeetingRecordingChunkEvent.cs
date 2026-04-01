@@ -6,7 +6,7 @@ public class UploadMeetingRecordingChunkEvent : EventBase
 {
     public Guid LessonId { get; set; }
     public Guid UserId { get; set; }
-    public int ChunkIndex { get; set; }
+    public long ChunkTimestamp { get; set; }
     public string TempFilePath { get; set; } = null!;
     public string OriginalFileName { get; set; } = null!;
     public string ContentType { get; set; } = null!;
@@ -14,7 +14,7 @@ public class UploadMeetingRecordingChunkEvent : EventBase
     public static UploadMeetingRecordingChunkEvent Create(
         Guid lessonId,
         Guid userId,
-        int chunkIndex,
+        long chunkTimestamp,
         string tempFilePath,
         string originalFileName,
         string contentType)
@@ -23,7 +23,7 @@ public class UploadMeetingRecordingChunkEvent : EventBase
         {
             LessonId = lessonId,
             UserId = userId,
-            ChunkIndex = chunkIndex,
+            ChunkTimestamp = chunkTimestamp,
             TempFilePath = tempFilePath,
             OriginalFileName = originalFileName,
             ContentType = contentType

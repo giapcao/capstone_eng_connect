@@ -62,7 +62,7 @@ public class UploadMeetingRecordingChunkEventConsumer : IConsumer<UploadMeetingR
 
                 if (!string.IsNullOrEmpty(result?.Transcription))
                 {
-                    double score = eventData.ChunkIndex; 
+                    double score = eventData.ChunkTimestamp;
                     await _redisService.SortedSetAddAsync(eventData.LessonId.ToString(), result.Transcription, score);
                 }
             }
@@ -78,28 +78,23 @@ public class UploadMeetingRecordingChunkEventConsumer : IConsumer<UploadMeetingR
                 };
                 await _driveService.UploadMeetingChunkAsync(
                     eventData.LessonId,
-                    eventData.ChunkIndex,
+                    eventData.ChunkTimestamp,
                     uploadFile,
                     context.CancellationToken);
 
             }
-            
-            if (File.Exists(eventData.TempFilePath))
-            {
-                File.Delete(eventData.TempFilePath);
-            }
           
             _logger.LogInformation(
-                "Uploaded meeting chunk {ChunkIndex} for lesson {LessonId} to Drive",
-                eventData.ChunkIndex,
+                "Uploaded meeting chunk {ChunkTimestamp} for lesson {LessonId} to Drive",
+                eventData.ChunkTimestamp,
                 eventData.LessonId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Error consuming UploadMeetingRecordingChunkEvent for LessonId {LessonId}, ChunkIndex {ChunkIndex}",
+                "Error consuming UploadMeetingRecordingChunkEvent for LessonId {LessonId}, ChunkTimestamp {ChunkTimestamp}",
                 eventData.LessonId,
-                eventData.ChunkIndex);
+                eventData.ChunkTimestamp);
             throw;
         }
         // finally
