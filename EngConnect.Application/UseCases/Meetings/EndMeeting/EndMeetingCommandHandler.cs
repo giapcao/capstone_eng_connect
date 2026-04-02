@@ -3,7 +3,9 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.BuildingBlock.EventBus.Constants;
 using EngConnect.BuildingBlock.EventBus.Events;
+using EngConnect.BuildingBlock.EventBus.Utils;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
@@ -78,7 +80,9 @@ public class EndMeetingCommandHandler : ICommandHandler<EndMeetingCommand>
 
             var meetingEndedEvent = ProcessMeetingRecordingAfterEndedEvent.Create(command.LessonId, command.UserId, command.TotalChunks);
             var outboxEventRepo = _unitOfWork.GetRepository<OutboxEvent, Guid>();
-            var outboxEvent = OutboxEvent.CreateOutboxEvent(nameof(Lesson), command.LessonId, meetingEndedEvent);
+            var notificationEvent = NotificationHelper.CreateNotification(meetingEndedEvent, 
+                [],[],nameof(Channel.System));
+            var outboxEvent = OutboxEvent.CreateOutboxEvent(nameof(Lesson), command.LessonId, notificationEvent);
             outboxEventRepo.Add(outboxEvent);
 
             await _unitOfWork.SaveChangesAsync();

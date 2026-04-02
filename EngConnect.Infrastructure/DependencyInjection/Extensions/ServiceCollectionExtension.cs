@@ -237,7 +237,8 @@ public static class ServiceCollectionExtension
             {
                 var s3Config = new AmazonS3Config
                 {
-                    RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(awsSettings.Region)
+                    RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(awsSettings.Region),
+                    Timeout = TimeSpan.FromHours(2)
                 };
                 return new AmazonS3Client(awsSettings.AccessKey, awsSettings.SecretKey, s3Config);
             });

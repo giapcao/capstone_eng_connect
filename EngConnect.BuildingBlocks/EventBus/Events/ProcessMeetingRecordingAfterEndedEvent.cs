@@ -2,7 +2,7 @@ using EngConnect.BuildingBlock.EventBus.Abstraction;
 
 namespace EngConnect.BuildingBlock.EventBus.Events;
 
-public class ProcessMeetingRecordingAfterEndedEvent : EventBase
+public class ProcessMeetingRecordingAfterEndedEvent : NotificationEvent
 {
     public Guid LessonId { get; set; }
     public Guid EndedByUserId { get; set; }

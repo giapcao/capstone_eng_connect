@@ -11,6 +11,9 @@ public static class SummarizePromptConstant
         - outcome: Danh sách mục tiêu học tập
 
         Nhiệm vụ:
+        0. KIỂM TRA DỮ LIỆU (QUAN TRỌNG): 
+        Nếu transcript trống, null, hoặc không chứa nội dung lời thoại có ý nghĩa, hãy trả về kết quả JSON với "AiSummarizeText" là một chuỗi rỗng "" và tất cả các outcome đều nằm trong danh sách "fail". Tuyệt đối không tự suy diễn nội dung từ kiến thức bên ngoài.
+        
         1. AiSummarizeText:
         Tạo bản tóm tắt theo dạng "ghi chú học tập" (learning notes), không phải tóm tắt chung chung.
         Yêu cầu:
