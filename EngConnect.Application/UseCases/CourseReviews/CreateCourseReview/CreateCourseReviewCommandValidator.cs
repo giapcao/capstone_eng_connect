@@ -14,6 +14,8 @@ public class CreateCourseReviewCommandValidator : AbstractValidator<CreateCourse
 
         RuleFor(x => x.EnrollmentId)
             .NotEmpty().WithMessage("EnrollmentId không được để trống");
+        RuleFor(x => x.TutorId)
+            .NotEmpty().WithMessage("TutorId không được để trống");
 
         RuleFor(x => x.Rating)
             .InclusiveBetween((short)1, (short)5).WithMessage("Rating phải từ 1 đến 5")

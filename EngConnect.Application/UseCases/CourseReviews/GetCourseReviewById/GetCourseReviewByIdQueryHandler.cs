@@ -5,6 +5,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Mapster;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseReviews.GetCourseReviewById;
@@ -27,26 +28,14 @@ public class GetCourseReviewByIdQueryHandler : IQueryHandler<GetCourseReviewById
         {
             var courseReviewRepo = _unitOfWork.GetRepository<CourseReview, Guid>();
 
-            var courseReview = await courseReviewRepo.FindFirstAsync(x => x.Id == query.Id, cancellationToken: cancellationToken);
+            var courseReview = await courseReviewRepo.FindFirstAsync(x => x.Id == query.Id,false, cancellationToken: cancellationToken);
             if (courseReview == null)
             {
                 _logger.LogWarning("CourseReview not found with ID: {Id}", query.Id);
                 return Result.Failure<GetCourseReviewResponse>(HttpStatusCode.NotFound, new Error("CourseReviewNotFound", "Đánh giá khóa học không tồn tại"));
             }
-
-            var response = new GetCourseReviewResponse
-            {
-                Id = courseReview.Id,
-                CourseId = courseReview.CourseId,
-                TutorId = courseReview.TutorId,
-                StudentId = courseReview.StudentId,
-                EnrollmentId = courseReview.EnrollmentId,
-                Rating = courseReview.Rating,
-                Comment = courseReview.Comment,
-                IsAnonymous = courseReview.IsAnonymous,
-                CreatedAt = courseReview.CreatedAt,
-                UpdatedAt = courseReview.UpdatedAt
-            };
+            
+            var response = courseReview.Adapt<GetCourseReviewResponse>();
 
             _logger.LogInformation("End GetCourseReviewByIdQueryHandler successfully");
             return Result.Success(response);

@@ -1,11 +1,10 @@
 using EngConnect.Application.UseCases.CourseReviews.Common;
 using EngConnect.BuildingBlock.Application.Base;
+using EngConnect.BuildingBlock.Application.Utils;
 
 namespace EngConnect.Application.UseCases.CourseReviews.GetCourseReviewsByCourseId;
 
-public class GetCourseReviewsByCourseIdQuery : IQuery<List<GetCourseReviewResponse>>
+public record GetCourseReviewsByCourseIdQuery : BaseQuery<PaginationResult<GetCourseReviewResponse>>
 {
-    public required Guid CourseId { get; set; }
-    public int? Page { get; set; } = 1;
-    public int? PageSize { get; set; } = 10;
+    public Guid? CourseId { get; set; }
 }

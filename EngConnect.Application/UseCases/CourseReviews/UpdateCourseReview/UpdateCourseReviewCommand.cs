@@ -3,7 +3,7 @@ using EngConnect.BuildingBlock.Application.Base;
 
 namespace EngConnect.Application.UseCases.CourseReviews.UpdateCourseReview;
 
-public class UpdateCourseReviewCommand : ICommand<GetCourseReviewResponse>
+public class UpdateCourseReviewCommand : ICommand
 {
     public required Guid Id { get; set; }
     public short? Rating { get; set; }

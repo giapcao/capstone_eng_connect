@@ -1,16 +1,17 @@
+using System.Linq.Expressions;
 using System.Net;
 using EngConnect.Application.UseCases.CourseReviews.Common;
 using EngConnect.BuildingBlock.Application.Base;
+using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
-using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.Domain.Persistence.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseReviews.GetCourseReviewsByCourseId;
 
-public class GetCourseReviewsByCourseIdQueryHandler : IQueryHandler<GetCourseReviewsByCourseIdQuery, List<GetCourseReviewResponse>>
+public class GetCourseReviewsByCourseIdQueryHandler : IQueryHandler<GetCourseReviewsByCourseIdQuery, PaginationResult<GetCourseReviewResponse>>
 {
     private readonly ILogger<GetCourseReviewsByCourseIdQueryHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -21,40 +22,36 @@ public class GetCourseReviewsByCourseIdQueryHandler : IQueryHandler<GetCourseRev
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<List<GetCourseReviewResponse>>> HandleAsync(GetCourseReviewsByCourseIdQuery query, CancellationToken cancellationToken = default)
+    public async Task<Result<PaginationResult<GetCourseReviewResponse>>> HandleAsync(GetCourseReviewsByCourseIdQuery query, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Start GetCourseReviewsByCourseIdQueryHandler {@Query}", query);
         try
         {
-            var courseReviewRepo = _unitOfWork.GetRepository<CourseReview, Guid>();
+            var courseReviewRepository = _unitOfWork.GetRepository<CourseReview, Guid>();
+            
+            var reviews = courseReviewRepository.FindAll();
+            
+            Expression<Func<CourseReview,bool>> predicate = x => true;
+            if (ValidationUtil.IsNotNullOrEmpty(query.CourseId))
+            { 
+                predicate = predicate.CombineAndAlsoExpressions(x=>x.CourseId == query.CourseId);
+            }
+            
+            reviews = reviews.Where(predicate);
+            
+            reviews = reviews.ApplySorting(query.GetSortParams());
 
-            var reviews = courseReviewRepo.FindAll(x => x.CourseId == query.CourseId)
-                .OrderByDescending(x => x.CreatedAt)
-                .Skip((query.Page.GetValueOrDefault(1) - 1) * query.PageSize.GetValueOrDefault(10))
-                .Take(query.PageSize.GetValueOrDefault(10))
-                .ToList();
-
-            var responses = reviews.Select(review => new GetCourseReviewResponse
-            {
-                Id = review.Id,
-                CourseId = review.CourseId,
-                TutorId = review.TutorId,
-                StudentId = review.StudentId,
-                EnrollmentId = review.EnrollmentId,
-                Rating = review.Rating,
-                Comment = review.Comment,
-                IsAnonymous = review.IsAnonymous,
-                CreatedAt = review.CreatedAt,
-                UpdatedAt = review.UpdatedAt
-            }).ToList();
-
+            var result =
+                await reviews.ProjectToPaginatedListAsync<CourseReview, GetCourseReviewResponse>
+                    (query.GetPaginationParams());
+            
             _logger.LogInformation("End GetCourseReviewsByCourseIdQueryHandler successfully");
-            return Result.Success(responses);
+            return Result.Success(result);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in GetCourseReviewsByCourseIdQueryHandler: {Message}", ex.Message);
-            return Result.Failure<List<GetCourseReviewResponse>>(HttpStatusCode.InternalServerError, new Error("InternalError", "Lỗi hệ thống"));
+            return Result.Failure<PaginationResult<GetCourseReviewResponse>>(HttpStatusCode.InternalServerError, new Error("InternalError", "Lỗi hệ thống"));
         }
     }
 }

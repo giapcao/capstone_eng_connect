@@ -3,13 +3,13 @@ using EngConnect.Application.UseCases.CourseReviews.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
-using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Mapster;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseReviews.UpdateCourseReview;
 
-public class UpdateCourseReviewCommandHandler : ICommandHandler<UpdateCourseReviewCommand, GetCourseReviewResponse>
+public class UpdateCourseReviewCommandHandler : ICommandHandler<UpdateCourseReviewCommand>
 {
     private readonly ILogger<UpdateCourseReviewCommandHandler> _logger;
     private readonly IUnitOfWork _unitOfWork;
@@ -20,47 +20,23 @@ public class UpdateCourseReviewCommandHandler : ICommandHandler<UpdateCourseRevi
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<GetCourseReviewResponse>> HandleAsync(UpdateCourseReviewCommand command, CancellationToken cancellationToken = default)
+    public async Task<Result> HandleAsync(UpdateCourseReviewCommand command, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Start UpdateCourseReviewCommandHandler {@Command}", command);
         try
         {
             var courseReviewRepo = _unitOfWork.GetRepository<CourseReview, Guid>();
 
-            var courseReview = await courseReviewRepo.FindFirstAsync(x => x.Id == command.Id, cancellationToken: cancellationToken);
-            if (courseReview == null)
+            var courseReviewExist = await courseReviewRepo.FindFirstAsync(x => x.Id == command.Id, cancellationToken: cancellationToken);
+            if (courseReviewExist == null)
             {
                 _logger.LogWarning("CourseReview not found with ID: {Id}", command.Id);
                 return Result.Failure<GetCourseReviewResponse>(HttpStatusCode.NotFound, new Error("CourseReviewNotFound", "Đánh giá khóa học không tồn tại"));
             }
-
-            // Update fields
-            if (command.Rating.HasValue)
-                courseReview.Rating = command.Rating;
-            if (command.Comment != null)
-                courseReview.Comment = command.Comment;
-            if (command.IsAnonymous.HasValue)
-                courseReview.IsAnonymous = command.IsAnonymous;
-
-            courseReview.UpdatedAt = DateTime.UtcNow;
-
-            courseReviewRepo.Update(courseReview);
+            command.Adapt(courseReviewExist);
+            courseReviewRepo.Update(courseReviewExist);
             await _unitOfWork.SaveChangesAsync();
-
-            var response = new GetCourseReviewResponse
-            {
-                Id = courseReview.Id,
-                CourseId = courseReview.CourseId,
-                TutorId = courseReview.TutorId,
-                StudentId = courseReview.StudentId,
-                EnrollmentId = courseReview.EnrollmentId,
-                Rating = courseReview.Rating,
-                Comment = courseReview.Comment,
-                IsAnonymous = courseReview.IsAnonymous,
-                CreatedAt = courseReview.CreatedAt,
-                UpdatedAt = courseReview.UpdatedAt
-            };
-
+            var response = courseReviewExist.Adapt<GetCourseReviewResponse>();
             _logger.LogInformation("End UpdateCourseReviewCommandHandler successfully");
             return Result.Success(response);
         }

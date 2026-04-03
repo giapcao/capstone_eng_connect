@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
-using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.EventBus.Events;
 using EngConnect.Domain.Persistence.Models;
 using MassTransit;
@@ -87,7 +86,7 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
                 mergedFilePath,
                 eventData.EndedByUserId,
                 LessonRecordPrefix,
-                "video/webm"
+                extension
                 );
 
             var lessonRepo = _unitOfWork.GetRepository<Lesson, Guid>();
