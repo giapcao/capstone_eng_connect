@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <Folder Include="Abstraction\" />
+      <Folder Include="UseCases\LessonScripts\GenerateQuizByLessonScriptId\" />
     </ItemGroup>
 
     <ItemGroup>

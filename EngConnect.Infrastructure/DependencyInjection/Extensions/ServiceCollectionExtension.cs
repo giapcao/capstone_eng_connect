@@ -253,7 +253,7 @@ public static class ServiceCollectionExtension
             services.Configure<GeminiApiKeySetting>(configuration.GetSection(GeminiApiKeySetting.Section));
             
             services.AddSingleton<IGenerativeAI>(sp => new GoogleAI(geminiSettings.ApiKey));
-            services.AddScoped<IAiService, AiSummarizeService>();
+            // services.AddScoped<IAiService, AiSummarizeService>();
         }
     
     private static void AddGitHubModelsSettings(this IServiceCollection services, IConfiguration configuration)
