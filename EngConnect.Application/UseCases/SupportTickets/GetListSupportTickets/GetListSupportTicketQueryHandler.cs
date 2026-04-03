@@ -31,7 +31,7 @@ public class GetListSupportTicketQueryHandler : IQueryHandler<GetListSupportTick
         {
             var supportTicketRepository = _unitOfWork.GetRepository<SupportTicket, Guid>();
             
-            var supportTickets = supportTicketRepository.FindAll();
+            var supportTickets = supportTicketRepository.FindAll(includes:l=> l.SupportTicketMessages);
             
             Expression<Func<SupportTicket, bool>> predicate = x => true;
             
