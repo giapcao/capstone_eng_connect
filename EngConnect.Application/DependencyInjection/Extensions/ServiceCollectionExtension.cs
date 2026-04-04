@@ -23,6 +23,8 @@ using EngConnect.Application.UseCases.Courses.UpdateThumbnailCourse;
 using EngConnect.Application.UseCases.Courses.UpdateDemoVideoCourse;
 using EngConnect.Application.UseCases.CourseResources.CreateCourseResource;
 using EngConnect.Application.UseCases.CourseResources.UpdateCourseResource;
+using EngConnect.Application.UseCases.CourseReviews.CreateCourseReview;
+using EngConnect.Application.UseCases.CourseReviews.UpdateCourseReview;
 using EngConnect.Application.UseCases.CourseSessionCourseResources.AddCourseResourceToCourseSession;
 using EngConnect.Application.UseCases.FileStorage.DeleteFileFromDrive;
 using EngConnect.Application.UseCases.FileStorage.GetFileFromDrive;
@@ -163,6 +165,9 @@ public static class ServiceCollectionExtension
         // Ai Summarize Section
         services.AddScoped<IValidator<GetAiSummaryCommand>, GetAiSummaryCommandValidator>();
         services.AddScoped<IValidator<UploadRecordingChunkCommand>, UploadRecordingChunkCommandValidator>();
-        services.AddScoped<IValidator<GetAiSummaryCommand>, GetAiSummaryCommandValidator>();
+        
+        //Course review section
+        services.AddScoped<IValidator<CreateCourseReviewCommand>, CreateCourseReviewCommandValidator>();
+        services.AddScoped<IValidator<UpdateCourseReviewCommand>, UpdateCourseReviewCommandValidator>();
     }
 }

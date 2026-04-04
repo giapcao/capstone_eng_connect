@@ -186,7 +186,8 @@ public static class ServiceCollectionExtension
             {
                 var s3Config = new AmazonS3Config
                 {
-                    RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(awsSettings.Region)
+                    RegionEndpoint = Amazon.RegionEndpoint.GetBySystemName(awsSettings.Region),
+                    Timeout = TimeSpan.FromHours(2)
                 };
                 return new AmazonS3Client(awsSettings.AccessKey, awsSettings.SecretKey, s3Config);
             });
@@ -201,7 +202,7 @@ public static class ServiceCollectionExtension
             services.Configure<GeminiApiKeySetting>(configuration.GetSection(GeminiApiKeySetting.Section));
             
             services.AddSingleton<IGenerativeAI>(sp => new GoogleAI(geminiSettings.ApiKey));
-            services.AddScoped<IAiService, AiSummarizeService>();
+            // services.AddScoped<IAiService, AiSummarizeService>();
         }
     
     private static void AddGitHubModelsSettings(this IServiceCollection services, IConfiguration configuration)

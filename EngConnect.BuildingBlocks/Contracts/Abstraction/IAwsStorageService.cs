@@ -14,4 +14,6 @@ public interface IAwsStorageService
     Task<FileUploadResult?> UpdateFileAsync(FileUpload fileUpload,Guid userId, 
         string prefix, CancellationToken cancellationToken = default);
     string GetFileUrl(string? key, CancellationToken cancellationToken = default);
+    
+    Task<FileUploadResult> UploadFileFromPathAsync(string filePath, Guid userId, string prefix, string contentType, CancellationToken cancellationToken = default);
 }

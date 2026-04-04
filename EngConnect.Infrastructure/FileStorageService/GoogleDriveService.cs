@@ -23,7 +23,7 @@ public class GoogleDriveService : IDriveService
         _settings = settings.Value;
     }
 
-    public async Task<FileUploadResult> UploadMeetingChunkAsync(Guid lessonId, int chunkIndex, FileUpload file,
+    public async Task<FileUploadResult> UploadMeetingChunkAsync(Guid lessonId, long chunkTimestamp, FileUpload file,
         CancellationToken cancellationToken = default)
     {
         try
@@ -35,7 +35,7 @@ public class GoogleDriveService : IDriveService
                 extension = ".webm";
             }
 
-            var chunkFileName = $"chunk-{chunkIndex:D6}{extension}";
+            var chunkFileName = $"chunk-{chunkTimestamp}{extension}";
 
             var fileMetadata = new File
             {

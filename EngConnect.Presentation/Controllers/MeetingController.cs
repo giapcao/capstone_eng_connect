@@ -69,7 +69,7 @@ public class MeetingController : BaseApiController
 
         var fileUpload = new FileUpload
         {
-            FileName = string.IsNullOrWhiteSpace(request.Chunk.FileName) ? $"chunk-{request.ChunkIndex:D6}.webm" : request.Chunk.FileName,
+            FileName = string.IsNullOrWhiteSpace(request.Chunk.FileName) ? $"chunk-{request.ChunkTimestamp}.webm" : request.Chunk.FileName,
             ContentType = string.IsNullOrWhiteSpace(request.Chunk.ContentType) ? "video/webm" : request.Chunk.ContentType,
             Length = request.Chunk.Length,
             Content = request.Chunk.OpenReadStream()
@@ -79,7 +79,7 @@ public class MeetingController : BaseApiController
         {
             LessonId = lessonId,
             UserId = userId,
-            ChunkIndex = request.ChunkIndex,
+            ChunkTimestamp = request.ChunkTimestamp,
             File = fileUpload
         };
 
