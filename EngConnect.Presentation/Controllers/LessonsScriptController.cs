@@ -1,6 +1,7 @@
 using EngConnect.Application.UseCases.LessonScripts.Common;
 using EngConnect.Application.UseCases.LessonScripts.CreateLessonScript;
 using EngConnect.Application.UseCases.LessonScripts.DeleteLessonScript;
+using EngConnect.Application.UseCases.LessonScripts.GenerateQuizByLessonScriptId;
 using EngConnect.Application.UseCases.LessonScripts.GetListLessonScripts;
 using EngConnect.Application.UseCases.LessonScripts.GetLessonScriptById;
 using EngConnect.Application.UseCases.AiSummerize.GetAiSummary;
@@ -55,6 +56,23 @@ public class LessonsScriptController : BaseApiController
     {
         command.LessonId = id;
         var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Tạo quiz từ kịch bản bài học
+    /// </summary>
+    /// <param name="id">Lesson Script ID</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("{id:guid}/generate-quiz")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<GenerateQuizResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GenerateQuizAsync([FromRoute] Guid id, CancellationToken cancellationToken = default)
+    {
+        var result = await _queryDispatcher.DispatchAsync(
+            new GenerateQuizByLessonScriptIdQuery { LessonScriptId = id },
+            cancellationToken);
         return FromResult(result);
     }
     

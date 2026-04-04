@@ -2,7 +2,7 @@ using EngConnect.BuildingBlock.EventBus.Abstraction;
 
 namespace EngConnect.BuildingBlock.EventBus.Events;
 
-public class UploadMeetingRecordingChunkEvent : EventBase
+public class UploadMeetingRecordingChunkEvent : NotificationEvent
 {
     public Guid LessonId { get; set; }
     public Guid UserId { get; set; }

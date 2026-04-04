@@ -3,7 +3,9 @@ using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.BuildingBlock.EventBus.Constants;
 using EngConnect.BuildingBlock.EventBus.Events;
+using EngConnect.BuildingBlock.EventBus.Utils;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
@@ -94,7 +96,9 @@ public class UploadRecordingChunkCommandHandler : ICommandHandler<UploadRecordin
                 string.IsNullOrWhiteSpace(command.File.ContentType) ? "video/webm" : command.File.ContentType);
 
             var outboxEventRepo = _unitOfWork.GetRepository<OutboxEvent, Guid>();
-            var outboxEvent = OutboxEvent.CreateOutboxEvent(nameof(Lesson), command.LessonId, uploadChunkEvent);
+            var notificationEvent = NotificationHelper.CreateNotification(uploadChunkEvent, 
+                [],[],nameof(Channel.System));
+            var outboxEvent = OutboxEvent.CreateOutboxEvent(nameof(Lesson), command.LessonId,notificationEvent);
             outboxEventRepo.Add(outboxEvent);
             await _unitOfWork.SaveChangesAsync();
 

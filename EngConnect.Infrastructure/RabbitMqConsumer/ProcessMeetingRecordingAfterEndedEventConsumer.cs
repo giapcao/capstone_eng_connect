@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using System.Diagnostics;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
-using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.EventBus.Events;
 using EngConnect.Domain.Persistence.Models;
 using MassTransit;
@@ -82,23 +81,13 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
             await File.WriteAllLinesAsync(concatListFilePath, concatLines, context.CancellationToken);
 
             await MergeChunksWithFfmpegAsync(concatListFilePath, mergedFilePath, context.CancellationToken);
-
-            var mergedFileInfo = new FileInfo(mergedFilePath);
-            await using var uploadStream = new FileStream(mergedFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            var mergedFile = new FileUpload
-            {
-                FileName = mergedFileName,
-                ContentType = GetContentTypeFromExtension(extension),
-                Length = mergedFileInfo.Length,
-                Content = uploadStream
-            };
-
-            var awsUploadResult = await _awsStorageService.UploadFileAsync(
-                mergedFile,
+            
+            var awsUploadResult = await _awsStorageService.UploadFileFromPathAsync(
+                mergedFilePath,
                 eventData.EndedByUserId,
                 LessonRecordPrefix,
-                context.CancellationToken);
+                extension
+                );
 
             var lessonRepo = _unitOfWork.GetRepository<Lesson, Guid>();
             var lesson = await lessonRepo.FindByIdAsync(eventData.LessonId, cancellationToken: context.CancellationToken);
@@ -153,6 +142,8 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
         {
             try
             {
+                if (Directory.Exists(lessonTempFolder))
+                    Directory.Delete(lessonTempFolder, true);
                 if (Directory.Exists(tempWorkingFolder))
                 {
                     Directory.Delete(tempWorkingFolder, true);

@@ -1,4 +1,5 @@
 using EngConnect.Application.UseCases.CourseModules.Common;
+using EngConnect.Application.UseCases.CourseReviews.Common;
 using EngConnect.Application.UseCases.Courses.Common;
 using EngConnect.Application.UseCases.Users.Common;
 using EngConnect.Domain.Persistence.Models;
@@ -79,6 +80,9 @@ namespace EngConnect.Application.Mapping
                         SessionOutcomes = cs.CourseSession.Outcomes,
                         SessionNumber = cs.SessionNumber
                     }).ToList());
+            
+            //Course Review mapping
+            TypeAdapterConfig<CourseReview, GetCourseReviewResponse>.NewConfig();
         }
     }
 }
