@@ -30,7 +30,7 @@ public class UpdateSupportTicketCommandHandler : ICommandHandler<UpdateSupportTi
             if (supportTicket == null)
             {
                 _logger.LogWarning("SupportTicket not found: {id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<SupportTicket>("SupportTicket"));
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<SupportTicket>("SupportTicket"));
             }
             
             command.Adapt(supportTicket);

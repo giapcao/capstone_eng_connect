@@ -28,13 +28,30 @@ public class CreateSupportTicketCommandHandler : ICommandHandler<CreateSupportTi
         {
             var supportTicket = command.Adapt<SupportTicket>();
             
+            var today = DateTime.UtcNow.Date;
+            var tomorrow = today.AddDays(1);
+            
+            var messageCountToday = await _unitOfWork.GetRepository<SupportTicket, Guid>()
+                .CountAsync(x => 
+                        x.CreatedBy == command.CreatedBy && 
+                        x.CreatedAt >= today && 
+                        x.CreatedAt < tomorrow, 
+                    cancellationToken: cancellationToken);
+            
+            if (messageCountToday >= 3)
+            {
+                _logger.LogWarning("Hạn ngạch tin nhắn đã hết cho Ticket");
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.ValidationFailed("Bạn chỉ được gửi tối đa 3 ticket.")
+                );
+            }
+            
             var userExists = await _unitOfWork.GetRepository<User, Guid>()
                 .AnyAsync(x => x.Id == supportTicket.CreatedBy, cancellationToken: cancellationToken);
             
             if (!userExists)
             {
                 _logger.LogWarning("CreatedBy user does not exist: {createdBy}", command.CreatedBy);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<User>("User"));
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<User>("User"));
             }
             
             supportTicket.Status = nameof(SupportTicketStatus.Open);
