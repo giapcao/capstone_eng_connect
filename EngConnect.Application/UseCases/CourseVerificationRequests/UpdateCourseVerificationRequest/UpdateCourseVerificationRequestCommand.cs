@@ -6,9 +6,8 @@ namespace EngConnect.Application.UseCases.CourseVerificationRequests.UpdateCours
 public class UpdateCourseVerificationRequestCommand : ICommand
 {
     [JsonIgnore]
+    public Guid UserId { get; set; }
     public Guid Id { get; set; }
     public string? Status { get; set; }
-    public DateTime? ReviewedAt { get; set; }
-    public Guid? ReviewedBy { get; set; }
     public string? RejectionReason { get; set; }
 }

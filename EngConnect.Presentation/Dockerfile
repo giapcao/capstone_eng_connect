@@ -25,7 +25,9 @@ WORKDIR /app
 
 USER root
 RUN apt-get update \
- && apt-get install -y --no-install-recommends curl \
+ && apt-get install -y --no-install-recommends \
+    curl \
+    ffmpeg \
  && rm -rf /var/lib/apt/lists/*
 USER $APP_UID
 

@@ -15,7 +15,8 @@ public class GetStudentResponse
     public string? Grade { get; set; }
 
     public string? Class { get; set; }
-
+    
+    public string? Avatar { get; set; }
     public List<string>? Tags { get; set; }
 
     public string? Status { get; set; }
@@ -26,4 +27,4 @@ public class GetStudentResponse
     
     public UserInfo? User { get; set; }
 }
-
+

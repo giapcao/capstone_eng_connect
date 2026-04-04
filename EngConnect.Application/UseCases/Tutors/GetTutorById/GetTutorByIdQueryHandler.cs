@@ -51,10 +51,11 @@ namespace EngConnect.Application.UseCases.Tutors.GetTutorById
                     UserId = tutor.UserId,
                     Headline = tutor.Headline,
                     Bio = tutor.Bio,
-                    IntroVideoUrl = tutor.IntroVideoUrl,
-                    YearsExperience = tutor.YearsExperience,
-                    CvUrl = tutor.CvUrl,
+                    IntroVideoUrl = tutor.IntroVideoUrl != null ? _awsStorageService.GetFileUrl(tutor.IntroVideoUrl) : null,
+                    MonthExperience = tutor.MonthExperience,
+                    CvUrl = tutor.CvUrl != null ? _awsStorageService.GetFileUrl(tutor.CvUrl) : null,
                     Tags = tutor.Tags,
+                    Avatar = tutor.Avatar != null ? _awsStorageService.GetFileUrl(tutor.Avatar, cancellationToken) : null,
                     SlotsCount = tutor.SlotsCount,
                     Status = tutor.Status,
                     VerifiedStatus = tutor.VerifiedStatus,
@@ -71,7 +72,6 @@ namespace EngConnect.Application.UseCases.Tutors.GetTutorById
                         UserName = tutor.User.UserName,
                         Email = tutor.User.Email,
                         Phone = tutor.User.Phone,
-                        AvatarUrl = _awsStorageService.GetFileUrl(tutor.Avatar)
                     }
                 };
 
@@ -86,4 +86,4 @@ namespace EngConnect.Application.UseCases.Tutors.GetTutorById
             }
         }
     }
-}
+}

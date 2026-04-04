@@ -6,6 +6,7 @@ using EngConnect.BuildingBlock.Application.Utils;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
 
@@ -33,9 +34,14 @@ public class GetListCourseModuleQueryHandler : IQueryHandler<GetListCourseModule
             Expression<Func<CourseModule, bool>>? predicate = x => true;
 
             // Apply filters
+            if (query.TutorId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId.Value);
+            }
+
             if (query.CourseId.HasValue)
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.CourseId == query.CourseId.Value);
+                predicate = predicate.CombineAndAlsoExpressions(x => !x.CourseCourseModules.Any(ccm => ccm.CourseId == query.CourseId.Value));
             }
 
             courseModules = courseModules.Where(predicate);
@@ -43,7 +49,8 @@ public class GetListCourseModuleQueryHandler : IQueryHandler<GetListCourseModule
             // Apply search and sort
             courseModules = courseModules.ApplySearch(query.GetSearchParams(),
                     x => x.Title,
-                    x => x.Description)
+                    x => x.Description ?? string.Empty,
+                    x => x.Outcomes ?? string.Empty)
                 .ApplySorting(query.GetSortParams());
 
             // Map to GetCourseModuleResponse

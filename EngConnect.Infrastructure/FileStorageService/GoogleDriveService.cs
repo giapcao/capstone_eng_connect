@@ -12,6 +12,8 @@ namespace EngConnect.Infrastructure.FileStorageService;
 
 public class GoogleDriveService : IDriveService
 {
+    private const string MeetingRecordingFolder = "meeting-recordings";
+    private const string LessonChunkFolder = "chunks";
     private readonly DriveService _driveService;
     private readonly GoogleDriveSettings _settings;
 
@@ -19,6 +21,89 @@ public class GoogleDriveService : IDriveService
     {
         _driveService = driveService;
         _settings = settings.Value;
+    }
+
+    public async Task<FileUploadResult> UploadMeetingChunkAsync(Guid lessonId, long chunkTimestamp, FileUpload file,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var chunkFolderId = await EnsureMeetingChunkFolderExistsAsync(lessonId, cancellationToken);
+            var extension = Path.GetExtension(file.FileName);
+            if (string.IsNullOrWhiteSpace(extension))
+            {
+                extension = ".webm";
+            }
+
+            var chunkFileName = $"chunk-{chunkTimestamp}{extension}";
+
+            var fileMetadata = new File
+            {
+                Name = chunkFileName,
+                Parents = new List<string> { chunkFolderId }
+            };
+
+            if (file.Content.CanSeek)
+            {
+                file.Content.Position = 0;
+            }
+
+            var request = _driveService.Files.Create(fileMetadata, file.Content, file.ContentType);
+            request.SupportsAllDrives = true;
+            request.Fields = "id, name, size, webViewLink, mimeType";
+
+            var uploadProgress = await request.UploadAsync(cancellationToken);
+            if (uploadProgress.Status != UploadStatus.Completed || request.ResponseBody == null ||
+                string.IsNullOrWhiteSpace(request.ResponseBody.Id))
+            {
+                throw new Exception($"Failed to upload meeting chunk. Upload status: {uploadProgress.Status}");
+            }
+
+            return new FileUploadResult
+            {
+                OriginalFileName = file.FileName,
+                StoredFileName = request.ResponseBody.Name,
+                Size = request.ResponseBody.Size ?? file.Length,
+                ContentType = request.ResponseBody.MimeType,
+                RelativePath = request.ResponseBody.Id,
+                RelativePathSystem = $"{DriveConstant.RootFolderName}/{MeetingRecordingFolder}/lesson-{lessonId}/{LessonChunkFolder}/{chunkFileName}",
+                Url = $"https://drive.google.com/file/d/{request.ResponseBody.Id}/preview"
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to upload meeting chunk for lesson '{lessonId}'.", ex);
+        }
+    }
+
+    public async Task<IReadOnlyList<FileUploadResult>> GetMeetingChunksAsync(Guid lessonId,
+        CancellationToken cancellationToken = default)
+    {
+        var chunkFolderId = await TryGetMeetingChunkFolderIdAsync(lessonId, cancellationToken);
+        if (string.IsNullOrWhiteSpace(chunkFolderId))
+        {
+            return [];
+        }
+
+        var listRequest = _driveService.Files.List();
+        listRequest.Q = $"'{chunkFolderId}' in parents and trashed = false";
+        listRequest.Fields = "files(id, name, size, mimeType, webViewLink)";
+        listRequest.SupportsAllDrives = true;
+        listRequest.IncludeItemsFromAllDrives = true;
+
+        var files = await listRequest.ExecuteAsync(cancellationToken);
+        return files.Files?
+            .Select(x => new FileUploadResult
+            {
+                OriginalFileName = x.Name,
+                StoredFileName = x.Name,
+                Size = x.Size ?? 0,
+                ContentType = x.MimeType,
+                RelativePath = x.Id,
+                RelativePathSystem = $"{DriveConstant.RootFolderName}/{MeetingRecordingFolder}/lesson-{lessonId}/{LessonChunkFolder}/{x.Name}",
+                Url = $"https://drive.google.com/file/d/{x.Id}/preview"
+            })
+            .ToList() ?? [];
     }
     
     
@@ -213,5 +298,47 @@ public class GoogleDriveService : IDriveService
         
         var folder = await createRequest.ExecuteAsync(cancellationToken);
         return folder.Id;
+    }
+
+    private async Task<string> EnsureMeetingChunkFolderExistsAsync(Guid lessonId,
+        CancellationToken cancellationToken = default)
+    {
+        var currentParentId = _settings.MainFolderId;
+        if (string.IsNullOrWhiteSpace(currentParentId))
+        {
+            throw new Exception("MainFolderId (EngConnect root) is not configured.");
+        }
+
+        var pathSegments = new[] { MeetingRecordingFolder, $"lesson-{lessonId}", LessonChunkFolder };
+        foreach (var folderName in pathSegments)
+        {
+            currentParentId = await EnsureFolderExistsAsync(folderName, currentParentId, cancellationToken);
+        }
+
+        return currentParentId;
+    }
+
+    private async Task<string?> TryGetMeetingChunkFolderIdAsync(Guid lessonId,
+        CancellationToken cancellationToken = default)
+    {
+        var currentParentId = _settings.MainFolderId;
+        if (string.IsNullOrWhiteSpace(currentParentId))
+        {
+            return null;
+        }
+
+        var pathSegments = new[] { MeetingRecordingFolder, $"lesson-{lessonId}", LessonChunkFolder };
+        foreach (var folderName in pathSegments)
+        {
+            var folderId = await FindFolderIdAsync(folderName, currentParentId, cancellationToken);
+            if (string.IsNullOrWhiteSpace(folderId))
+            {
+                return null;
+            }
+
+            currentParentId = folderId;
+        }
+
+        return currentParentId;
     }
 }

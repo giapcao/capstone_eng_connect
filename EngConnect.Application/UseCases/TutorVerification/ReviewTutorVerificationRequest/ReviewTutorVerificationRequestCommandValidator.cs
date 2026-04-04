@@ -18,7 +18,7 @@ namespace EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificat
                 .NotNull()
                 .WithMessage(CommonErrors.ValidationFailed("Dữ liệu không thể null.").Message);
 
-            When(x => x.Request is not null, () =>
+            When(x => true, () =>
             {
                 RuleFor(x => x.Request.RequestId)
                     .NotEmpty()
@@ -28,7 +28,7 @@ namespace EngConnect.Application.UseCases.TutorVerification.ReviewTutorVerificat
                     .NotEmpty()
                     .WithMessage(CommonErrors.ValidationFailed("Dữ liệu không thể null.").Message);
 
-                When(x => x.Request.Approved == false, () =>
+                When(x => !x.Request.Approved, () =>
                 {
                     RuleFor(x => x.Request.RejectionReason)
                         .NotEmpty()

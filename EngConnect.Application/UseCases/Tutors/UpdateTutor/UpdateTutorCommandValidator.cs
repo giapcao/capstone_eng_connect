@@ -28,29 +28,13 @@ namespace EngConnect.Application.UseCases.Tutors.UpdateTutor
                     .When(x => x.Request.Bio is not null)
                     .WithMessage(TutorErrors.InvalidBio().Message);
 
-                RuleFor(x => x.Request.YearsExperience)
-                    .GreaterThanOrEqualTo(0)
-                    .When(x => x.Request.YearsExperience.HasValue)
-                    .WithMessage(TutorErrors.InvalidYearsExperience().Message);
-
-                RuleFor(x => x.Request.SlotsCount)
-                    .GreaterThanOrEqualTo(0)
-                    .When(x => x.Request.SlotsCount.HasValue)
-                    .WithMessage(TutorErrors.InvalidSlotsCount().Message);
-
                 RuleFor(x => x.Request.Status)
                     .Must(status =>
                         string.IsNullOrWhiteSpace(status) ||
                         TutorStatusExtensions.IsValidTutorStatus(status))
                     .When(x => x.Request.Status is not null)
                     .WithMessage(x => TutorErrors.InvalidStatus(x.Request.Status ?? string.Empty).Message);
-
-                RuleFor(x => x.Request.VerifiedStatus)
-                    .Must(status =>
-                        string.IsNullOrWhiteSpace(status) ||
-                        TutorStatusExtensions.IsValidTutorVerifiedStatus(status))
-                    .When(x => x.Request.VerifiedStatus is not null)
-                    .WithMessage(x => TutorErrors.InvalidVerifiedStatus(x.Request.VerifiedStatus ?? string.Empty).Message);
+                
             });
         }
     }

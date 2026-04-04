@@ -1,10 +1,9 @@
-﻿using System.Net;
-using EngConnect.Application.UseCases.Tutors.Extensions;
+using System.Net;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
-using EngConnect.Domain.DomainErrors;
+using EngConnect.Domain.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.Tutors.CreateTutor
@@ -13,11 +12,16 @@ namespace EngConnect.Application.UseCases.Tutors.CreateTutor
     {
         private readonly ILogger<CreateTutorCommandHandler> _logger;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IAwsStorageService _awsStorageService;
 
-        public CreateTutorCommandHandler(ILogger<CreateTutorCommandHandler> logger, IUnitOfWork unitOfWork)
+        public CreateTutorCommandHandler(
+            ILogger<CreateTutorCommandHandler> logger,
+            IUnitOfWork unitOfWork,
+            IAwsStorageService awsStorageService)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
+            _awsStorageService = awsStorageService;
         }
 
         public async Task<Result> HandleAsync(
@@ -28,36 +32,59 @@ namespace EngConnect.Application.UseCases.Tutors.CreateTutor
 
             try
             {
-                // Validate status
-                if (!string.IsNullOrWhiteSpace(command.Request.Status) &&
-                    !TutorStatusExtensions.IsValidTutorStatus(command.Request.Status))
-                {
-                    return Result.Failure(HttpStatusCode.BadRequest,
-                        TutorErrors.InvalidStatus(command.Request.Status));
-                }
-
-                // Validate verified status
-                if (!string.IsNullOrWhiteSpace(command.Request.VerifiedStatus) &&
-                    !TutorStatusExtensions.IsValidTutorVerifiedStatus(command.Request.VerifiedStatus))
-                {
-                    return Result.Failure(HttpStatusCode.BadRequest,
-                        TutorErrors.InvalidVerifiedStatus(command.Request.VerifiedStatus));
-                }
-
                 var repo = _unitOfWork.GetRepository<Domain.Persistence.Models.Tutor, Guid>();
+                string? introVideoUrl = null;
+                string? cvUrl = null;
+
+                if (command.IntroVideoFile != null)
+                {
+                    var introVideoResult = await _awsStorageService.UploadFileAsync(
+                        command.IntroVideoFile,
+                        command.UserId,
+                        nameof(PrefixFile.IntroVideo),
+                        cancellationToken);
+
+                    if (introVideoResult == null)
+                    {
+                        _logger.LogWarning("Failed to upload intro video file for user {UserId}", command.UserId);
+                        return Result.Failure(
+                            HttpStatusCode.BadRequest,
+                            CommonErrors.ValidationFailed("IntroVideoFile"));
+                    }
+
+                    introVideoUrl = introVideoResult.RelativePath;
+                }
+
+                if (command.CvFile != null)
+                {
+                    var cvResult = await _awsStorageService.UploadFileAsync(
+                        command.CvFile,
+                        command.UserId,
+                        nameof(PrefixFile.CV),
+                        cancellationToken);
+
+                    if (cvResult == null)
+                    {
+                        _logger.LogWarning("Failed to upload CV file for user {UserId}", command.UserId);
+                        return Result.Failure(
+                            HttpStatusCode.BadRequest,
+                            CommonErrors.ValidationFailed("CvFile"));
+                    }
+
+                    cvUrl = cvResult.RelativePath;
+                }
 
                 var entity = new Domain.Persistence.Models.Tutor
                 {
-                    UserId = command.Request.UserId,
-                    Headline = command.Request.Headline,
-                    Bio = command.Request.Bio,
-                    IntroVideoUrl = command.Request.IntroVideoUrl,
-                    YearsExperience = command.Request.YearsExperience,
-                    CvUrl = command.Request.CvUrl,
-                    Tags = command.Request.Tags,
-                    SlotsCount = command.Request.SlotsCount,
-                    Status = command.Request.Status,
-                    VerifiedStatus = command.Request.VerifiedStatus
+                    UserId = command.UserId,
+                    Headline = command.Headline,
+                    Bio = command.Bio,
+                    IntroVideoUrl = introVideoUrl,
+                    MonthExperience = command.MonthExperience,
+                    CvUrl = cvUrl,
+                    SlotsCount = 0,
+                    Status = nameof(CommonStatus.Active),
+                    VerifiedStatus = nameof(TutorVerifiedStatus.Unverified)
                 };
 
                 repo.Add(entity);
@@ -69,7 +96,8 @@ namespace EngConnect.Application.UseCases.Tutors.CreateTutor
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred in CreateTutorCommandHandler {@Message}", ex.Message);
-                return Result.Failure<Guid>(HttpStatusCode.InternalServerError,
+                return Result.Failure<Guid>(
+                    HttpStatusCode.InternalServerError,
                     CommonErrors.InternalServerError());
             }
         }

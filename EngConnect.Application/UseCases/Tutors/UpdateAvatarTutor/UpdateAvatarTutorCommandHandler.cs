@@ -42,15 +42,15 @@ public class UpdateAvatarTutorCommandHandler : ICommandHandler<UpdateAvatarTutor
                 return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Tutor>("Id"));
             }
 
-            var updateFileRequest = await _awsStorageService.UpdateFileAsync(
-                command.File, command.Id, nameof(PrefixFile.Avatar), cancellationToken);
+            var updateFileResponse = await _awsStorageService.UpdateFileAsync(
+                command.File, command.Id, nameof(PrefixFile.TutorAvatar), cancellationToken);
 
-            if (updateFileRequest == null)
+            if (updateFileResponse == null)
             {
                 return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.ValidationFailed("File"));
             }
 
-            tutorExist.Avatar = updateFileRequest.RelativePath;
+            tutorExist.Avatar = updateFileResponse.RelativePath;
             await _unitOfWork.SaveChangesAsync();
 
             var cacheKey = RedisKeyGenerator.GenerateTutorAvatarKey(tutorExist.Id);
@@ -58,7 +58,7 @@ public class UpdateAvatarTutorCommandHandler : ICommandHandler<UpdateAvatarTutor
                 TimeSpan.FromMinutes(_settings.SettingCacheExpirationMinutes), false);
 
             _logger.LogInformation("End UpdateAvatarTutorCommand {@command}", command);
-            return Result.Success(updateFileRequest);
+            return Result.Success(updateFileResponse);
         }
         catch (Exception ex)
         {

@@ -5,7 +5,7 @@ namespace EngConnect.Domain.Persistence.Models;
 
 public class CourseResource : AuditableEntity<Guid>
 {
-    public Guid SessionId { get; set; }
+    public Guid? TutorId { get; set; }
 
     public string? Title { get; set; }
 
@@ -15,5 +15,7 @@ public class CourseResource : AuditableEntity<Guid>
 
     public string? Status { get; set; }
 
-    public virtual CourseSession Session { get; set; } = null!;
+    public virtual ICollection<CourseSessionCourseResource> CourseSessionCourseResources { get; set; } = new List<CourseSessionCourseResource>();
+    
+    public virtual Tutor Tutor { get; set; } = null!;
 }

@@ -56,6 +56,8 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<LessonScript> LessonScripts { get; set; }
 
+    public virtual DbSet<MeetingParticipant> MeetingParticipants { get; set; }
+
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
@@ -68,13 +70,7 @@ public partial class ApplicationDbContext : DbContext
 
     public virtual DbSet<PermissionRole> PermissionRoles { get; set; }
 
-    public virtual DbSet<Quiz> Quizzes { get; set; }
-
-    public virtual DbSet<QuizAttempt> QuizAttempts { get; set; }
-
-    public virtual DbSet<QuizAttemptAnswer> QuizAttemptAnswers { get; set; }
-
-    public virtual DbSet<QuizQuestion> QuizQuestions { get; set; }
+    // 260327: Remove Quiz and related table
 
     public virtual DbSet<Role> Roles { get; set; }
 

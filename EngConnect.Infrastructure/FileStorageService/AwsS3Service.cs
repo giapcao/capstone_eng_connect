@@ -155,6 +155,39 @@ public class AwsS3Service : IAwsStorageService
         return url;
     }
 
+    public async Task<FileUploadResult> UploadFileFromPathAsync(string filePath, Guid userId, string prefix, string contentType, CancellationToken cancellationToken = default)
+    {
+        var fileName = Path.GetFileName(filePath);
+        var dateString = DateTime.UtcNow.ToString("yyMMdd");
+        var s3Key = $"{userId}/{prefix}/{dateString}/{fileName}";
+        
+        var config = new TransferUtilityConfig
+        {
+            ConcurrentServiceRequests = 5,
+            MinSizeBeforePartUpload = 64 * 1024 * 1024 
+        };
+
+        using var transferUtility = new TransferUtility(_s3Client, config);
+        var uploadRequest = new TransferUtilityUploadRequest
+        {
+            FilePath = filePath, 
+            Key = s3Key,
+            BucketName = _settings.BucketName,
+            ContentType = contentType,
+            DisablePayloadSigning = true
+        };
+
+        await transferUtility.UploadAsync(uploadRequest, cancellationToken);
+
+        return new FileUploadResult {
+            OriginalFileName = fileName,
+            StoredFileName = fileName,
+            ContentType =  contentType,
+            Url = $"{_settings.CloudFront + s3Key}",
+            RelativePath = s3Key
+        };
+    }
+
     private async Task<GetObjectResponse> GetS3ObjectAsync(string fileName, CancellationToken cancellationToken)
     {
         var request = new GetObjectRequest

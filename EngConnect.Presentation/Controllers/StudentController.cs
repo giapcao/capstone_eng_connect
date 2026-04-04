@@ -18,6 +18,7 @@ using EngConnect.BuildingBlock.Presentation.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using EngConnect.Application.Common;
 
 namespace EngConnect.Presentation.Controllers;
 
@@ -64,6 +65,27 @@ public class StudentController : BaseApiController
     public async Task<IActionResult> GetListStudentsAsync([FromQuery] GetListStudentQuery query, CancellationToken cancellationToken = default)
     {
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        return FromResult(result);
+    }
+    
+    /// <summary>
+    /// Lấy thông tin profile của học sinh hiện tại (từ claims)
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [Authorize(Roles = nameof(UserRoleEnum.Student))]
+    [HttpGet("profile")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<GetStudentResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProfileAsync(CancellationToken cancellationToken = default)
+    {
+        if (!Guid.TryParse(User.GetStudentId(), out var studentId))
+        {
+            return FromResult(Result.Failure(HttpStatusCode.BadRequest,
+                CommonErrors.ValidationFailed("Không tìm thấy Id của học sinh.")));
+        }
+
+        var result = await _queryDispatcher.DispatchAsync(new GetStudentByIdQuery { Id = studentId }, cancellationToken);
         return FromResult(result);
     }
     
@@ -131,20 +153,20 @@ public class StudentController : BaseApiController
     [HttpPut("avatar")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpdateAvatarStudentAsync(IFormFile file, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpdateAvatarStudentAsync([FromForm]FileFormatRequest file, CancellationToken cancellationToken = default)
     {
         if (!Guid.TryParse(User.GetStudentId(), out var studentId))
         {
             return FromResult(Result.Failure(HttpStatusCode.BadRequest,
-                CommonErrors.ValidationFailed("StudentId claim is missing or invalid.")));
+                CommonErrors.ValidationFailed("Không tìm thấy Id của học sinh.")));
         }
 
         var fileUpload = new FileUpload
         {
             FileName = file.FileName,
-            ContentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
-            Length = file.Length,
-            Content = file.OpenReadStream()
+            ContentType = string.IsNullOrWhiteSpace(file.File.ContentType) ? "application/octet-stream" : file.File.ContentType,
+            Length = file.File.Length,
+            Content = file.File.OpenReadStream()
         };
         
         var result = await _commandDispatcher.DispatchAsync(new UpdateAvatarStudentCommand { File = fileUpload, Id = studentId }, cancellationToken);

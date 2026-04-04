@@ -10,7 +10,7 @@ public static class ClaimsPrincipalExtensions
 {
     public static bool IsAdmin(this ClaimsPrincipal? principal)
     {
-        return principal != null && principal.IsInRole(nameof(UserRoleEnum.Administrator));
+        return principal != null && principal.IsInRole(nameof(UserRoleEnum.Admin));
     }
 
     public static Guid? GetUserId(this ClaimsPrincipal? principal)

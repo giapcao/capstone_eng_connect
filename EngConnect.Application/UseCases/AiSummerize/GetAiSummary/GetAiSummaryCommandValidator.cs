@@ -7,7 +7,7 @@ public class GetAiSummaryCommandValidator : AbstractValidator<GetAiSummaryComman
 {
     public GetAiSummaryCommandValidator()
     {
-        RuleFor(x => x.Transcript)
-            .NotEmpty().WithMessage("Transcript không được để trống.");
+        RuleFor(x => x.LessonId)
+            .NotEmpty().WithMessage("LessonId không được để trống.");
     }
 }

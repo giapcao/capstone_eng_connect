@@ -1,7 +1,11 @@
 ﻿using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Domain.Constants;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
+using EngConnect.BuildingBlock.EventBus.Constants;
+using EngConnect.BuildingBlock.EventBus.Events;
+using EngConnect.BuildingBlock.EventBus.Utils;
 using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.Extensions.Logging;
@@ -40,6 +44,9 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
             {
                 var requestRepo = _unitOfWork.GetRepository<CourseVerificationRequest, Guid>();
                 var courseRepo = _unitOfWork.GetRepository<Course, Guid>();
+                var tutorRepo = _unitOfWork.GetRepository<Tutor, Guid>();
+                var userRepo = _unitOfWork.GetRepository<User, Guid>();
+                var outboxRepo = _unitOfWork.GetRepository<OutboxEvent, Guid>();
 
                 var request = await requestRepo.FindFirstAsync(r => r.Id == command.Request.RequestId);
 
@@ -55,6 +62,11 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
                         CourseErrors.VerificationRequestAlreadyReviewed());
                 }
 
+                if (!command.Request.Approved && string.IsNullOrWhiteSpace(command.Request.RejectionReason))
+                {
+                    return Result.Failure(HttpStatusCode.BadRequest, CourseErrors.InvalidRejectionReason());
+                }
+
                 request.Status = command.Request.Approved ? "approved" : "rejected";
                 request.ReviewedBy = command.Request.AdminUserId;
                 request.ReviewedAt = DateTime.UtcNow;
@@ -68,6 +80,36 @@ namespace EngConnect.Application.UseCases.CourseVerification.ReviewCourseVerific
                 if (course is not null)
                 {
                     course.Status = command.Request.Approved ? "published" : "rejected";
+
+                    var tutor = await tutorRepo.FindByIdAsync(course.TutorId, tracking: false,
+                        cancellationToken: cancellationToken);
+
+                    if (tutor is not null)
+                    {
+                        var tutorUser = await userRepo.FindByIdAsync(tutor.UserId, tracking: false,
+                            cancellationToken: cancellationToken);
+
+                        if (tutorUser is not null)
+                        {
+                            var reviewedEvent = CourseVerificationReviewedEvent.Create(
+                                adminUserId: command.Request.AdminUserId,
+                                courseId: course.Id,
+                                tutorEmail: tutorUser.Email,
+                                tutorFullName: $"{tutorUser.FirstName} {tutorUser.LastName}",
+                                courseTitle: course.Title,
+                                status: request.Status!,
+                                rejectionReason: request.RejectionReason);
+
+                            var notificationEvent = NotificationHelper.CreateNotification(
+                                reviewedEvent,
+                                [tutorUser.Id],
+                                [nameof(UserRoleEnum.Tutor)],
+                                nameof(Channel.Email));
+
+                            outboxRepo.Add(OutboxEvent.CreateOutboxEvent(nameof(Course), course.Id,
+                                notificationEvent));
+                        }
+                    }
                 }
 
                 await _unitOfWork.SaveChangesAsync();

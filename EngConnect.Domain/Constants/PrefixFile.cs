@@ -2,6 +2,12 @@
 
 public enum PrefixFile
 {
-    Avatar = 0,
-    Video = 1
+    StudentAvatar = 0,
+    TutorAvatar = 1,
+    Video = 2,
+    IntroVideo = 3,
+    CV = 4,
+    CourseThumbnail = 5,
+    CourseDemoVideo = 6,
+    CourseResource = 7,
 }

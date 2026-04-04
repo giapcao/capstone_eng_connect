@@ -1,4 +1,6 @@
-﻿namespace EngConnect.Application.UseCases.Tutors.CreateTutor
+﻿using Microsoft.AspNetCore.Http;
+
+namespace EngConnect.Application.UseCases.Tutors.CreateTutor
 {
     public class CreateTutorRequest
     {
@@ -8,18 +10,12 @@
 
         public string? Bio { get; set; }
 
-        public string? IntroVideoUrl { get; set; }
+        public int? MonthExperience { get; set; }
 
-        public int? YearsExperience { get; set; }
-
-        public string? CvUrl { get; set; }
-
-        public List<string>? Tags { get; set; }
-
-        public int? SlotsCount { get; set; }
-
-        public string? Status { get; set; }
-
-        public string? VerifiedStatus { get; set; }
+        // Add file properties for intro video and CV
+        public IFormFile? IntroVideoFile { get; set; }
+        public string? IntroVideoFileName { get; set; }
+        public IFormFile? CvFile { get; set; }
+        public string? CvFileName { get; set; }
     }
 }

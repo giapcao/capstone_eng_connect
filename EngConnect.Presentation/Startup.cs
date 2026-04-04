@@ -6,6 +6,7 @@ using EngConnect.Domain.Settings;
 using EngConnect.Infrastructure.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
+using EngConnect.Presentation.Hubs;
 using Quartz;
 
 namespace EngConnect.Presentation;
@@ -40,7 +41,10 @@ public static class Startup
         builder.AddGoogleAuthentication();
         builder.ConfigureAuthorization();
         builder.ConfigureAppSettings();
-        builder.ConfigureControllers(); 
+        builder.ConfigureControllers();
+        
+        // Add SignalR
+        builder.Services.AddSignalR();
     }
     
     private static void ConfigureControllers(this WebApplicationBuilder builder)
@@ -132,5 +136,8 @@ public static class Startup
         app.UseStaticFiles();
         
         app.MapControllers();
+        
+        // Map SignalR Hub
+        app.MapHub<VideoCallHub>("/hubs/video-call");
     }
 }
