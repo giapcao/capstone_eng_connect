@@ -68,7 +68,7 @@ public class OutboxEventJob : IJob
 
             if (eventList.Count == 0)
             {
-                // _logger.LogInformation("No pending or retryable events found");
+                _logger.LogInformation("No pending or retryable events found");
                 scheduleJobTracking.UpdateFireTimes(context.FireTimeUtc, context.NextFireTimeUtc, true);
                 _unitOfWork.GetRepository<ScheduleJobTracking, Guid>().Update(scheduleJobTracking);
                 await _unitOfWork.SaveChangesAsync();
@@ -101,7 +101,9 @@ public class OutboxEventJob : IJob
 
 
                     // 3. Publish event
+                    _logger.LogWarning("alolololo");
                     await _messageBusService.PublishAsync(eventData, eventType);
+                    _logger.LogInformation("Successfully published event: {Event}", @event);
                     _outboxEventRepository.MarkEventAsPublishedAsync(@event);
                 }
                 catch (Exception e)

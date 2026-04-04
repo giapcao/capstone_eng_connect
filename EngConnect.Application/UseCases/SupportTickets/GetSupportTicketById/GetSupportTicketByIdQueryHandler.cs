@@ -29,13 +29,13 @@ public class GetSupportTicketByIdQueryHandler : IQueryHandler<GetSupportTicketBy
         try
         {
             var supportTicket = await _unitOfWork.GetRepository<SupportTicket, Guid>()
-                .FindByIdAsync(query.Id, cancellationToken: cancellationToken);
+                .FindByIdAsync(query.Id,false, cancellationToken: cancellationToken,l=>l.SupportTicketMessages);
 
             if (supportTicket == null)
             {
                 _logger.LogWarning("SupportTicket not found: {id}", query.Id);
                 return Result.Failure<GetSupportTicketResponse>(
-                    HttpStatusCode.NotFound,
+                    HttpStatusCode.BadRequest,
                     CommonErrors.NotFound<SupportTicket>("Support Ticket"));
             }
 

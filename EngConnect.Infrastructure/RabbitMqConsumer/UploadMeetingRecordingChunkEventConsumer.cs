@@ -60,46 +60,50 @@ public class UploadMeetingRecordingChunkEventConsumer : IConsumer<UploadMeetingR
                 var result = JsonSerializer.Deserialize<WhisperResponse>(jsonResponse, 
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                if (!string.IsNullOrEmpty(result?.Transcription))
+                var redisMember = JsonSerializer.Serialize(new 
                 {
-                    double score = eventData.ChunkIndex; 
-                    await _redisService.SortedSetAddAsync(eventData.LessonId.ToString(), result.Transcription, score);
-                }
+                    text = result?.Transcription ?? "", 
+                    index = eventData.ChunkTimestamp
+                });
+                double score = eventData.ChunkTimestamp;
+                // await _redisService.DeleteCacheAsync(eventData.LessonId.ToString());
+                await _redisService.SortedSetAddAsync(
+                    eventData.LessonId.ToString(), 
+                    redisMember, 
+                    score
+                );
+                _logger.LogInformation("Processed chunk {Chunk} (Text length: {Len})", 
+                    eventData.ChunkTimestamp, (result?.Transcription ?? "").Length);
             }
 
-            await using (var stream = new FileStream(eventData.TempFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            {
-                var uploadFile = new FileUpload
-                {
-                    FileName = eventData.OriginalFileName,
-                    ContentType = string.IsNullOrWhiteSpace(eventData.ContentType) ? "video/webm" : eventData.ContentType,
-                    Length = fileInfo.Length,
-                    Content = stream
-                };
-                await _driveService.UploadMeetingChunkAsync(
-                    eventData.LessonId,
-                    eventData.ChunkIndex,
-                    uploadFile,
-                    context.CancellationToken);
-
-            }
-            
-            if (File.Exists(eventData.TempFilePath))
-            {
-                File.Delete(eventData.TempFilePath);
-            }
+            // await using (var stream = new FileStream(eventData.TempFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            // {
+            //     var uploadFile = new FileUpload
+            //     {
+            //         FileName = eventData.OriginalFileName,
+            //         ContentType = string.IsNullOrWhiteSpace(eventData.ContentType) ? "video/webm" : eventData.ContentType,
+            //         Length = fileInfo.Length,
+            //         Content = stream
+            //     };
+            //     await _driveService.UploadMeetingChunkAsync(
+            //         eventData.LessonId,
+            //         eventData.ChunkTimestamp,
+            //         uploadFile,
+            //         context.CancellationToken);
+            //
+            // }
           
             _logger.LogInformation(
-                "Uploaded meeting chunk {ChunkIndex} for lesson {LessonId} to Drive",
-                eventData.ChunkIndex,
+                "Uploaded meeting chunk {ChunkTimestamp} for lesson {LessonId} to Drive",
+                eventData.ChunkTimestamp,
                 eventData.LessonId);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "Error consuming UploadMeetingRecordingChunkEvent for LessonId {LessonId}, ChunkIndex {ChunkIndex}",
+                "Error consuming UploadMeetingRecordingChunkEvent for LessonId {LessonId}, ChunkTimestamp {ChunkTimestamp}",
                 eventData.LessonId,
-                eventData.ChunkIndex);
+                eventData.ChunkTimestamp);
             throw;
         }
         // finally

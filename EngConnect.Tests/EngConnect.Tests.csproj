@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <CollectCoverage Condition="'$(CollectCoverage)' == ''">true</CollectCoverage>
+    <CoverageOutputRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\artifacts\test-results\coverage\'))\</CoverageOutputRoot>
+    <CoverletOutput>$(CoverageOutputRoot)</CoverletOutput>
+    <CoverletOutputFormat>opencover,cobertura</CoverletOutputFormat>
+    <Include Condition="'$(Include)' == ''">[EngConnect.Application]EngConnect.Application.UseCases.*</Include>
+    <Exclude Condition="'$(Exclude)' == ''">[EngConnect.Application]EngConnect.Application.UseCases.*Course*,[EngConnect.Application]EngConnect.Application.UseCases.*Module*,[EngConnect.Application]EngConnect.Application.UseCases.*Session*,[EngConnect.Application]EngConnect.Application.UseCases.*Resource*,[EngConnect.Application]EngConnect.Application.UseCases.*Common*,[EngConnect.Application]EngConnect.Application.UseCases.*Extensions*</Exclude>
+    <ExcludeByAttribute Condition="'$(ExcludeByAttribute)' == ''">GeneratedCodeAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
+    <CoverageReportFile>$([System.IO.Path]::Combine('$(CoverletOutput)', 'coverage.opencover.xml'))</CoverageReportFile>
+    <CoverageReportDirectory>$([System.IO.Path]::Combine('$(CoverletOutput)', 'report'))\</CoverageReportDirectory>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.msbuild" Version="6.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="ReportGenerator" Version="5.4.6">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.analyzers" Version="1.24.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EngConnect.Application\EngConnect.Application.csproj" />
+    <ProjectReference Include="..\EngConnect.BuildingBlocks\EngConnect.BuildingBlocks.csproj" />
+    <ProjectReference Include="..\EngConnect.Domain\EngConnect.Domain.csproj" />
+    <ProjectReference Include="..\EngConnect.Infrastructure\EngConnect.Infrastructure.csproj" />
+    <ProjectReference Include="..\EngConnect.Presentation\EngConnect.Presentation.csproj" />
+  </ItemGroup>
+
+  <Target Name="GenerateCoverageReport" AfterTargets="GenerateCoverageResult" Condition="Exists('$(CoverageReportFile)')">
+    <MakeDir Directories="$(CoverageReportDirectory)" />
+    <ReportGenerator
+      ReportFiles="$(CoverageReportFile)"
+      TargetDirectory="$(CoverageReportDirectory)"
+      ReportTypes="Html;Cobertura;TextSummary" />
+  </Target>
+
+</Project>

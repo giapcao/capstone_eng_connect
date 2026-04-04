@@ -3,6 +3,7 @@ using EngConnect.Application.UseCases.AwsS3Storage.DeleteFile;
 using EngConnect.Application.UseCases.AwsS3Storage.DownloadFile;
 using EngConnect.Application.UseCases.AwsS3Storage.GetPresignedUrl;
 using EngConnect.Application.UseCases.AwsS3Storage.UploadFile;
+using EngConnect.Application.UseCases.AwsS3Storage.UploadFileFromPath;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -48,6 +49,28 @@ public class AwsS3Controller : BaseApiController
         };
 
         var command = new UploadFileCommand { File = fileUpload ,  Prefix = prefix , UserId = userId };
+        var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// tải file lên từ đường dẫn
+    /// </summary>
+    /// <param name="request"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    [HttpPost("upload-from-path")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<FileUploadResult>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UploadFileFromPathAsync([FromBody] UploadFileFromPathRequest request, CancellationToken cancellationToken = default)
+    {
+        var command = new UploadFileFromPathCommand
+        {
+            FilePath = request.FilePath,
+            UserId = request.UserId,
+            Prefix = request.Prefix,
+            ContentType = request.ContentType
+        };
         var result = await _commandDispatcher.DispatchAsync(command, cancellationToken);
         return FromResult(result);
     }
@@ -122,4 +145,12 @@ public class AwsS3Controller : BaseApiController
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
         return FromResult(result);
     }
+}
+
+public class UploadFileFromPathRequest
+{
+    public string FilePath { get; set; } = string.Empty;
+    public Guid UserId { get; set; }
+    public string Prefix { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
 }

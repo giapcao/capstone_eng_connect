@@ -1,4 +1,5 @@
 using EngConnect.Application.UseCases.CourseModules.Common;
+using EngConnect.Application.UseCases.CourseReviews.Common;
 using EngConnect.Application.UseCases.Courses.Common;
 using EngConnect.Application.UseCases.Lessons.Common;
 using EngConnect.Application.UseCases.Users.Common;
@@ -89,6 +90,9 @@ namespace EngConnect.Application.Mapping
             TypeAdapterConfig<Lesson, GetLessonResponse>
                 .NewConfig()
                 .Map(dest => dest.CourseId, src => src.Enrollment.CourseId);
+            
+            //Course Review mapping
+            TypeAdapterConfig<CourseReview, GetCourseReviewResponse>.NewConfig();
         }
     }
 }

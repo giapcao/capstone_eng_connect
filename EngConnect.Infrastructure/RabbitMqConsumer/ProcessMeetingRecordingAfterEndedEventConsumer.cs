@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
-using EngConnect.BuildingBlock.Contracts.Models.Files;
 using EngConnect.BuildingBlock.EventBus.Events;
 using EngConnect.Domain.Persistence.Models;
 using MassTransit;
@@ -12,19 +12,17 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
 {
     private const int DefaultChunkSeconds = 30;
     private const string LessonRecordPrefix = "lesson-records";
+    private const string TempRecordingRootFolder = "engconnect/meeting-recordings";
     private readonly IAwsStorageService _awsStorageService;
-    private readonly IDriveService _driveService;
     private readonly ILogger<ProcessMeetingRecordingAfterEndedEventConsumer> _logger;
     private readonly IUnitOfWork _unitOfWork;
 
     public ProcessMeetingRecordingAfterEndedEventConsumer(
         IAwsStorageService awsStorageService,
-        IDriveService driveService,
         IUnitOfWork unitOfWork,
         ILogger<ProcessMeetingRecordingAfterEndedEventConsumer> logger)
     {
         _awsStorageService = awsStorageService;
-        _driveService = driveService;
         _unitOfWork = unitOfWork;
         _logger = logger;
     }
@@ -34,29 +32,39 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
         var eventData = context.Message;
         _logger.LogInformation("Start ProcessMeetingRecordingAfterEndedEventConsumer {@EventData}", eventData);
 
-        var tempWorkingFolder = Path.Combine(
+        var lessonTempFolder = Path.Combine(
             Path.GetTempPath(),
-            "engconnect",
-            "meeting-recordings",
-            $"lesson-{eventData.LessonId}",
+            TempRecordingRootFolder,
+            $"lesson-{eventData.LessonId}");
+
+        var tempWorkingFolder = Path.Combine(
+            lessonTempFolder,
             $"merge-{Guid.NewGuid():N}");
 
         try
         {
-            var chunks = await _driveService.GetMeetingChunksAsync(eventData.LessonId, context.CancellationToken);
+            if (!Directory.Exists(lessonTempFolder))
+            {
+                _logger.LogInformation("Temp lesson folder not found for lesson {LessonId}", eventData.LessonId);
+                return;
+            }
+
+            var chunks = Directory.GetFiles(lessonTempFolder, "chunk-*.*", SearchOption.TopDirectoryOnly)
+                .ToList();
+
             if (chunks.Count == 0)
             {
-                _logger.LogInformation("No recording chunks found for lesson {LessonId}", eventData.LessonId);
+                _logger.LogInformation("No temp recording chunks found for lesson {LessonId}", eventData.LessonId);
                 return;
             }
 
             var orderedChunks = chunks
-                .OrderBy(x => GetChunkOrder(x.StoredFileName))
-                .ThenBy(x => x.StoredFileName)
+                .OrderBy(GetChunkTimestamp)
+                .ThenBy(Path.GetFileName)
                 .ToList();
 
-            var firstChunk = orderedChunks[0];
-            var extension = Path.GetExtension(firstChunk.StoredFileName);
+            var firstChunkPath = orderedChunks[0];
+            var extension = Path.GetExtension(firstChunkPath);
             if (string.IsNullOrWhiteSpace(extension))
             {
                 extension = ".webm";
@@ -66,31 +74,20 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
             var mergedFileName = $"lesson-{eventData.LessonId}-{DateTime.UtcNow:yyyyMMddHHmmss}{extension}";
             var mergedFilePath = Path.Combine(tempWorkingFolder, mergedFileName);
 
-            await using (var mergedOutputStream = new FileStream(mergedFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                foreach (var chunk in orderedChunks)
-                {
-                    await using var chunkStream = await _driveService.DownloadFileAsync(chunk.RelativePath, context.CancellationToken);
-                    await chunkStream.CopyToAsync(mergedOutputStream, context.CancellationToken);
-                }
-            }
+            var concatListFilePath = Path.Combine(tempWorkingFolder, "concat-list.txt");
+            var concatLines = orderedChunks
+                .Select(chunkPath => $"file '{chunkPath.Replace("'", "'\\''")}'")
+                .ToArray();
+            await File.WriteAllLinesAsync(concatListFilePath, concatLines, context.CancellationToken);
 
-            var mergedFileInfo = new FileInfo(mergedFilePath);
-            await using var uploadStream = new FileStream(mergedFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-
-            var mergedFile = new FileUpload
-            {
-                FileName = mergedFileName,
-                ContentType = string.IsNullOrWhiteSpace(firstChunk.ContentType) ? "video/webm" : firstChunk.ContentType,
-                Length = mergedFileInfo.Length,
-                Content = uploadStream
-            };
-
-            var awsUploadResult = await _awsStorageService.UploadFileAsync(
-                mergedFile,
+            await MergeChunksWithFfmpegAsync(concatListFilePath, mergedFilePath, context.CancellationToken);
+            
+            var awsUploadResult = await _awsStorageService.UploadFileFromPathAsync(
+                mergedFilePath,
                 eventData.EndedByUserId,
                 LessonRecordPrefix,
-                context.CancellationToken);
+                extension
+                );
 
             var lessonRepo = _unitOfWork.GetRepository<Lesson, Guid>();
             var lesson = await lessonRepo.FindByIdAsync(eventData.LessonId, cancellationToken: context.CancellationToken);
@@ -132,11 +129,6 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
 
             await _unitOfWork.SaveChangesAsync();
 
-            foreach (var chunk in orderedChunks)
-            {
-                _ = await _driveService.DeleteFileAsync(chunk.RelativePath, context.CancellationToken);
-            }
-
             _logger.LogInformation("End ProcessMeetingRecordingAfterEndedEventConsumer for lesson {LessonId}", eventData.LessonId);
         }
         catch (Exception ex)
@@ -150,6 +142,8 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
         {
             try
             {
+                if (Directory.Exists(lessonTempFolder))
+                    Directory.Delete(lessonTempFolder, true);
                 if (Directory.Exists(tempWorkingFolder))
                 {
                     Directory.Delete(tempWorkingFolder, true);
@@ -172,14 +166,65 @@ public class ProcessMeetingRecordingAfterEndedEventConsumer : IConsumer<ProcessM
         return chunkCount * DefaultChunkSeconds;
     }
 
-    private static int GetChunkOrder(string fileName)
+    private static long GetChunkTimestamp(string filePath)
     {
+        var fileName = Path.GetFileName(filePath);
         var match = Regex.Match(fileName, @"chunk-(\d+)", RegexOptions.IgnoreCase);
-        if (match.Success && int.TryParse(match.Groups[1].Value, out var order))
+        if (match.Success && long.TryParse(match.Groups[1].Value, out var timestamp))
         {
-            return order;
+            return timestamp;
         }
 
-        return int.MaxValue;
+        return long.MaxValue;
+    }
+
+    private async Task MergeChunksWithFfmpegAsync(string concatListFilePath, string outputFilePath,
+        CancellationToken cancellationToken)
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "ffmpeg",
+            Arguments = $"-y -f concat -safe 0 -i \"{concatListFilePath}\" -c copy \"{outputFilePath}\"",
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+
+        using var process = new Process { StartInfo = startInfo };
+
+        if (!process.Start())
+        {
+            throw new InvalidOperationException("Failed to start ffmpeg process.");
+        }
+
+        var stdOutTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
+        var stdErrTask = process.StandardError.ReadToEndAsync(cancellationToken);
+
+        await process.WaitForExitAsync(cancellationToken);
+
+        var stdOut = await stdOutTask;
+        var stdErr = await stdErrTask;
+
+        if (process.ExitCode != 0)
+        {
+            _logger.LogError("ffmpeg failed with code {ExitCode}. StdOut: {StdOut}. StdErr: {StdErr}",
+                process.ExitCode,
+                stdOut,
+                stdErr);
+            throw new InvalidOperationException($"ffmpeg failed with exit code {process.ExitCode}.");
+        }
+    }
+
+    private static string GetContentTypeFromExtension(string extension)
+    {
+        return extension.ToLowerInvariant() switch
+        {
+            ".mp4" => "video/mp4",
+            ".webm" => "video/webm",
+            ".mov" => "video/quicktime",
+            ".mkv" => "video/x-matroska",
+            _ => "application/octet-stream"
+        };
     }
 }

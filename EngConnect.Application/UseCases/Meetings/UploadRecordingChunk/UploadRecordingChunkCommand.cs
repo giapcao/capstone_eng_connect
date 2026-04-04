@@ -9,7 +9,7 @@ public class UploadRecordingChunkCommand : ICommand
 
     public required Guid UserId { get; set; }
 
-    public required int ChunkIndex { get; set; }
+    public required long ChunkTimestamp { get; set; }
 
     public required FileUpload File { get; set; }
 }

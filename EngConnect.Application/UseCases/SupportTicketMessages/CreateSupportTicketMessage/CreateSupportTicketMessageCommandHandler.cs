@@ -27,22 +27,13 @@ public class CreateSupportTicketMessageCommandHandler : ICommandHandler<CreateSu
         {
             var supportTicketMessage = command.Adapt<SupportTicketMessage>();
             
-            var ticketMessagesExists = await _unitOfWork.GetRepository<SupportTicketMessage, Guid>()
-                .AnyAsync(x => x.TicketId == supportTicketMessage.TicketId, cancellationToken: cancellationToken);
-            
-            if (ticketMessagesExists)
-            {
-                _logger.LogWarning("SupportTicketMessage exist: {ticketId}", command.TicketId);
-                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.AlreadyExists("TicketId","Support Ticket"));
-            }
-            
             var ticketExists = await _unitOfWork.GetRepository<SupportTicket, Guid>()
                 .AnyAsync(x => x.Id == supportTicketMessage.TicketId, cancellationToken: cancellationToken);
             
             if (!ticketExists)
             {
                 _logger.LogWarning("SupportTicket does not exist: {ticketId}", command.TicketId);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<SupportTicket>("Support Ticket"));
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<SupportTicket>("Support Ticket"));
             }
             
             var senderExists = await _unitOfWork.GetRepository<User, Guid>()
@@ -51,7 +42,7 @@ public class CreateSupportTicketMessageCommandHandler : ICommandHandler<CreateSu
             if (!senderExists)
             {
                 _logger.LogWarning("Sender user does not exist: {senderId}", command.SenderId);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<User>("Sender"));
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<User>("Sender"));
             }
             
             _unitOfWork.GetRepository<SupportTicketMessage, Guid>().Add(supportTicketMessage);
