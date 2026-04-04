@@ -26,6 +26,12 @@ public class SupportTicketController : BaseApiController
         _queryDispatcher = queryDispatcher;
     }
 
+    /// <summary>
+    /// Lấy thông tin phiếu hỗ trợ theo ID.
+    /// </summary>
+    /// <param name="id">Mã định danh duy nhất của phiếu hỗ trợ.</param>
+    /// <param name="cancellationToken">Token hủy bỏ.</param>
+    /// <returns>Một IActionResult chứa chi tiết phiếu hỗ trợ.</returns>
     [HttpGet("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result<GetSupportTicketResponse>), StatusCodes.Status200OK)]
@@ -35,6 +41,12 @@ public class SupportTicketController : BaseApiController
         return FromResult(result);
     }
 
+    /// <summary>
+    /// Lấy danh sách phiếu hỗ trợ có phân trang.
+    /// </summary>
+    /// <param name="query">Các tham số truy vấn để lọc và phân trang.</param>
+    /// <param name="cancellationToken">Token hủy bỏ.</param>
+    /// <returns>Một IActionResult chứa danh sách phiếu hỗ trợ có phân trang.</returns>
     [HttpGet]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result<PaginationResult<GetSupportTicketResponse>>), StatusCodes.Status200OK)]
@@ -44,6 +56,12 @@ public class SupportTicketController : BaseApiController
         return FromResult(result);
     }
 
+    /// <summary>
+    /// Tạo phiếu hỗ trợ mới.
+    /// </summary>
+    /// <param name="command">Lệnh chứa chi tiết phiếu hỗ trợ.</param>
+    /// <param name="cancellationToken">Token hủy bỏ.</param>
+    /// <returns>Một IActionResult chỉ ra kết quả của việc tạo.</returns>
     [HttpPost]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
@@ -53,6 +71,13 @@ public class SupportTicketController : BaseApiController
         return FromResult(result);
     }
 
+    /// <summary>
+    /// Cập nhật phiếu hỗ trợ hiện có.
+    /// </summary>
+    /// <param name="id">Mã định danh duy nhất của phiếu hỗ trợ cần cập nhật.</param>
+    /// <param name="command">Lệnh chứa chi tiết phiếu hỗ trợ đã cập nhật.</param>
+    /// <param name="cancellationToken">Token hủy bỏ.</param>
+    /// <returns>Một IActionResult chỉ ra kết quả của việc cập nhật.</returns>
     [HttpPut("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
@@ -63,6 +88,13 @@ public class SupportTicketController : BaseApiController
         return FromResult(result);
     }
 
+    /// <summary>
+    /// Cập nhật trạng thái của phiếu hỗ trợ.
+    /// </summary>
+    /// <param name="id">Mã định danh duy nhất của phiếu hỗ trợ.</param>
+    /// <param name="command">Lệnh chứa trạng thái mới.</param>
+    /// <param name="cancellationToken">Token hủy bỏ.</param>
+    /// <returns>Một IActionResult chỉ ra kết quả của việc cập nhật trạng thái.</returns>
     [HttpPatch("{id:guid}/status")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
@@ -73,6 +105,12 @@ public class SupportTicketController : BaseApiController
         return FromResult(result);
     }
 
+    /// <summary>
+    /// Xóa phiếu hỗ trợ theo ID.
+    /// </summary>
+    /// <param name="id">Mã định danh duy nhất của phiếu hỗ trợ cần xóa.</param>
+    /// <param name="cancellationToken">Token hủy bỏ.</param>
+    /// <returns>Một IActionResult chỉ ra kết quả của việc xóa.</returns>
     [HttpDelete("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]

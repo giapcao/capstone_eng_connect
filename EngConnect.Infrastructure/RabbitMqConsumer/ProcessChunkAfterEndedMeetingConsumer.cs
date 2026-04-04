@@ -23,11 +23,12 @@ public class ProcessChunkAfterEndedMeetingConsumer : IConsumer<ProcessMeetingRec
     public async Task Consume(ConsumeContext<ProcessMeetingRecordingAfterEndedEvent> context)
     {
         var eventData = context.Message;
+        var retryAttempt = context.GetRetryAttempt();
         _logger.LogInformation("Start ProcessChunkAfterEndedMeetingConsumer {@EventData}", eventData);
         try
         {
             var currentChunksCount = await _redisService.SortedSetLengthAsync(eventData.LessonId.ToString());
-            if (currentChunksCount < eventData.TotalChunks)
+            if (currentChunksCount < eventData.TotalChunks && retryAttempt < 4)
             {
                 throw new InvalidOperationException(
                     $"Chunks not ready for Lesson {eventData.LessonId}. Expected: {eventData.TotalChunks}, Current: {currentChunksCount}");

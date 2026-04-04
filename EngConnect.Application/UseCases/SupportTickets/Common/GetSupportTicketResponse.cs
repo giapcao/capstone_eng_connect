@@ -1,3 +1,6 @@
+using EngConnect.Application.UseCases.SupportTicketMessages.Common;
+using EngConnect.Domain.Persistence.Models;
+
 namespace EngConnect.Application.UseCases.SupportTickets.Common;
 
 public class GetSupportTicketResponse
@@ -19,4 +22,6 @@ public class GetSupportTicketResponse
     public DateTime CreatedAt { get; set; }
     
     public DateTime? UpdatedAt { get; set; }
+
+    public virtual ICollection<GetSupportTicketMessageResponse>? SupportTicketMessages { get; set; } 
 }

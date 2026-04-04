@@ -35,7 +35,14 @@ public class GetAiSummaryCommandHandler : ICommandHandler<GetAiSummaryCommand, A
         try
         {
             var chunk = await _redisService.SortedSetRangeAsync(command.LessonId.ToString());
-            var transcript = string.Join(" ", chunk);
+            var transcript = string.Join(" ", chunk
+                    .Select(m => 
+                    {
+                        using var doc = JsonDocument.Parse(m.ToString());
+                        return doc.RootElement.GetProperty("text").GetString();
+                    })
+                    .Where(t => !string.IsNullOrWhiteSpace(t)) 
+            );
             var lesson = await _unitOfWork.GetRepository<Lesson, Guid>().FindByIdAsync(command.LessonId,
                 false, cancellationToken: cancellationToken, l => l.Student.User
                 , l => l.Tutor.User, l => l.LessonRecord!, l => l.Session!);
