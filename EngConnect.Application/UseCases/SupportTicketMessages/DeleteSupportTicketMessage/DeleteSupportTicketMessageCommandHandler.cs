@@ -29,7 +29,7 @@ public class DeleteSupportTicketMessageCommandHandler : ICommandHandler<DeleteSu
             if (supportTicketMessage == null)
             {
                 _logger.LogWarning("SupportTicketMessage not found: {id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<SupportTicketMessage>("SupportTicketMessage"));
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<SupportTicketMessage>("SupportTicketMessage"));
             }
 
             _unitOfWork.GetRepository<SupportTicketMessage, Guid>().Delete(supportTicketMessage);
