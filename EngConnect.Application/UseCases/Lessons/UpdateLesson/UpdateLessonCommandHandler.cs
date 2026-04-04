@@ -1,9 +1,11 @@
 using System.Net;
+using EngConnect.Application.UseCases.Lessons.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Mapster;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.Lessons.UpdateLesson;
@@ -30,75 +32,45 @@ public class UpdateLessonCommandHandler : ICommandHandler<UpdateLessonCommand>
             if (lesson == null)
             {
                 _logger.LogWarning("Lesson not found: {id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("Bài học"));
+                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("BÃ i há»c"));
             }
 
-            var tutorExists = await _unitOfWork.GetRepository<Tutor, Guid>()
-                .AnyAsync(x => x.Id == command.TutorId, cancellationToken: cancellationToken);
-
-            if (!tutorExists)
-            {
-                _logger.LogWarning("Tutor not found: {tutorId}", command.TutorId);
-                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<Tutor>("TutorId"));
-            }
+            command.Adapt(lesson);
 
             var studentExists = await _unitOfWork.GetRepository<Student, Guid>()
-                .AnyAsync(x => x.Id == command.StudentId, cancellationToken: cancellationToken);
+                .AnyAsync(x => x.Id == lesson.StudentId, cancellationToken: cancellationToken);
 
             if (!studentExists)
             {
-                _logger.LogWarning("Student not found: {studentId}", command.StudentId);
-                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<Student>("StudentId"));
+                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Student>("thÃ´ng tin Há»c sinh."));
             }
 
-            var enrollment = await _unitOfWork.GetRepository<CourseEnrollment, Guid>()
-                .FindByIdAsync(command.EnrollmentId, true, cancellationToken, e => e.Course);
+            var trackingContext = await LessonTrackingContext.ResolveAsync(
+                _unitOfWork,
+                command.EnrollmentId,
+                command.StudentId,
+                command.ModuleId,
+                command.SessionId,
+                cancellationToken);
 
-            if (enrollment == null)
+            if (trackingContext.IsFailure)
             {
-                _logger.LogWarning("Enrollment not found: {enrollmentId}", command.EnrollmentId);
-                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<CourseEnrollment>("EnrollmentId"));
+                _logger.LogWarning(
+                    "Invalid lesson tracking data while updating LessonId {LessonId}. EnrollmentId {EnrollmentId}, ModuleId {ModuleId}, SessionId {SessionId}",
+                    command.Id,
+                    command.EnrollmentId,
+                    command.ModuleId,
+                    command.SessionId);
+                return Result.Failure(trackingContext.HttpStatusCode, trackingContext.Error!);
             }
 
-            if (enrollment.StudentId != command.StudentId)
-            {
-                _logger.LogWarning("Enrollment {enrollmentId} does not belong to student {studentId}", command.EnrollmentId, command.StudentId);
-                return Result.Failure(HttpStatusCode.BadRequest,
-                    CommonErrors.ValidationFailed("Enrollment does not belong to StudentId"));
-            }
-
-            if (enrollment.Course.TutorId != command.TutorId)
-            {
-                _logger.LogWarning("Enrollment {enrollmentId} does not belong to tutor {tutorId}", command.EnrollmentId, command.TutorId);
-                return Result.Failure(HttpStatusCode.BadRequest,
-                    CommonErrors.ValidationFailed("Enrollment does not belong to TutorId"));
-            }
-
-            if (command.SessionId.HasValue)
-            {
-                var sessionExists = await _unitOfWork.GetRepository<CourseSession, Guid>()
-                    .AnyAsync(x => x.Id == command.SessionId, cancellationToken: cancellationToken);
-
-                if (!sessionExists)
-                {
-                    _logger.LogWarning("Course session not found with ID: {sessionId}", command.SessionId);
-                    return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<CourseSession>("SessionId"));
-                }
-            }
-
-            lesson.TutorId = command.TutorId;
-            lesson.StudentId = command.StudentId;
-            lesson.EnrollmentId = command.EnrollmentId;
-            lesson.SessionId = command.SessionId;
-            lesson.StartTime = command.StartTime;
-            lesson.EndTime = command.EndTime;
-            lesson.MeetingUrl = command.MeetingUrl;
+            lesson.TutorId = trackingContext.Data!.TutorId;
 
             _unitOfWork.GetRepository<Lesson, Guid>().Update(lesson);
             await _unitOfWork.SaveChangesAsync();
-            
+
             _logger.LogInformation("End UpdateLessonCommandHandler");
-            return Result.Success(lesson);
+            return Result.Success();
         }
         catch (Exception ex)
         {

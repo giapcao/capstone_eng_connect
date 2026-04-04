@@ -18,6 +18,9 @@ public class CourseSessionConfiguration : IEntityTypeConfiguration<CourseSession
         builder.Property(e => e.TutorId)
             .HasColumnName("tutor_id");
 
+        builder.Property(e => e.ParentSessionId)
+            .HasColumnName("parent_session_id");
+
         builder.Property(e => e.Title)
             .HasMaxLength(255)
             .HasColumnName("title");
@@ -48,6 +51,12 @@ public class CourseSessionConfiguration : IEntityTypeConfiguration<CourseSession
             .HasForeignKey(d => d.TutorId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("fk_session_tutor");
+
+        builder.HasOne(d => d.ParentSession)
+            .WithMany(p => p.InverseParentSession)
+            .HasForeignKey(d => d.ParentSessionId)
+            .OnDelete(DeleteBehavior.ClientSetNull)
+            .HasConstraintName("fk_course_session_parent");
     }
 }
 

@@ -1,6 +1,7 @@
 using EngConnect.Application.UseCases.CourseModules.Common;
 using EngConnect.Application.UseCases.CourseReviews.Common;
 using EngConnect.Application.UseCases.Courses.Common;
+using EngConnect.Application.UseCases.Lessons.Common;
 using EngConnect.Application.UseCases.Users.Common;
 using EngConnect.Domain.Persistence.Models;
 using Mapster;
@@ -28,6 +29,7 @@ namespace EngConnect.Application.Mapping
                 .Map(dest => dest.ModuleTitle, src => src.CourseModule!.Title)
                 .Map(dest => dest.ModuleDescription, src => src.CourseModule!.Description)
                 .Map(dest => dest.ModuleOutcomes, src => src.CourseModule!.Outcomes)
+                .Map(dest => dest.ParentModuleId, src => src.CourseModule!.ParentModuleId)
                 .Map(dest => dest.ModuleNumber, src => src.ModuleNumber);
             
             //Course Session Mapping
@@ -35,6 +37,7 @@ namespace EngConnect.Application.Mapping
                 .Map(dest => dest.SessionTitle, src => src.CourseSession!.Title)
                 .Map(dest => dest.SessionDescription, src => src.CourseSession!.Description)
                 .Map(dest => dest.SessionOutcomes, src => src.CourseSession!.Outcomes)
+                .Map(dest => dest.ParentSessionId, src => src.CourseSession!.ParentSessionId)
                 .Map(dest => dest.SessionNumber, src => src.SessionNumber);    
            
             //Course Category Mapping
@@ -51,6 +54,7 @@ namespace EngConnect.Application.Mapping
                     {
                         Id = ccm.Id,
                         CourseModuleId = ccm.CourseModuleId,
+                        ParentModuleId = ccm.CourseModule.ParentModuleId,
                         ModuleTitle = ccm.CourseModule.Title,
                         ModuleDescription = ccm.CourseModule.Description,
                         ModuleOutcomes = ccm.CourseModule.Outcomes,
@@ -61,6 +65,7 @@ namespace EngConnect.Application.Mapping
                             {
                                 Id = cs.Id,
                                 CourseSessionId = cs.CourseSessionId,
+                                ParentSessionId = cs.CourseSession.ParentSessionId,
                                 SessionTitle = cs.CourseSession.Title,
                                 SessionDescription = cs.CourseSession.Description,
                                 SessionOutcomes = cs.CourseSession.Outcomes,
@@ -75,11 +80,16 @@ namespace EngConnect.Application.Mapping
                     {
                         Id = cs.Id,
                         CourseSessionId = cs.CourseSessionId,
+                        ParentSessionId = cs.CourseSession.ParentSessionId,
                         SessionTitle = cs.CourseSession.Title,
                         SessionDescription = cs.CourseSession.Description,
                         SessionOutcomes = cs.CourseSession.Outcomes,
                         SessionNumber = cs.SessionNumber
                     }).ToList());
+            
+            TypeAdapterConfig<Lesson, GetLessonResponse>
+                .NewConfig()
+                .Map(dest => dest.CourseId, src => src.Enrollment.CourseId);
             
             //Course Review mapping
             TypeAdapterConfig<CourseReview, GetCourseReviewResponse>.NewConfig();

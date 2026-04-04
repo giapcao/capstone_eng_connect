@@ -9,6 +9,8 @@ public class Lesson : AuditableEntity<Guid>
     public Guid StudentId { get; set; }
 
     public Guid EnrollmentId { get; set; }
+    
+    public Guid? ModuleId { get; set; }
 
     public Guid? SessionId { get; set; }
 
@@ -37,6 +39,8 @@ public class Lesson : AuditableEntity<Guid>
     public virtual LessonRecord? LessonRecord { get; set; }
 
     public virtual LessonScript? LessonScript { get; set; }
+    
+    public virtual CourseModule? Module { get; set; }
     
     public virtual CourseSession? Session { get; set; }
 

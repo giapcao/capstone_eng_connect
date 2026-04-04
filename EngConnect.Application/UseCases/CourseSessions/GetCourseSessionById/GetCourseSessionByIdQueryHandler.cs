@@ -47,6 +47,7 @@ public class GetCourseSessionByIdQueryHandler : IQueryHandler<GetCourseSessionBy
 
             //Map to response
             var result = _mapper.Map<GetCourseSessionResponse>(courseSession);
+            result.ParentSessionId = courseSession.ParentSessionId;
 
             _logger.LogInformation("End GetCourseSessionByIdQueryHandler");
             return Result.Success(result);

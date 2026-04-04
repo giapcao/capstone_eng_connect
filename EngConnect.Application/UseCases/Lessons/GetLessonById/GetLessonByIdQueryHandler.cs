@@ -29,21 +29,18 @@ public class GetLessonByIdQueryHandler : IQueryHandler<GetLessonByIdQuery, GetLe
         try
         {
             var lesson = await _unitOfWork.GetRepository<Lesson, Guid>()
-                .FindByIdAsync(query.Id, true, cancellationToken,
-                    x => x.LessonRecord!,
-                    x => x.LessonScript!,
-                    x => x.LessonHomeworks);
+                .FindByIdAsync(query.Id, tracking: false, cancellationToken: cancellationToken, x => x.Enrollment);
 
             if (lesson == null)
             {
                 _logger.LogWarning("Lesson not found: {id}", query.Id);
                 return Result.Failure<GetLessonResponse>(
                     HttpStatusCode.NotFound,
-                    CommonErrors.NotFound<Lesson>("Bài học"));
+                    CommonErrors.NotFound<Lesson>("BÃ i há»c"));
             }
 
             var lessonResponse = lesson.Adapt<GetLessonResponse>();
-            
+
             _logger.LogInformation("End GetLessonByIdQueryHandler");
             return Result.Success(lessonResponse);
         }

@@ -1,3 +1,4 @@
+using EngConnect.BuildingBlock.Application.Validation.Validation;
 using FluentValidation;
 
 namespace EngConnect.Application.UseCases.Lessons.CreateLesson;
@@ -6,21 +7,20 @@ public class CreateLessonCommandValidator : AbstractValidator<CreateLessonComman
 {
     public CreateLessonCommandValidator()
     {
-        RuleFor(x => x.TutorId)
-            .NotEmpty().WithMessage("Mã gia sư (TutorId) không được để trống.");
-
         RuleFor(x => x.StudentId)
-            .NotEmpty().WithMessage("Mã học sinh (StudentId) không được để trống.");
+            .NotEmpty().WithMessage("MÃ£ há»c sinh (StudentId) khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
 
         RuleFor(x => x.EnrollmentId)
-            .NotEmpty().WithMessage("Mã đăng ký (EnrollmentId) không được để trống.");
+            .NotEmpty().WithMessage("MÃ£ Ä‘Äƒng kÃ½ (EnrollmentId) khÃ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng.");
+
+        RuleFor(x => x)
+            .Must(x => x.ModuleId.HasValue == x.SessionId.HasValue)
+            .WithMessage("ModuleId vÃ  SessionId pháº£i cÃ¹ng cÃ³ giÃ¡ trá»‹ hoáº·c cÃ¹ng Ä‘á»ƒ trá»‘ng.");
 
         RuleFor(x => x.StartTime)
-            .NotNull().WithMessage("Thời gian bắt đầu không được để trống.")
-            .GreaterThan(DateTime.UtcNow).WithMessage("Thời gian bắt đầu phải ở trong tương lai.");
+            .GreaterThan(DateTime.UtcNow).WithMessage("Thá»i gian báº¯t Ä‘áº§u pháº£i á»Ÿ trong tÆ°Æ¡ng lai.");
 
         RuleFor(x => x.EndTime)
-            .NotNull().WithMessage("Thời gian kết thúc không được để trống.")
-            .GreaterThan(x => x.StartTime).WithMessage("Thời gian kết thúc phải sau thời gian bắt đầu.");
+            .GreaterThan(x => x.StartTime).WithMessage("Thá»i gian káº¿t thÃºc pháº£i sau thá»i gian báº¯t Ä‘áº§u.");
     }
 }

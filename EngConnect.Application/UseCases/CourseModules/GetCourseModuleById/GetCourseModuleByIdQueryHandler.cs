@@ -47,6 +47,7 @@ public class GetCourseModuleByIdQueryHandler : IQueryHandler<GetCourseModuleById
 
             //Map to response
             var result = _mapper.Map<GetCourseModuleDetailResponse>(courseModule);
+            result.ParentModuleId = courseModule.ParentModuleId;
             
             _logger.LogInformation("End GetCourseModuleByIdQueryHandler");
             return Result.Success(result);

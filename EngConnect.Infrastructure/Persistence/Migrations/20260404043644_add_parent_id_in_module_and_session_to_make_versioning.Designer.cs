@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using EngConnect.Infrastructure.Persistence.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EngConnect.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260404043644_add_parent_id_in_module_and_session_to_make_versioning")]
+    partial class add_parent_id_in_module_and_session_to_make_versioning
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1534,11 +1537,9 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("lesson_script_pkey");
 
-                    b.HasIndex("LessonId")
-                        .IsUnique();
+                    b.HasIndex("LessonId");
 
-                    b.HasIndex("RecordId")
-                        .IsUnique();
+                    b.HasIndex("RecordId");
 
                     b.ToTable("lesson_script", (string)null);
                 });
@@ -3189,14 +3190,14 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonScript", b =>
                 {
                     b.HasOne("EngConnect.Domain.Persistence.Models.Lesson", "Lesson")
-                        .WithOne("LessonScript")
-                        .HasForeignKey("EngConnect.Domain.Persistence.Models.LessonScript", "LessonId")
+                        .WithMany("LessonScripts")
+                        .HasForeignKey("LessonId")
                         .IsRequired()
                         .HasConstraintName("fk_script_lesson");
 
                     b.HasOne("EngConnect.Domain.Persistence.Models.LessonRecord", "Record")
-                        .WithOne("LessonScript")
-                        .HasForeignKey("EngConnect.Domain.Persistence.Models.LessonScript", "RecordId")
+                        .WithMany("LessonScripts")
+                        .HasForeignKey("RecordId")
                         .IsRequired()
                         .HasConstraintName("fk_script_record");
 
@@ -3483,14 +3484,14 @@ namespace EngConnect.Infrastructure.Persistence.Migrations
 
                     b.Navigation("LessonRescheduleRequests");
 
-                    b.Navigation("LessonScript");
+                    b.Navigation("LessonScripts");
 
                     b.Navigation("MeetingParticipants");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.LessonRecord", b =>
                 {
-                    b.Navigation("LessonScript");
+                    b.Navigation("LessonScripts");
                 });
 
             modelBuilder.Entity("EngConnect.Domain.Persistence.Models.Order", b =>

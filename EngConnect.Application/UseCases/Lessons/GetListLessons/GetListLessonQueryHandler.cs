@@ -31,40 +31,61 @@ public class GetListLessonQueryHandler : IQueryHandler<GetListLessonQuery, Pagin
         try
         {
             var lessonRepository = _unitOfWork.GetRepository<Lesson, Guid>();
-            
-            IQueryable<Lesson> lessons = lessonRepository.FindAll();
-            
+            var lessons = lessonRepository.FindAll();
+
             Expression<Func<Lesson, bool>> predicate = x => true;
-            
+
             if (ValidationUtil.IsNotNullOrEmpty(query.Status))
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.Status != null && x.Status.ToLower().Contains(query.Status.ToLower()));
+                predicate = predicate.CombineAndAlsoExpressions(
+                    x => x.Status != null && query.Status.ToLower().Contains(x.Status.ToLower()));
             }
-            
-            if (query.StartTimeFrom.HasValue)
-                predicate = predicate.CombineAndAlsoExpressions(x => x.StartTime >= query.StartTimeFrom);
-            
-            if (query.StartTimeTo.HasValue)
-                predicate = predicate.CombineAndAlsoExpressions(x => x.StartTime <= query.StartTimeTo);
 
-            if (query.TutorId.HasValue)
+            if (query.CourseId.HasValue)
             {
-                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId);
+                predicate = predicate.CombineAndAlsoExpressions(x => x.Enrollment.CourseId == query.CourseId.Value);
+            }
+
+            if (query.EnrollmentId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => x.EnrollmentId == query.EnrollmentId.Value);
+            }
+
+            if (query.StartTimeFrom.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => x.StartTime >= query.StartTimeFrom);
+            }
+
+            if (query.StartTimeTo.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => x.StartTime <= query.StartTimeTo);
             }
 
             if (query.StudentId.HasValue)
             {
                 predicate = predicate.CombineAndAlsoExpressions(x => x.StudentId == query.StudentId);
             }
-            
-            lessons = lessons.Where(predicate);
 
+            if (query.TutorId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => x.TutorId == query.TutorId.Value);
+            }
+
+            if (query.ModuleId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => x.ModuleId == query.ModuleId.Value);
+            }
+
+            if (query.SessionId.HasValue)
+            {
+                predicate = predicate.CombineAndAlsoExpressions(x => x.SessionId == query.SessionId.Value);
+            }
+
+            lessons = lessons.Where(predicate);
             lessons = lessons.ApplySorting(query.GetSortParams());
 
-            var result =
-                await lessons.ProjectToPaginatedListAsync<Lesson, GetLessonResponse>
-                    (query.GetPaginationParams());
-            
+            var result = await lessons.ProjectToPaginatedListAsync<Lesson, GetLessonResponse>(query.GetPaginationParams());
+
             _logger.LogInformation("End GetListLessonQueryHandler");
             return Result.Success(result);
         }

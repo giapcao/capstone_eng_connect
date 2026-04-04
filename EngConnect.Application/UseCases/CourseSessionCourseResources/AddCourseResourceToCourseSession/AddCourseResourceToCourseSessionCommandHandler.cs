@@ -88,11 +88,37 @@ public class AddCourseResourceToCourseSessionCommandHandler : ICommandHandler<Ad
             transactionId = transaction.TransactionId;
             foreach (var courseResource in command.CourseResources)
             {
+                var sourceResource = await courseResourceRepo.FindSingleAsync(
+                    x => x.Id == courseResource.CourseResourceId,
+                    cancellationToken: cancellationToken);
+                if (sourceResource == null)
+                {
+                    if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+                    {
+                        await _unitOfWork.RollbackTransactionAsync();
+                    }
+
+                    return Result.Failure(HttpStatusCode.NotFound,
+                        new Error("CourseResourceNotFound", "Tai nguyen khong ton tai"));
+                }
+
+                var clonedResourceId = Guid.NewGuid();
+                courseResourceRepo.Add(new CourseResource
+                {
+                    Id = clonedResourceId,
+                    TutorId = sourceResource.TutorId,
+                    ParentResourceId = sourceResource.Id,
+                    Title = sourceResource.Title,
+                    ResourceType = sourceResource.ResourceType,
+                    Url = sourceResource.Url,
+                    Status = sourceResource.Status
+                });
+
                 var courseSessionCourseResource = new CourseSessionCourseResource
                 {
                     Id = Guid.NewGuid(),
                     CourseSessionId = command.CourseSessionId,
-                    CourseResourceId = courseResource.CourseResourceId
+                    CourseResourceId = clonedResourceId
                 };
 
                 courseSessionCourseResourceRepo.Add(courseSessionCourseResource);

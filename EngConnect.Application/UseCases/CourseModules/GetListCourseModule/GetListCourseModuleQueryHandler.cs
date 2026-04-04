@@ -38,6 +38,7 @@ public class GetListCourseModuleQueryHandler : IQueryHandler<GetListCourseModule
                 {
                     Id = x.CourseModuleId,
                     CourseId = x.CourseId,
+                    ParentModuleId = x.CourseModule.ParentModuleId,
                     Title = x.CourseModule.Title,
                     Description = x.CourseModule.Description,
                     Outcomes = x.CourseModule.Outcomes,

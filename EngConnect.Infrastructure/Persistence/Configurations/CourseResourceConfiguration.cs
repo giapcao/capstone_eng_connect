@@ -18,6 +18,9 @@ public class CourseResourceConfiguration : IEntityTypeConfiguration<CourseResour
         builder.Property(e => e.TutorId)
             .HasColumnName("tutor_id");
 
+        builder.Property(e => e.ParentResourceId)
+            .HasColumnName("parent_resource_id");
+
         builder.Property(e => e.Title)
             .HasMaxLength(255)
             .HasColumnName("title");
@@ -53,6 +56,12 @@ public class CourseResourceConfiguration : IEntityTypeConfiguration<CourseResour
             .HasForeignKey(d => d.TutorId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("fk_resource_tutor");
+
+        builder.HasOne(d => d.ParentResource)
+            .WithMany(p => p.InverseParentResource)
+            .HasForeignKey(d => d.ParentResourceId)
+            .OnDelete(DeleteBehavior.ClientSetNull)
+            .HasConstraintName("fk_course_resource_parent");
     }
 }
 

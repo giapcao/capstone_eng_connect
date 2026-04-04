@@ -3,6 +3,7 @@ using EngConnect.Application.UseCases.CourseModules.Common;
 using EngConnect.Application.UseCases.CourseModules.CreateCourseModule;
 using EngConnect.Application.UseCases.CourseModules.DeleteCourseModule;
 using EngConnect.Application.UseCases.CourseModules.GetCourseModuleById;
+using EngConnect.Application.UseCases.CourseModules.GetCourseModuleTree;
 using EngConnect.Application.UseCases.CourseModules.GetListCourseModule;
 using EngConnect.Application.UseCases.CourseModules.GetListCourseModuleByTutor;
 using EngConnect.Application.UseCases.CourseModules.UpdateCourseModule;
@@ -75,6 +76,19 @@ public class CourseModuleController : BaseApiController
     public async Task<IActionResult> GetByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken = default)
     {
         var query = new GetCourseModuleByIdQuery(id);
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Lay cay parent cua CourseModule theo ID (chi di nguoc len parent chain)
+    /// </summary>
+    [HttpGet("{id}/tree")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<GetCourseModuleTreeResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTreeByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken = default)
+    {
+        var query = new GetCourseModuleTreeQuery(id);
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
         return FromResult(result);
     }
