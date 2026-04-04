@@ -1,4 +1,5 @@
 using System.Net;
+using EngConnect.Application.UseCases.Lessons.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
@@ -25,46 +26,49 @@ public class UpdateLessonCommandHandler : ICommandHandler<UpdateLessonCommand>
         _logger.LogInformation("Start UpdateLessonCommandHandler: {@command}", command);
         try
         {
-            var lesson = await _unitOfWork.GetRepository<Lesson, Guid>().FindByIdAsync(command.Id, cancellationToken: cancellationToken);
+            var lesson = await _unitOfWork.GetRepository<Lesson, Guid>()
+                .FindByIdAsync(command.Id, cancellationToken: cancellationToken);
 
             if (lesson == null)
             {
                 _logger.LogWarning("Lesson not found: {id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("Bài học"));
-            }
-            
-            command.Adapt(lesson);
-            
-            var enrollment = await _unitOfWork.GetRepository<CourseEnrollment, Guid>()
-                .AnyAsync( x=>x.Id == lesson.EnrollmentId, cancellationToken: cancellationToken);
-            
-            if (!enrollment)
-            {
-                _logger.LogWarning("EnrollmentId does not exist: {enrollmentId}", command.EnrollmentId);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<CourseEnrollment>("EnrollmentId"));
-            }
-            
-            var studentExists = await _unitOfWork.GetRepository<Student,Guid>()
-                .AnyAsync(x=>x.Id == lesson.StudentId, cancellationToken: cancellationToken);
-        
-            if (!studentExists)
-            {
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Student>("thông tin Học sinh."));
+                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Lesson>("BÃ i há»c"));
             }
 
-            if (lesson.SessionId.HasValue)
+            command.Adapt(lesson);
+
+            var studentExists = await _unitOfWork.GetRepository<Student, Guid>()
+                .AnyAsync(x => x.Id == lesson.StudentId, cancellationToken: cancellationToken);
+
+            if (!studentExists)
             {
-                var sessionExists = await _unitOfWork.GetRepository<CourseSession, Guid>()
-                    .AnyAsync(x=>x.Id == lesson.SessionId, cancellationToken: cancellationToken);
-            
-                if (!sessionExists)
-                {
-                    return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<CourseSession>("Buổi học (Session)"));
-                }
+                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Student>("thÃ´ng tin Há»c sinh."));
             }
+
+            var trackingContext = await LessonTrackingContext.ResolveAsync(
+                _unitOfWork,
+                command.EnrollmentId,
+                command.StudentId,
+                command.ModuleId,
+                command.SessionId,
+                cancellationToken);
+
+            if (trackingContext.IsFailure)
+            {
+                _logger.LogWarning(
+                    "Invalid lesson tracking data while updating LessonId {LessonId}. EnrollmentId {EnrollmentId}, ModuleId {ModuleId}, SessionId {SessionId}",
+                    command.Id,
+                    command.EnrollmentId,
+                    command.ModuleId,
+                    command.SessionId);
+                return Result.Failure(trackingContext.HttpStatusCode, trackingContext.Error!);
+            }
+
+            lesson.TutorId = trackingContext.Data!.TutorId;
+
             _unitOfWork.GetRepository<Lesson, Guid>().Update(lesson);
             await _unitOfWork.SaveChangesAsync();
-            
+
             _logger.LogInformation("End UpdateLessonCommandHandler");
             return Result.Success();
         }

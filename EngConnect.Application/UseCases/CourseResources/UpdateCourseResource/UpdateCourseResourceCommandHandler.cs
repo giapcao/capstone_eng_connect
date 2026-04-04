@@ -3,9 +3,8 @@ using EngConnect.Application.UseCases.CourseResources.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
-using EngConnect.Domain.Constants;
-using EngConnect.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -26,18 +25,15 @@ public class UpdateCourseResourceCommandHandler : ICommandHandler<UpdateCourseRe
     public async Task<Result<GetCourseResourceResponse>> HandleAsync(UpdateCourseResourceCommand command,
         CancellationToken cancellationToken = default)
     {
+        Guid? transactionId = null;
         _logger.LogInformation("Start UpdateCourseResourceCommandHandler {@Command}", command);
         try
         {
             var courseResourceRepo = _unitOfWork.GetRepository<CourseResource, Guid>();
+            var courseSessionCourseResourceRepo = _unitOfWork.GetRepository<CourseSessionCourseResource, Guid>();
 
             var courseResource = await courseResourceRepo.FindAll(x => x.Id == command.Id)
                 .Include(x => x.CourseSessionCourseResources)
-                    .ThenInclude(x => x.CourseSession)
-                        .ThenInclude(x => x.CourseModuleCourseSessions)
-                            .ThenInclude(x => x.CourseModule)
-                                .ThenInclude(x => x.CourseCourseModules)
-                                    .ThenInclude(x => x.Course)
                 .FirstOrDefaultAsync(cancellationToken);
             if (courseResource == null)
             {
@@ -46,41 +42,57 @@ public class UpdateCourseResourceCommandHandler : ICommandHandler<UpdateCourseRe
                     new Error("CourseResourceNotFound", "Tai nguyen khong ton tai"));
             }
 
-            var hasPublishedCourse = courseResource.CourseSessionCourseResources
-                .SelectMany(x => x.CourseSession.CourseModuleCourseSessions)
-                .SelectMany(x => x.CourseModule.CourseCourseModules)
-                .Any(x => x.Course.Status == nameof(CourseStatus.Published));
-            if (hasPublishedCourse)
+            var transaction = await _unitOfWork.BeginTransactionAsync();
+            transactionId = transaction.TransactionId;
+
+            var newResource = new CourseResource
             {
-                _logger.LogWarning("CourseResource with ID: {Id} cannot be updated because it's in use by a Published course", command.Id);
-                return Result.Failure<GetCourseResourceResponse>(HttpStatusCode.BadRequest,
-                    CourseResourceErrors.CourseResourceIsInUse());
+                Id = Guid.NewGuid(),
+                TutorId = courseResource.TutorId,
+                ParentResourceId = courseResource.Id,
+                Title = command.Title,
+                ResourceType = command.ResourceType,
+                Url = command.Url ?? courseResource.Url,
+                Status = command.Status
+            };
+
+            courseResourceRepo.Add(newResource);
+
+            foreach (var relation in courseResource.CourseSessionCourseResources)
+            {
+                relation.CourseResourceId = newResource.Id;
+                courseSessionCourseResourceRepo.Update(relation);
             }
 
-            courseResource.Title = command.Title;
-            courseResource.ResourceType = command.ResourceType;
-            courseResource.Url = command.Url;
-            courseResource.Status = command.Status;
-
-            courseResourceRepo.Update(courseResource);
             await _unitOfWork.SaveChangesAsync();
+
+            if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+            {
+                await _unitOfWork.CommitTransactionAsync();
+            }
 
             _logger.LogInformation("End UpdateCourseResourceCommandHandler");
             return Result.Success(new GetCourseResourceResponse
             {
-                Id = courseResource.Id,
-                TutorId = courseResource.TutorId ?? Guid.Empty,
-                Title = courseResource.Title,
-                ResourceType = courseResource.ResourceType,
-                Url = courseResource.Url,
-                Status = courseResource.Status,
-                CreatedAt = courseResource.CreatedAt,
-                UpdatedAt = courseResource.UpdatedAt
+                Id = newResource.Id,
+                TutorId = newResource.TutorId ?? Guid.Empty,
+                ParentResourceId = newResource.ParentResourceId,
+                Title = newResource.Title,
+                ResourceType = newResource.ResourceType,
+                Url = newResource.Url,
+                Status = newResource.Status,
+                CreatedAt = newResource.CreatedAt,
+                UpdatedAt = newResource.UpdatedAt
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in UpdateCourseResourceCommandHandler: {Message}", ex.Message);
+            if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+            }
+
             return Result.Failure<GetCourseResourceResponse>(HttpStatusCode.InternalServerError,
                 CommonErrors.InternalServerError());
         }

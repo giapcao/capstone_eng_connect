@@ -51,6 +51,7 @@ public class GetListCourseResourceQueryHandler : IQueryHandler<GetListCourseReso
                 {
                     Id = x.CourseResourceId,
                     TutorId = x.CourseResource.TutorId ?? Guid.Empty,
+                    ParentResourceId = x.CourseResource.ParentResourceId,
                     Title = x.CourseResource.Title,
                     ResourceType = x.CourseResource.ResourceType,
                     Url = x.CourseResource.Url,

@@ -3,6 +3,7 @@ using EngConnect.Application.UseCases.CourseModules.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
@@ -26,6 +27,7 @@ public class UpdateCourseModuleCommandHandler : ICommandHandler<UpdateCourseModu
     public async Task<Result<GetCourseModuleResponse>> HandleAsync(UpdateCourseModuleCommand command,
         CancellationToken cancellationToken = default)
     {
+        Guid? transactionId = null;
         _logger.LogInformation("Start UpdateCourseModuleCommandHandler {@Command}", command);
         try
         {
@@ -42,58 +44,76 @@ public class UpdateCourseModuleCommandHandler : ICommandHandler<UpdateCourseModu
                     new Error("CourseModuleNotFound", "Course module not found"));
             }
 
-            var listCourse = await courseCourseModuleRepo.FindAll(x => x.CourseModuleId == command.Id)
+            var relations = await courseCourseModuleRepo.FindAll(x => x.CourseModuleId == command.Id)
                 .Include(x => x.Course)
                 .ToListAsync(cancellationToken);
 
-            if (listCourse.Any(x => x.Course.Status == nameof(CourseStatus.Published)))
+            if (relations.Any(x => x.Course.Status == nameof(CourseStatus.Published)))
             {
                 _logger.LogWarning("CourseModule with ID: {Id} cannot be updated because it's in use by a Published course", command.Id);
                 return Result.Failure<GetCourseModuleResponse>(HttpStatusCode.BadRequest,
                     CourseModuleErrors.CourseModuleIsInUse());
             }
 
-            courseModule.Title = command.Title;
-            courseModule.Description = command.Description;
-            courseModule.Outcomes = command.Outcomes;
-
-            courseModuleRepo.Update(courseModule);
-            await _unitOfWork.SaveChangesAsync();
-
-            var targetCourseId = listCourse.Select(x => x.CourseId).FirstOrDefault();
-            if (targetCourseId == Guid.Empty)
+            if (command.CourseId.HasValue && relations.All(x => x.CourseId != command.CourseId.Value))
             {
-                return Result.Success(new GetCourseModuleResponse
-                {
-                    Id = courseModule.Id,
-                    CourseId = Guid.Empty,
-                    Title = courseModule.Title,
-                    Description = courseModule.Description,
-                    Outcomes = courseModule.Outcomes,
-                    CreatedAt = courseModule.CreatedAt,
-                    UpdatedAt = courseModule.UpdatedAt
-                });
+                return Result.Failure<GetCourseModuleResponse>(HttpStatusCode.BadRequest,
+                    CommonErrors.ValidationFailed("CourseId does not reference this module"));
             }
 
-            await courseCourseModuleRepo.FindAll(x =>
-                    x.CourseId == targetCourseId && x.CourseModuleId == courseModule.Id)
-                .FirstOrDefaultAsync(cancellationToken);
+            var transaction = await _unitOfWork.BeginTransactionAsync();
+            transactionId = transaction.TransactionId;
 
-            _logger.LogInformation("End UpdateCourseModuleCommandHandler");
+            var newModule = new CourseModule
+            {
+                Id = Guid.NewGuid(),
+                TutorId = courseModule.TutorId,
+                ParentModuleId = courseModule.Id,
+                Title = command.Title,
+                Description = command.Description,
+                Outcomes = command.Outcomes
+            };
+
+            courseModuleRepo.Add(newModule);
+
+            var targetRelations = command.CourseId.HasValue
+                ? relations.Where(x => x.CourseId == command.CourseId.Value).ToList()
+                : relations;
+
+            foreach (var relation in targetRelations)
+            {
+                relation.CourseModuleId = newModule.Id;
+                courseCourseModuleRepo.Update(relation);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+            {
+                await _unitOfWork.CommitTransactionAsync();
+            }
+
+            var targetCourseId = targetRelations.Select(x => x.CourseId).FirstOrDefault();
             return Result.Success(new GetCourseModuleResponse
             {
-                Id = courseModule.Id,
+                Id = newModule.Id,
                 CourseId = targetCourseId,
-                Title = courseModule.Title,
-                Description = courseModule.Description,
-                Outcomes = courseModule.Outcomes,
-                CreatedAt = courseModule.CreatedAt,
-                UpdatedAt = courseModule.UpdatedAt
+                ParentModuleId = newModule.ParentModuleId,
+                Title = newModule.Title,
+                Description = newModule.Description,
+                Outcomes = newModule.Outcomes,
+                CreatedAt = newModule.CreatedAt,
+                UpdatedAt = newModule.UpdatedAt
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in UpdateCourseModuleCommandHandler: {Message}", ex.Message);
+            if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+            }
+
             return Result.Failure<GetCourseModuleResponse>(HttpStatusCode.InternalServerError,
                 CommonErrors.InternalServerError());
         }

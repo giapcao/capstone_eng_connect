@@ -4,6 +4,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseModules.DeleteCourseModule;
@@ -25,6 +26,7 @@ public class DeleteCourseModuleCommandHandler : ICommandHandler<DeleteCourseModu
         try
         {
             var courseModuleRepo = _unitOfWork.GetRepository<CourseModule, Guid>();
+            var courseCourseModuleRepo = _unitOfWork.GetRepository<CourseCourseModule, Guid>();
 
             var courseModule = await courseModuleRepo.FindSingleAsync(
                 x => x.Id == command.Id,
@@ -35,7 +37,14 @@ public class DeleteCourseModuleCommandHandler : ICommandHandler<DeleteCourseModu
                 return Result.Failure(HttpStatusCode.NotFound, new Error("CourseModuleNotFound", "Module không tồn tại"));
             }
 
-            courseModuleRepo.Delete(courseModule);
+            var relations = await courseCourseModuleRepo.FindAll(x => x.CourseModuleId == command.Id)
+                .ToListAsync(cancellationToken);
+
+            foreach (var relation in relations)
+            {
+                courseCourseModuleRepo.Delete(relation);
+            }
+
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("End DeleteCourseModuleCommandHandler");

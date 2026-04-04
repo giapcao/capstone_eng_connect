@@ -8,9 +8,17 @@ public record GetListLessonQuery : BaseQuery<PaginationResult<GetLessonResponse>
 {
     public string? Status { get; set; }
     
+    public Guid? CourseId { get; set; }
+    
+    public Guid? EnrollmentId { get; set; }
+    
     public Guid? TutorId { get; set; }
     
     public Guid? StudentId { get; set; }
+    
+    public Guid? ModuleId { get; set; }
+    
+    public Guid? SessionId { get; set; }
     
     public DateTime? StartTimeFrom { get; set; }
     

@@ -4,6 +4,7 @@ using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Persistence.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace EngConnect.Application.UseCases.CourseSessions.DeleteCourseSession;
@@ -25,6 +26,7 @@ public class DeleteCourseSessionCommandHandler : ICommandHandler<DeleteCourseSes
         try
         {
             var courseSessionRepo = _unitOfWork.GetRepository<CourseSession, Guid>();
+            var courseModuleCourseSessionRepo = _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>();
 
             var courseSession = await courseSessionRepo.FindSingleAsync(
                 x => x.Id == command.Id,
@@ -35,7 +37,14 @@ public class DeleteCourseSessionCommandHandler : ICommandHandler<DeleteCourseSes
                 return Result.Failure(HttpStatusCode.NotFound, new Error("CourseSessionNotFound", "Session không tồn tại"));
             }
 
-            courseSessionRepo.Delete(courseSession);
+            var relations = await courseModuleCourseSessionRepo.FindAll(x => x.CourseSessionId == command.Id)
+                .ToListAsync(cancellationToken);
+
+            foreach (var relation in relations)
+            {
+                courseModuleCourseSessionRepo.Delete(relation);
+            }
+
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("End DeleteCourseSessionCommandHandler");
