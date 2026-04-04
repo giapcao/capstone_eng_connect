@@ -35,7 +35,7 @@ public class GetSupportTicketMessageByIdQueryHandler : IQueryHandler<GetSupportT
             {
                 _logger.LogWarning("SupportTicketMessage not found: {id}", query.Id);
                 return Result.Failure<GetSupportTicketMessageResponse>(
-                    HttpStatusCode.NotFound,
+                    HttpStatusCode.BadRequest,
                     CommonErrors.NotFound<SupportTicketMessage>("Support Ticket Message"));
             }
 
