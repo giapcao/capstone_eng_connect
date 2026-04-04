@@ -10,6 +10,8 @@ public class UpdateLessonCommand : ICommand
     
     public Guid EnrollmentId { get; set; }
     
+    public Guid? ModuleId { get; set; }
+    
     public Guid? SessionId { get; set; }
     
     public DateTime? StartTime { get; set; }

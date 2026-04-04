@@ -1,8 +1,8 @@
 using System.Net;
+using EngConnect.Application.UseCases.Lessons.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
-using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.Persistence.Models;
@@ -21,50 +21,48 @@ public class CreateLessonCommandHandler : ICommandHandler<CreateLessonCommand>
         _logger = logger;
         _unitOfWork = unitOfWork;
     }
-    
+
     public async Task<Result> HandleAsync(CreateLessonCommand command, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Start CreateLessonCommandHandler: {@command}", command);
         try
         {
             var lesson = command.Adapt<Lesson>();
-            
-            var enrollment = await _unitOfWork.GetRepository<CourseEnrollment, Guid>()
-                .AnyAsync( x=>x.Id == lesson.EnrollmentId, cancellationToken: cancellationToken);
-            
-            if (!enrollment)
-            {
-                _logger.LogWarning("EnrollmentId does not exist: {enrollmentId}", command.EnrollmentId);
-                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<CourseEnrollment>("EnrollmentId"));
-            }
-            
-            var studentExists = await _unitOfWork.GetRepository<Student,Guid>()
-                .AnyAsync(x=>x.Id == lesson.StudentId, cancellationToken: cancellationToken);
-        
+
+            var studentExists = await _unitOfWork.GetRepository<Student, Guid>()
+                .AnyAsync(x => x.Id == lesson.StudentId, cancellationToken: cancellationToken);
+
             if (!studentExists)
             {
-                _logger.LogWarning("Student not found");
-                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<Student>("thông tin Học sinh."));
+                _logger.LogWarning("Student not found with ID: {StudentId}", command.StudentId);
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<Student>("thÃ´ng tin Há»c sinh."));
             }
 
-            if (lesson.SessionId.HasValue)
+            var trackingContext = await LessonTrackingContext.ResolveAsync(
+                _unitOfWork,
+                command.EnrollmentId,
+                command.StudentId,
+                command.ModuleId,
+                command.SessionId,
+                cancellationToken);
+
+            if (trackingContext.IsFailure)
             {
-                var sessionExists = await _unitOfWork.GetRepository<CourseSession, Guid>()
-                    .FindFirstAsync(x=>x.Id == lesson.SessionId, cancellationToken: cancellationToken);
-            
-                if (ValidationUtil.IsNullOrEmpty(sessionExists))
-                {
-                    _logger.LogWarning("Course session not found with ID: {SessionId}", lesson.SessionId);
-                    return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<CourseSession>("Buổi học (Session) không tồn tại."));
-                }
-                
+                _logger.LogWarning(
+                    "Invalid lesson tracking data for EnrollmentId {EnrollmentId}, ModuleId {ModuleId}, SessionId {SessionId}",
+                    command.EnrollmentId,
+                    command.ModuleId,
+                    command.SessionId);
+                return Result.Failure(trackingContext.HttpStatusCode, trackingContext.Error!);
             }
-            
+
+            lesson.TutorId = trackingContext.Data!.TutorId;
             lesson.Status = nameof(LessonStatus.Scheduled);
+
             _unitOfWork.GetRepository<Lesson, Guid>().Add(lesson);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("End CreateLessonCommandHandler");
-            
+
             return Result.Success(lesson);
         }
         catch (Exception ex)

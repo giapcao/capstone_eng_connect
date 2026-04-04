@@ -8,6 +8,7 @@ public class UpdateCourseSessionCommand : ICommand<GetCourseSessionResponse>
 {
     [JsonIgnore]
     public Guid Id { get; set; }
+    public Guid? CourseModuleId { get; set; }
     public string? Title { get; set; }
     public string? Description { get; set; }
     public string? Outcomes { get; set; }

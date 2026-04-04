@@ -59,16 +59,6 @@ public class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseRe
                     new Error("CourseSessionNotFound", "Session khong ton tai"));
             }
 
-            var hasPublishedCourse = courseSession.CourseModuleCourseSessions
-                .SelectMany(x => x.CourseModule.CourseCourseModules)
-                .Any(x => x.Course.Status == nameof(CourseStatus.Published));
-            if (hasPublishedCourse)
-            {
-                _logger.LogWarning("Course resources cannot be changed because course session {CourseSessionId} belongs to a published course", command.CourseSessionId);
-                return Result.Failure<GetCourseResourceResponse>(HttpStatusCode.BadRequest,
-                    CourseErrors.PublishedCourseCannotBeUpdated());
-            }
-
             var transaction = await _unitOfWork.BeginTransactionAsync();
             transactionId = transaction.TransactionId;
 
@@ -107,6 +97,7 @@ public class CreateCourseResourceCommandHandler : ICommandHandler<CreateCourseRe
             {
                 Id = courseResource.Id,
                 TutorId = courseResource.TutorId ?? Guid.Empty,
+                ParentResourceId = courseResource.ParentResourceId,
                 Title = courseResource.Title,
                 ResourceType = courseResource.ResourceType,
                 Url = _awsStorageService.GetFileUrl(courseResource.Url),

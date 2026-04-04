@@ -34,6 +34,10 @@ public class CreateCourseModuleCommandHandler : ICommandHandler<CreateCourseModu
             var courseModuleRepo = _unitOfWork.GetRepository<CourseModule, Guid>();
             var courseRepo = _unitOfWork.GetRepository<Course, Guid>();
             var courseCourseModuleRepo = _unitOfWork.GetRepository<CourseCourseModule, Guid>();
+            var courseModuleCourseSessionRepo = _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>();
+            var courseSessionRepo = _unitOfWork.GetRepository<CourseSession, Guid>();
+            var courseSessionCourseResourceRepo = _unitOfWork.GetRepository<CourseSessionCourseResource, Guid>();
+            var courseResourceRepo = _unitOfWork.GetRepository<CourseResource, Guid>();
 
             var course = await courseRepo.FindSingleAsync(x => x.Id == command.CourseId, cancellationToken: cancellationToken);
             if (course == null)
@@ -100,11 +104,87 @@ public class CreateCourseModuleCommandHandler : ICommandHandler<CreateCourseModu
 
                 foreach (var module in command.CourseModuleIdExists)
                 {
+                    var sourceModule = await courseModuleRepo.FindAll(x => x.Id == module.CourseModuleId)
+                        .Include(x => x.CourseModuleCourseSessions)
+                            .ThenInclude(x => x.CourseSession)
+                                .ThenInclude(x => x.CourseSessionCourseResources)
+                                    .ThenInclude(x => x.CourseResource)
+                        .FirstOrDefaultAsync(cancellationToken);
+                    if (sourceModule == null)
+                    {
+                        if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+                        {
+                            await _unitOfWork.RollbackTransactionAsync();
+                        }
+
+                        return Result.Failure<GetCourseModuleListResponse>(HttpStatusCode.NotFound,
+                            new Error("CourseModuleNotFound", "Course module not found"));
+                    }
+
+                    var clonedModuleId = Guid.NewGuid();
+                    courseModuleRepo.Add(new CourseModule
+                    {
+                        Id = clonedModuleId,
+                        TutorId = command.TutorId,
+                        ParentModuleId = sourceModule.Id,
+                        Title = sourceModule.Title,
+                        Description = sourceModule.Description,
+                        Outcomes = sourceModule.Outcomes
+                    });
+
+                    foreach (var sourceModuleSession in sourceModule.CourseModuleCourseSessions.OrderBy(x => x.SessionNumber).ThenBy(x => x.CreatedAt))
+                    {
+                        var sourceSession = sourceModuleSession.CourseSession;
+                        var clonedSessionId = Guid.NewGuid();
+
+                        courseSessionRepo.Add(new CourseSession
+                        {
+                            Id = clonedSessionId,
+                            TutorId = command.TutorId,
+                            ParentSessionId = sourceSession.Id,
+                            Title = sourceSession.Title,
+                            Description = sourceSession.Description,
+                            Outcomes = sourceSession.Outcomes
+                        });
+
+                        courseModuleCourseSessionRepo.Add(new CourseModuleCourseSession
+                        {
+                            Id = Guid.NewGuid(),
+                            CourseModuleId = clonedModuleId,
+                            CourseSessionId = clonedSessionId,
+                            SessionNumber = sourceModuleSession.SessionNumber
+                        });
+
+                        foreach (var sourceSessionResource in sourceSession.CourseSessionCourseResources.OrderBy(x => x.CreatedAt))
+                        {
+                            var sourceResource = sourceSessionResource.CourseResource;
+                            var clonedResourceId = Guid.NewGuid();
+
+                            courseResourceRepo.Add(new CourseResource
+                            {
+                                Id = clonedResourceId,
+                                TutorId = command.TutorId,
+                                ParentResourceId = sourceResource.Id,
+                                Title = sourceResource.Title,
+                                ResourceType = sourceResource.ResourceType,
+                                Url = sourceResource.Url,
+                                Status = sourceResource.Status
+                            });
+
+                            courseSessionCourseResourceRepo.Add(new CourseSessionCourseResource
+                            {
+                                Id = Guid.NewGuid(),
+                                CourseSessionId = clonedSessionId,
+                                CourseResourceId = clonedResourceId
+                            });
+                        }
+                    }
+
                     courseCourseModuleRepo.Add(new CourseCourseModule
                     {
                         Id = Guid.NewGuid(),
                         CourseId = command.CourseId,
-                        CourseModuleId = module.CourseModuleId,
+                        CourseModuleId = clonedModuleId,
                         ModuleNumber = module.ModuleNumber
                     });
                 }
@@ -126,6 +206,7 @@ public class CreateCourseModuleCommandHandler : ICommandHandler<CreateCourseModu
                 {
                     Id = x.CourseModuleId,
                     CourseId = x.CourseId,
+                    ParentModuleId = x.CourseModule.ParentModuleId,
                     Title = x.CourseModule.Title,
                     Description = x.CourseModule.Description,
                     Outcomes = x.CourseModule.Outcomes,

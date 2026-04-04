@@ -3,6 +3,7 @@ using EngConnect.Application.UseCases.CourseSessions.Common;
 using EngConnect.BuildingBlock.Application.Base;
 using EngConnect.BuildingBlock.Contracts.Abstraction;
 using EngConnect.BuildingBlock.Contracts.Shared;
+using EngConnect.BuildingBlock.Contracts.Shared.Utils;
 using EngConnect.BuildingBlock.Domain.DomainErrors;
 using EngConnect.Domain.Constants;
 using EngConnect.Domain.DomainErrors;
@@ -26,6 +27,7 @@ public class UpdateCourseSessionCommandHandler : ICommandHandler<UpdateCourseSes
     public async Task<Result<GetCourseSessionResponse>> HandleAsync(UpdateCourseSessionCommand command,
         CancellationToken cancellationToken = default)
     {
+        Guid? transactionId = null;
         _logger.LogInformation("Start UpdateCourseSessionCommandHandler {@Command}", command);
         try
         {
@@ -60,47 +62,65 @@ public class UpdateCourseSessionCommandHandler : ICommandHandler<UpdateCourseSes
                     CourseSessionErrors.CourseSessionIsInUse());
             }
 
-            courseSession.Title = command.Title;
-            courseSession.Description = command.Description;
-            courseSession.Outcomes = command.Outcomes;
-
-            courseSessionRepo.Update(courseSession);
-            await _unitOfWork.SaveChangesAsync();
-
-            var targetModuleId = relations.Select(x => x.CourseModuleId).FirstOrDefault();
-            if (targetModuleId == Guid.Empty)
+            if (command.CourseModuleId.HasValue && relations.All(x => x.CourseModuleId != command.CourseModuleId.Value))
             {
-                return Result.Success(new GetCourseSessionResponse
-                {
-                    Id = courseSession.Id,
-                    ModuleId = Guid.Empty,
-                    Title = courseSession.Title,
-                    Description = courseSession.Description,
-                    Outcomes = courseSession.Outcomes,
-                    CreatedAt = courseSession.CreatedAt,
-                    UpdatedAt = courseSession.UpdatedAt
-                });
+                return Result.Failure<GetCourseSessionResponse>(HttpStatusCode.BadRequest,
+                    CommonErrors.ValidationFailed("CourseModuleId does not reference this session"));
             }
 
-            await courseModuleCourseSessionRepo.FindAll(x =>
-                    x.CourseModuleId == targetModuleId && x.CourseSessionId == courseSession.Id)
-                .FirstOrDefaultAsync(cancellationToken);
+            var transaction = await _unitOfWork.BeginTransactionAsync();
+            transactionId = transaction.TransactionId;
 
-            _logger.LogInformation("End UpdateCourseSessionCommandHandler");
+            var newSession = new CourseSession
+            {
+                Id = Guid.NewGuid(),
+                TutorId = courseSession.TutorId,
+                ParentSessionId = courseSession.Id,
+                Title = command.Title,
+                Description = command.Description,
+                Outcomes = command.Outcomes
+            };
+
+            courseSessionRepo.Add(newSession);
+
+            var targetRelations = command.CourseModuleId.HasValue
+                ? relations.Where(x => x.CourseModuleId == command.CourseModuleId.Value).ToList()
+                : relations;
+
+            foreach (var relation in targetRelations)
+            {
+                relation.CourseSessionId = newSession.Id;
+                courseModuleCourseSessionRepo.Update(relation);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+            {
+                await _unitOfWork.CommitTransactionAsync();
+            }
+
+            var targetModuleId = targetRelations.Select(x => x.CourseModuleId).FirstOrDefault();
             return Result.Success(new GetCourseSessionResponse
             {
-                Id = courseSession.Id,
+                Id = newSession.Id,
                 ModuleId = targetModuleId,
-                Title = courseSession.Title,
-                Description = courseSession.Description,
-                Outcomes = courseSession.Outcomes,
-                CreatedAt = courseSession.CreatedAt,
-                UpdatedAt = courseSession.UpdatedAt
+                ParentSessionId = newSession.ParentSessionId,
+                Title = newSession.Title,
+                Description = newSession.Description,
+                Outcomes = newSession.Outcomes,
+                CreatedAt = newSession.CreatedAt,
+                UpdatedAt = newSession.UpdatedAt
             });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error occurred in UpdateCourseSessionCommandHandler: {Message}", ex.Message);
+            if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+            }
+
             return Result.Failure<GetCourseSessionResponse>(HttpStatusCode.InternalServerError,
                 CommonErrors.InternalServerError());
         }

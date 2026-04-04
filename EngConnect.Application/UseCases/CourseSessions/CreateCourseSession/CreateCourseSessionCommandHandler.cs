@@ -34,6 +34,8 @@ public class CreateCourseSessionCommandHandler : ICommandHandler<CreateCourseSes
             var courseSessionRepo = _unitOfWork.GetRepository<CourseSession, Guid>();
             var courseModuleRepo = _unitOfWork.GetRepository<CourseModule, Guid>();
             var courseModuleCourseSessionRepo = _unitOfWork.GetRepository<CourseModuleCourseSession, Guid>();
+            var courseSessionCourseResourceRepo = _unitOfWork.GetRepository<CourseSessionCourseResource, Guid>();
+            var courseResourceRepo = _unitOfWork.GetRepository<CourseResource, Guid>();
 
             var courseModule = await courseModuleRepo.FindAll(x => x.Id == command.CourseModuleId)
                 .Include(x => x.CourseCourseModules)
@@ -103,13 +105,63 @@ public class CreateCourseSessionCommandHandler : ICommandHandler<CreateCourseSes
 
                 foreach (var session in command.CourseSessionIdExists)
                 {
+                    var sourceSession = await courseSessionRepo.FindAll(x => x.Id == session.CourseSessionId)
+                        .Include(x => x.CourseSessionCourseResources)
+                            .ThenInclude(x => x.CourseResource)
+                        .FirstOrDefaultAsync(cancellationToken);
+                    if (sourceSession == null)
+                    {
+                        if (ValidationUtil.IsNotNullOrEmpty(transactionId))
+                        {
+                            await _unitOfWork.RollbackTransactionAsync();
+                        }
+
+                        return Result.Failure<GetCourseSessionListResponse>(HttpStatusCode.NotFound,
+                            new Error("CourseSessionNotFound", "Course session not found"));
+                    }
+
+                    var clonedSessionId = Guid.NewGuid();
+                    courseSessionRepo.Add(new CourseSession
+                    {
+                        Id = clonedSessionId,
+                        TutorId = command.TutorId,
+                        ParentSessionId = sourceSession.Id,
+                        Title = sourceSession.Title,
+                        Description = sourceSession.Description,
+                        Outcomes = sourceSession.Outcomes
+                    });
+
                     courseModuleCourseSessionRepo.Add(new CourseModuleCourseSession
                     {
                         Id = Guid.NewGuid(),
                         CourseModuleId = command.CourseModuleId,
-                        CourseSessionId = session.CourseSessionId,
+                        CourseSessionId = clonedSessionId,
                         SessionNumber = session.SessionNumber
                     });
+
+                    foreach (var sourceSessionResource in sourceSession.CourseSessionCourseResources.OrderBy(x => x.CreatedAt))
+                    {
+                        var sourceResource = sourceSessionResource.CourseResource;
+                        var clonedResourceId = Guid.NewGuid();
+
+                        courseResourceRepo.Add(new CourseResource
+                        {
+                            Id = clonedResourceId,
+                            TutorId = command.TutorId,
+                            ParentResourceId = sourceResource.Id,
+                            Title = sourceResource.Title,
+                            ResourceType = sourceResource.ResourceType,
+                            Url = sourceResource.Url,
+                            Status = sourceResource.Status
+                        });
+
+                        courseSessionCourseResourceRepo.Add(new CourseSessionCourseResource
+                        {
+                            Id = Guid.NewGuid(),
+                            CourseSessionId = clonedSessionId,
+                            CourseResourceId = clonedResourceId
+                        });
+                    }
                 }
             }
 
@@ -129,6 +181,7 @@ public class CreateCourseSessionCommandHandler : ICommandHandler<CreateCourseSes
                 {
                     Id = x.CourseSessionId,
                     ModuleId = x.CourseModuleId,
+                    ParentSessionId = x.CourseSession.ParentSessionId,
                     Title = x.CourseSession.Title,
                     Description = x.CourseSession.Description,
                     Outcomes = x.CourseSession.Outcomes,

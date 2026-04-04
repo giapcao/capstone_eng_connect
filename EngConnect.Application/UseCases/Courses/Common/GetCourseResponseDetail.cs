@@ -18,6 +18,7 @@ public class GetCourseModuleResponseInCourse
 {
     public Guid Id { get; set; }
     public Guid CourseModuleId {get; set;}
+    public Guid? ParentModuleId { get; set; }
     public string ModuleTitle { get; set; } = null!;
     public string? ModuleDescription { get; set; }
     public string? ModuleOutcomes { get; set; }
@@ -29,6 +30,7 @@ public class GetSessonResponseInCourseModule
 {
     public Guid Id { get; set; }
     public Guid CourseSessionId { get; set; }
+    public Guid? ParentSessionId { get; set; }
     public string? SessionTitle { get; set; }
     public string? SessionDescription { get; set; }
     public string? SessionOutcomes { get; set; }

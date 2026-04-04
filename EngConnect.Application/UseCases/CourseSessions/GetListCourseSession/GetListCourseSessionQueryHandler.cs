@@ -38,6 +38,7 @@ public class GetListCourseSessionQueryHandler : IQueryHandler<GetListCourseSessi
                 {
                     Id = x.CourseSessionId,
                     ModuleId = x.CourseModuleId,
+                    ParentSessionId = x.CourseSession.ParentSessionId,
                     Title = x.CourseSession.Title,
                     Description = x.CourseSession.Description,
                     Outcomes = x.CourseSession.Outcomes,

@@ -23,6 +23,9 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
 
         builder.Property(e => e.EnrollmentId)
             .HasColumnName("enrollment_id");
+        
+        builder.Property(e => e.ModuleId)
+            .HasColumnName("module_id");
 
         builder.Property(e => e.SessionId)
             .HasColumnName("session_id");
@@ -70,6 +73,11 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
             .HasForeignKey(d => d.EnrollmentId)
             .OnDelete(DeleteBehavior.ClientSetNull)
             .HasConstraintName("fk_lesson_enrollment");
+        
+        builder.HasOne(d => d.Module)
+            .WithMany(p => p.Lessons)
+            .HasForeignKey(d => d.ModuleId)
+            .HasConstraintName("fk_lesson_module");
 
         builder.HasOne(d => d.Session)
             .WithMany(p => p.Lessons)

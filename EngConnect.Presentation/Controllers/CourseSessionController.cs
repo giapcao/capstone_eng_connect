@@ -3,6 +3,7 @@ using EngConnect.Application.UseCases.CourseSessions.Common;
 using EngConnect.Application.UseCases.CourseSessions.CreateCourseSession;
 using EngConnect.Application.UseCases.CourseSessions.DeleteCourseSession;
 using EngConnect.Application.UseCases.CourseSessions.GetCourseSessionById;
+using EngConnect.Application.UseCases.CourseSessions.GetCourseSessionTree;
 using EngConnect.Application.UseCases.CourseSessions.GetListCourseSession;
 using EngConnect.Application.UseCases.CourseSessions.GetListCourseSessionByTutor;
 using EngConnect.Application.UseCases.CourseSessions.UpdateCourseSession;
@@ -76,6 +77,19 @@ public class CourseSessionController : BaseApiController
     public async Task<IActionResult> GetByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken = default)
     {
         var query = new GetCourseSessionByIdQuery(id);
+        var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
+        return FromResult(result);
+    }
+
+    /// <summary>
+    /// Lay cay parent cua CourseSession theo ID (chi di nguoc len parent chain)
+    /// </summary>
+    [HttpGet("{id}/tree")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(Result<GetCourseSessionTreeResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTreeByIdAsync([FromRoute] Guid id, CancellationToken cancellationToken = default)
+    {
+        var query = new GetCourseSessionTreeQuery(id);
         var result = await _queryDispatcher.DispatchAsync(query, cancellationToken);
         return FromResult(result);
     }
