@@ -42,8 +42,6 @@ public class Lesson : AuditableEntity<Guid>
     
     public virtual CourseModule? Module { get; set; }
     
-    public virtual CourseModule? Module { get; set; }
-    
     public virtual CourseSession? Session { get; set; }
 
     public virtual Student Student { get; set; } = null!;
