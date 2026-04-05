@@ -27,21 +27,19 @@ public class UpdateStudentCommandHandler : ICommandHandler<UpdateStudentCommand>
         try
         {
             var studentExist = await _unitOfWork.GetRepository<Student, Guid>()
-                .AnyAsync(x => x.Id == command.Id && x.UserId == command.UserId, cancellationToken);
+                .FindByIdAsync(command.Id, cancellationToken: cancellationToken);
             
-            if (!studentExist)
+            if (studentExist == null)
             {
                 _logger.LogWarning( " Id không tồn tại {id}", command.Id);
-                return Result.Failure(HttpStatusCode.NotFound, CommonErrors.NotFound<Domain.Persistence.Models.User>("Id"));
+                return Result.Failure(HttpStatusCode.BadRequest, CommonErrors.NotFound<Domain.Persistence.Models.User>("Id"));
             }
 
-            var studentEntity = command.Adapt<Student>();
-            
-            _unitOfWork.GetRepository<Student, Guid>().Update(studentEntity);
+            command.Adapt(studentExist);
             await _unitOfWork.SaveChangesAsync();
             
             _logger.LogInformation("End UpdateStudentCommandHandler");
-            return Result.Success(studentEntity);
+            return Result.Success(studentExist);
         }
         catch (Exception ex)
         {
