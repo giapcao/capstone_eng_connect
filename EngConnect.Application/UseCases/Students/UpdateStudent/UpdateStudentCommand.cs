@@ -6,8 +6,6 @@ public class UpdateStudentCommand :  ICommand
 {
     public Guid Id {get;set;}
     
-    public Guid UserId {get;set;}
-    
     public string? Notes { get; set; }
 
     public string? School { get; set; }

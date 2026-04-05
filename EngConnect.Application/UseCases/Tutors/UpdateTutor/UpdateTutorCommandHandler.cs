@@ -45,7 +45,7 @@ namespace EngConnect.Application.UseCases.Tutors.UpdateTutor
 
                 if (entity is null)
                 {
-                    return Result.Failure<bool>(HttpStatusCode.NotFound, TutorErrors.TutorNotFound());
+                    return Result.Failure<bool>(HttpStatusCode.BadRequest, TutorErrors.TutorNotFound());
                 }
 
                 entity.Headline = command.Request.Headline ?? entity.Headline;
@@ -53,7 +53,6 @@ namespace EngConnect.Application.UseCases.Tutors.UpdateTutor
                 entity.MonthExperience = command.Request.MonthExperience ?? entity.MonthExperience;
                 entity.Status = command.Request.Status ?? entity.Status;
                 
-                repo.Update(entity);
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogInformation("End UpdateTutorCommandHandler");

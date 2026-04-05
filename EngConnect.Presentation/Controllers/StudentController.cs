@@ -131,14 +131,13 @@ public class StudentController : BaseApiController
     /// <param name="id"></param>
     /// <param name="command"></param>
     /// <param name="cancellationToken"></param>
-    /// <param name="userId"></param>
     /// <returns></returns>
     [HttpPut("{id:guid}")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(Result), StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpdateStudentAsync([FromQuery] Guid userId, [FromRoute] Guid id,[FromBody] UpdateStudentCommand command, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> UpdateStudentAsync([FromRoute] Guid id,[FromBody] UpdateStudentCommand command, CancellationToken cancellationToken = default)
     {
-        command.Id = id; command.UserId = userId;
+        command.Id = id; 
         var result = await _commandDispatcher.DispatchAsync( command, cancellationToken);
         return FromResult(result);
     }
